@@ -1,0 +1,2 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Las Veraneras</title></head><body><h1>Las Veraneras</h1><div id="menu"></div><script>fetch('data/menu.json').then(r=>r.json()).then(d=>{let h='';d.categories.forEach(c=>{h+=`<h2>${c.name.es}</h2>`;c.items.forEach(i=>{h+=`<div>${i.name.es} ₡${i.price}</div>`})});document.getElementById('menu').innerHTML=h});</script></body></html>
