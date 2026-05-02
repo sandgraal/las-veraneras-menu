@@ -29,11 +29,14 @@
     <input id="search" type="search" placeholder="Buscar / Search" oninput="render()" aria-label="Search menu">
   </section>
   <nav id="filters" class="filters" aria-label="Categories"></nav>
+  <section id="conversion" class="conversion" aria-label="Combos and popular items"></section>
   <section id="featured" class="featured" aria-label="Featured dishes"></section>
   <section id="menu" class="menu" aria-live="polite"></section>
 </main>
+<section id="upsell" class="upsell" aria-live="polite"></section>
 <section id="cart" class="cart" aria-live="polite">
   <div class="cart-header"><strong id="cart-title">Pedido</strong><button onclick="toggleCart()">×</button></div>
+  <p class="cart-nudge" id="cart-nudge">🚀 Pedido listo para enviar</p>
   <div id="cart-items"></div>
   <div class="cart-total"><span>Total</span><strong id="cart-total">₡0</strong></div>
   <textarea id="order-notes" placeholder="Notas: sin cebolla, para llevar, mesa 3..."></textarea>
@@ -44,31 +47,42 @@
   <p>Las Veraneras · Las Vueltas de Tucurrique</p>
 </footer>
 <script>
-let lang='es';
-let selected='all';
-let menuData={categories:[]};
-let cart=JSON.parse(localStorage.getItem('lv-cart')||'{}');
+let lang='es';let selected='all';let menuData={categories:[]};let cart=JSON.parse(localStorage.getItem('lv-cart')||'{}');
 const whatsappNumber='';
 const labels={
-  es:{all:'Todo',noResults:'No hay resultados',featured:'Recomendados',popular:'Popular',share:'Compartir',add:'Agregar',order:'Enviar pedido',copied:'Pedido copiado. Agrega el número de WhatsApp para enviar directo.'},
-  en:{all:'All',noResults:'No results',featured:'Top Picks',popular:'Popular',share:'Share',add:'Add',order:'Send order',copied:'Order copied. Add the WhatsApp number to send directly.'}
+ es:{all:'Todo',noResults:'No hay resultados',featured:'Recomendados',popular:'Muy pedido',share:'Compartir',add:'Agregar',order:'Enviar pedido',copied:'Pedido copiado. Agrega el número de WhatsApp para enviar directo.',combos:'Combos fáciles',most:'Más pedidos',upsell:'¿Le sumamos algo?',addThis:'Agregar',ready:'🚀 Pedido listo para enviar'},
+ en:{all:'All',noResults:'No results',featured:'Top Picks',popular:'Most ordered',share:'Share',add:'Add',order:'Send order',copied:'Order copied. Add the WhatsApp number to send directly.',combos:'Easy Combos',most:'Most Ordered',upsell:'Add something else?',addThis:'Add',ready:'🚀 Order ready to send'}
 };
+const combos=[
+ {id:'combo-snack',emoji:'🍔',name:{es:'Combo Antojo',en:'Craving Combo'},description:{es:'Hamburguesa con papas + helado',en:'Burger & fries + ice cream'},items:['burger','helado'],price:'4300',tag:{es:'Rápido y popular',en:'Fast and popular'}},
+ {id:'combo-amigos',emoji:'🔥',name:{es:'Combo Amigos',en:'Friends Combo'},description:{es:'Nachos + 3x1 tacos arreglados + salchipapas',en:'Nachos + loaded tacos + sausage fries'},items:['nachos','tacos-arreglados','salchipapas'],price:'7200',tag:{es:'Para compartir',en:'Shareable'}},
+ {id:'combo-casero',emoji:'🍽️',name:{es:'Combo Casero',en:'House Combo'},description:{es:'Chifrijo + papas a la francesa',en:'Chifrijo + french fries'},items:['chifrijo','papas'],price:'6000',tag:{es:'Recomendado',en:'Recommended'}}
+];
+const upsells={burger:['helado','papas'],nachos:['mayo','tacos-arreglados'],chifrijo:['papas'],salchipapas:['mayo'],pollo-francesa:['papas'],arroz-camarones:['papas'],camarones:['papas'],tilapia:['papas']};
 function allItems(){return menuData.categories.flatMap((c,ci)=>c.items.map(i=>({...i,category:c,categoryIndex:ci})));}
-function saveCart(){localStorage.setItem('lv-cart',JSON.stringify(cart));renderCart();}
-function setLang(l){lang=l;document.documentElement.lang=l;document.getElementById('btn-es').classList.toggle('active',l==='es');document.getElementById('btn-en').classList.toggle('active',l==='en');document.getElementById('cart-title').textContent=l==='es'?'Pedido':'Order';document.querySelector('.checkout').textContent=labels[l].order;renderFilters();renderFeatured();render();renderCart();}
+function findItem(id){return allItems().find(i=>i.id===id)}
+function saveCart(){localStorage.setItem('lv-cart',JSON.stringify(cart));renderCart();render();renderFeatured();renderConversion();}
+function setLang(l){lang=l;document.documentElement.lang=l;document.getElementById('btn-es').classList.toggle('active',l==='es');document.getElementById('btn-en').classList.toggle('active',l==='en');document.getElementById('cart-title').textContent=l==='es'?'Pedido':'Order';document.querySelector('.checkout').textContent=labels[l].order;document.getElementById('cart-nudge').textContent=labels[l].ready;renderFilters();renderConversion();renderFeatured();render();renderCart();}
 function setCategory(id){selected=id;renderFilters();render();}
 function formatPrice(value){return '₡'+String(value).replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
-async function load(){menuData=await fetch('data/menu.json').then(r=>r.json());renderFilters();renderFeatured();render();renderCart();const params=new URLSearchParams(location.search);const item=params.get('item');if(item)setTimeout(()=>focusItem(item),500);if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js').catch(()=>{});}}
+async function load(){menuData=await fetch('data/menu.json').then(r=>r.json());renderFilters();renderConversion();renderFeatured();render();renderCart();const params=new URLSearchParams(location.search);const item=params.get('item');if(item)setTimeout(()=>focusItem(item),500);if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js').catch(()=>{});}}
 function renderFilters(){const root=document.getElementById('filters');const items=[`<button class="${selected==='all'?'active':''}" onclick="setCategory('all')">${labels[lang].all}</button>`];menuData.categories.forEach((c,idx)=>items.push(`<button class="${selected===String(idx)?'active':''}" onclick="setCategory('${idx}')">${c.emoji||''} ${c.name[lang]}</button>`));root.innerHTML=items.join('');}
-function itemCard(i,compact=false){const badge=i.popular?`<span class="badge">🔥 ${labels[lang].popular}</span>`:'';const img=i.image?`<img loading="lazy" src="${i.image}" alt="${i.name[lang]}" onerror="this.closest('.dish').classList.add('no-image')">`:'';return `<article class="dish ${compact?'compact':''}" id="item-${i.id}">${img}<div class="dish-body">${badge}<h3>${i.name[lang]}</h3><p>${i.description?.[lang]||''}</p><div class="dish-bottom"><strong>${formatPrice(i.price)}</strong><div class="actions"><button onclick="addToCart('${i.id}')">＋ ${labels[lang].add}</button><button onclick="shareItem('${i.id}')">↗</button></div></div></div></article>`;}
+function qtyControls(id){const qty=cart[id]||0;return qty?`<div class="stepper"><button onclick="changeQty('${id}',-1)">−</button><span>${qty}</span><button onclick="addToCart('${id}',false)">+</button></div>`:`<button class="add-btn" onclick="addToCart('${id}',true)">＋ ${labels[lang].add}</button>`;}
+function itemCard(i,compact=false){const badge=i.popular?`<span class="badge">🔥 ${labels[lang].popular}</span>`:'';const img=i.image?`<img loading="lazy" src="${i.image}" alt="${i.name[lang]}" onerror="this.closest('.dish').classList.add('no-image')">`:'';return `<article class="dish ${compact?'compact':''} ${i.popular?'popular-dish':''}" id="item-${i.id}">${img}<div class="dish-body">${badge}<h3>${i.name[lang]}</h3><p>${i.description?.[lang]||''}</p><div class="dish-bottom"><strong>${formatPrice(i.price)}</strong><div class="actions">${qtyControls(i.id)}<button aria-label="${labels[lang].share}" onclick="shareItem('${i.id}')">↗</button></div></div></div></article>`;}
+function comboCard(c){return `<article class="combo-card"><div class="combo-top"><span>${c.emoji}</span><b>${c.tag[lang]}</b></div><h3>${c.name[lang]}</h3><p>${c.description[lang]}</p><div class="dish-bottom"><strong>${formatPrice(c.price)}</strong><button onclick="addCombo('${c.id}')">＋ ${labels[lang].add}</button></div></article>`;}
+function renderConversion(){const popular=allItems().filter(i=>i.popular).slice(0,5);document.getElementById('conversion').innerHTML=`<div class="section-title"><span>💸</span><h2>${labels[lang].combos}</h2></div><div class="combo-row">${combos.map(comboCard).join('')}</div><div class="section-title"><span>🔥</span><h2>${labels[lang].most}</h2></div><div class="popular-row">${popular.map(i=>`<button onclick="focusItem('${i.id}')">${i.name[lang]} <b>${formatPrice(i.price)}</b></button>`).join('')}</div>`;}
 function renderFeatured(){const featured=allItems().filter(i=>i.featured).slice(0,8);document.getElementById('featured').innerHTML=featured.length?`<div class="section-title"><span>⭐</span><h2>${labels[lang].featured}</h2></div><div class="featured-row">${featured.map(i=>itemCard(i,true)).join('')}</div>`:'';}
 function render(){const q=document.getElementById('search').value.trim().toLowerCase();const root=document.getElementById('menu');let html='';menuData.categories.forEach((c,idx)=>{if(selected!=='all'&&selected!==String(idx))return;const matched=c.items.filter(i=>{const hay=[i.name.es,i.name.en,i.description?.es||'',i.description?.en||''].join(' ').toLowerCase();return !q||hay.includes(q);});if(!matched.length)return;html+=`<article class="category"><div class="section-title"><span>${c.emoji||'🍴'}</span><h2>${c.name[lang]}</h2></div><div class="grid">${matched.map(i=>itemCard(i)).join('')}</div></article>`;});root.innerHTML=html||`<p class="empty">${labels[lang].noResults}</p>`;}
-function focusItem(id){const el=document.getElementById('item-'+id);if(!el)return;el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('spotlight');setTimeout(()=>el.classList.remove('spotlight'),2500);}
+function focusItem(id){const el=document.getElementById('item-'+id);if(!el){selected='all';renderFilters();render();setTimeout(()=>focusItem(id),100);return;}el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('spotlight');setTimeout(()=>el.classList.remove('spotlight'),2500);}
 function surpriseMe(){const items=allItems();const pick=items[Math.floor(Math.random()*items.length)];selected='all';renderFilters();render();setTimeout(()=>focusItem(pick.id),100);}
-function addToCart(id){cart[id]=(cart[id]||0)+1;saveCart();document.getElementById('cart-fab').classList.add('bounce');setTimeout(()=>document.getElementById('cart-fab').classList.remove('bounce'),400);}
+function addToCart(id,show=true){cart[id]=(cart[id]||0)+1;saveCart();document.getElementById('cart-fab').classList.add('bounce');setTimeout(()=>document.getElementById('cart-fab').classList.remove('bounce'),400);if(show)showUpsell(id);}
+function addCombo(id){const combo=combos.find(c=>c.id===id);if(!combo)return;combo.items.forEach(itemId=>cart[itemId]=(cart[itemId]||0)+1);saveCart();toggleCartOpen();}
 function changeQty(id,delta){cart[id]=(cart[id]||0)+delta;if(cart[id]<=0)delete cart[id];saveCart();}
+function showUpsell(id){const picks=(upsells[id]||[]).map(findItem).filter(Boolean).slice(0,2);if(!picks.length)return;const box=document.getElementById('upsell');box.innerHTML=`<div class="upsell-card"><button class="upsell-close" onclick="hideUpsell()">×</button><h3>${labels[lang].upsell}</h3>${picks.map(i=>`<button onclick="addToCart('${i.id}',false);hideUpsell()">＋ ${i.name[lang]} <b>${formatPrice(i.price)}</b></button>`).join('')}</div>`;box.classList.add('open');setTimeout(()=>box.classList.remove('open'),6500);}
+function hideUpsell(){document.getElementById('upsell').classList.remove('open');}
 function renderCart(){const items=allItems();const rows=Object.entries(cart).map(([id,qty])=>{const item=items.find(i=>i.id===id);if(!item)return'';return `<div class="cart-row"><span>${qty}× ${item.name[lang]}</span><strong>${formatPrice(Number(item.price)*qty)}</strong><div><button onclick="changeQty('${id}',-1)">−</button><button onclick="changeQty('${id}',1)">+</button></div></div>`;}).join('');document.getElementById('cart-items').innerHTML=rows||'<p class="empty">Sin items</p>';const total=Object.entries(cart).reduce((s,[id,qty])=>{const item=items.find(i=>i.id===id);return s+(item?Number(item.price)*qty:0);},0);document.getElementById('cart-total').textContent=formatPrice(total);document.getElementById('cart-count').textContent=Object.values(cart).reduce((a,b)=>a+b,0);}
 function toggleCart(){document.getElementById('cart').classList.toggle('open');}
+function toggleCartOpen(){document.getElementById('cart').classList.add('open');}
 function orderText(){const items=allItems();const lines=Object.entries(cart).map(([id,qty])=>{const item=items.find(i=>i.id===id);return item?`${qty} x ${item.name.es} / ${item.name.en} - ${formatPrice(Number(item.price)*qty)}`:'';}).filter(Boolean);const total=Object.entries(cart).reduce((s,[id,qty])=>{const item=items.find(i=>i.id===id);return s+(item?Number(item.price)*qty:0);},0);const notes=document.getElementById('order-notes').value.trim();return `Hola Las Veraneras, quiero pedir:\n${lines.join('\n')}\nTotal: ${formatPrice(total)}${notes?'\nNotas: '+notes:''}`;}
 async function checkout(){const text=orderText();if(!Object.keys(cart).length)return;if(whatsappNumber){location.href=`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;}else{await navigator.clipboard.writeText(text).catch(()=>{});alert(labels[lang].copied);}}
 async function shareItem(id){const item=allItems().find(i=>i.id===id);if(!item)return;const url=new URL(location.href);url.searchParams.set('item',id);const text=`${item.name[lang]} · ${formatPrice(item.price)} · Las Veraneras`;if(navigator.share){await navigator.share({title:item.name[lang],text,url:url.toString()}).catch(()=>{});}else{await navigator.clipboard.writeText(`${text} ${url}`).catch(()=>{});alert(lang==='es'?'Enlace copiado':'Link copied');}}
