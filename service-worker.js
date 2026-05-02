@@ -1,4 +1,4 @@
-const CACHE = 'las-veraneras-v9';
+const CACHE = 'las-veraneras-v10';
 const STATIC = ['./','index.html','styles.css','app.js','manifest.json','data/menu.json','data/combos.json'];
 const FRESH = ['data/config.json','data/specials.json','data/combos.json'];
 
@@ -45,7 +45,7 @@ self.addEventListener('fetch', e => {
     e.respondWith(
       fetch(e.request)
         .then(res => { caches.open(CACHE).then(c => c.put(e.request, res.clone())); return res; })
-        .catch(() => caches.match(e.request).then(c => c || caches.match('./')))
+        .catch(() => caches.match(e.request, {ignoreSearch: true}).then(c => c || caches.match('./', {ignoreSearch: true})))
     );
     return;
   }

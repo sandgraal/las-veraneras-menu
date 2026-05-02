@@ -3,15 +3,17 @@
   "tagline": "Bistro tropical franco-tico en el corazón de Tucurrique",
   "taglineEn": "A tropical French-Tico bistro in the heart of Tucurrique",
   "taglineFr": "Un bistrot franco-tico tropical au coeur de Tucurrique",
-  "ownerName": "Jean-Luc",
+  "ownerName": "Pierre Blondin",
   "brandStory": {
-    "es": "Las Veraneras une el oficio de un cocinero francés viviendo en Costa Rica con la generosidad de las montañas de Tucurrique. Aquí la salsa francesa se sirve con arroz blanco, las crepas conviven con chifrijo, y cada plato busca sentirse familiar sin perder el detalle artesanal.",
-    "en": "Las Veraneras blends the craft of a French cook living in Costa Rica with the warmth of the Tucurrique mountains. French sauces sit beside white rice, crepes share the table with chifrijo, and every dish is designed to feel familiar while still carrying a handmade touch.",
-    "fr": "Las Veraneras marie le savoir-faire d'un cuisinier francais installe au Costa Rica avec la chaleur des montagnes de Tucurrique. Les sauces francaises accompagnent le riz blanc, les crepes partagent la table avec le chifrijo, et chaque plat garde une touche artisanale."
+    "es": "Las Veraneras une el oficio de Pierre Blondin, un cocinero francés viviendo en Costa Rica, con la generosidad de las montañas de Tucurrique. Aquí la salsa francesa se sirve con arroz blanco, las crepas conviven con chifrijo, y cada plato busca sentirse familiar sin perder el detalle artesanal.",
+    "en": "Las Veraneras blends the craft of Pierre Blondin, a French cook living in Costa Rica, with the warmth of the Tucurrique mountains. French sauces sit beside white rice, crepes share the table with chifrijo, and every dish is designed to feel familiar while still carrying a handmade touch.",
+    "fr": "Las Veraneras marie le savoir-faire de Pierre Blondin, cuisinier francais installe au Costa Rica, avec la chaleur des montagnes de Tucurrique. Les sauces francaises accompagnent le riz blanc, les crepes partagent la table avec le chifrijo, et chaque plat garde une touche artisanale."
   },
   "whatsappNumber": "50664274326",
   "heroImage": "https://images.pexels.com/photos/34980252/pexels-photo-34980252.jpeg?auto=compress&cs=tinysrgb&w=1800",
-  "storyImage": "https://images.pexels.com/photos/19938719/pexels-photo-19938719.jpeg?auto=compress&cs=tinysrgb&w=1200",
+  "storyImage": "https://images.unsplash.com/photo-1726859190454-fbbc19e8202d?auto=format&fit=crop&w=800&q=80",
+  "storyImageSource": "https://unsplash.com/photos/a-hillside-covered-in-lots-of-orange-flowers-7mvOyURq67E",
+  "storyImageCurationNote": "Costa Rican mountain hillside with orange flowers; selected after rejecting exact Orosi/Cartago stock and noncommercial copies for licensing reasons.",
   "address": "Las Vueltas de Tucurrique, Cartago, Costa Rica",
   "phone": "",
   "geo": {

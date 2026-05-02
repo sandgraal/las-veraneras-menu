@@ -19,7 +19,8 @@ let siteConfig = {
   taglineFr: 'Un bistrot franco-tico tropical au coeur de Tucurrique',
   whatsappNumber: '',
   heroImage: 'https://images.pexels.com/photos/34980252/pexels-photo-34980252.jpeg?auto=compress&cs=tinysrgb&w=1800',
-  storyImage: 'https://images.pexels.com/photos/19938719/pexels-photo-19938719.jpeg?auto=compress&cs=tinysrgb&w=1200',
+  ownerName: 'Pierre Blondin',
+  storyImage: 'https://images.unsplash.com/photo-1726859190454-fbbc19e8202d?auto=format&fit=crop&w=1400&q=85',
   address: 'Las Vueltas de Tucurrique, Cartago, Costa Rica',
   phone: '',
   hours: {},
@@ -251,6 +252,10 @@ function esc(value) {
   }[ch]));
 }
 
+function jsArg(value) {
+  return esc(JSON.stringify(value ?? null));
+}
+
 function localized(value, fallback='') {
   if (!value) return fallback;
   if (typeof value === 'string') return value;
@@ -472,8 +477,8 @@ function renderSmartFilters() {
   const items = allItems();
   const tags = Array.from(new Set(items.flatMap(i => i.bestFor || []))).filter(Boolean);
   const allergens = Array.from(new Set(items.flatMap(i => i.allergens || []))).filter(Boolean);
-  const tagButtons = tags.map(tag => `<button class="smart-chip ${activeTag===tag?'active':''}" onclick="setTag(${JSON.stringify(tag)})">${esc(t(bestForLabels[tag] || tag))}</button>`).join('');
-  const allergenButtons = allergens.map(a => `<button class="smart-chip allergen ${activeAllergen===a?'active':''}" onclick="setAllergenFilter(${JSON.stringify(a)})">${esc(a)}</button>`).join('');
+  const tagButtons = tags.map(tag => `<button class="smart-chip ${activeTag===tag?'active':''}" onclick="setTag(${jsArg(tag)})">${esc(t(bestForLabels[tag] || tag))}</button>`).join('');
+  const allergenButtons = allergens.map(a => `<button class="smart-chip allergen ${activeAllergen===a?'active':''}" onclick="setAllergenFilter(${jsArg(a)})">${esc(a)}</button>`).join('');
   root.innerHTML = `
     <div class="smart-filter-row">
       <span>${t('filters')}</span>
@@ -513,8 +518,8 @@ function renderSpecials() {
 /* ── qty controls ────────────────────────────────────────────────────── */
 function qtyControls(id) {
   const qty = cart[id]||0;
-  if (!qty) return `<button class="add-btn" onclick="addToCart(${JSON.stringify(id)},true)">＋ ${t('add')}</button>`;
-  return `<div class="stepper"><button onclick="changeQty(${JSON.stringify(id)},-1)">−</button><span>${qty}</span><button onclick="addToCart(${JSON.stringify(id)},false)">+</button></div>`;
+  if (!qty) return `<button class="add-btn" onclick="addToCart(${jsArg(id)},true)">＋ ${t('add')}</button>`;
+  return `<div class="stepper"><button onclick="changeQty(${jsArg(id)},-1)">−</button><span>${qty}</span><button onclick="addToCart(${jsArg(id)},false)">+</button></div>`;
 }
 
 /* ── Item card ───────────────────────────────────────────────────────── */
@@ -534,7 +539,7 @@ function itemCard(item, compact=false) {
   const tags = [...(item.bestFor||[]).slice(0,2), ...(item.dietaryTags||[]).slice(0,1)]
     .map(tag => `<span>${esc(t(bestForLabels[tag] || dietaryLabels[tag] || tag))}</span>`).join('');
   return `<article class="dish${compact?' compact':''}" id="item-${esc(item.id)}">
-    <button class="dish-media" onclick="openDishDetail(${JSON.stringify(item.id)})" aria-label="${esc(t('details'))}: ${esc(name)}">${img}</button>
+    <button class="dish-media" onclick="openDishDetail(${jsArg(item.id)})" aria-label="${esc(t('details'))}: ${esc(name)}">${img}</button>
     <div class="dish-body">
       ${badgeHtml}
       <h3>${esc(name)}</h3>
@@ -543,9 +548,9 @@ function itemCard(item, compact=false) {
       <div class="dish-bottom">
         <span class="dish-price">${fmt(item.price)}</span>
         <div class="dish-actions">
-          <button class="details-btn" onclick="openDishDetail(${JSON.stringify(item.id)})">${t('details')}</button>
+          <button class="details-btn" onclick="openDishDetail(${jsArg(item.id)})">${t('details')}</button>
           ${qtyControls(item.id)}
-          <button class="share-btn" onclick="shareItem(${JSON.stringify(item.id)})" aria-label="Compartir">↗</button>
+          <button class="share-btn" onclick="shareItem(${jsArg(item.id)})" aria-label="Compartir">↗</button>
         </div>
       </div>
     </div>
@@ -567,7 +572,7 @@ function comboCard(c) {
       <p>${esc(desc)}</p>
       <div class="combo-bottom">
         <span class="combo-price">${fmt(c.price)}</span>
-        <button class="combo-add-btn" onclick="addCombo(${JSON.stringify(c.id)})">＋ ${t('add')}</button>
+        <button class="combo-add-btn" onclick="addCombo(${jsArg(c.id)})">＋ ${t('add')}</button>
       </div>
     </div>
   </article>`;
@@ -584,7 +589,7 @@ function renderConversion() {
     ${popular.length ? `
       <div class="sec-title"><span></span><h2>${t('most')}</h2></div>
       <div class="popular-row">${popular.map(i =>
-        `<button onclick="focusItem(${JSON.stringify(i.id)})">${esc(localized(i.name,i.id))} <b>${fmt(i.price)}</b></button>`
+        `<button onclick="focusItem(${jsArg(i.id)})">${esc(localized(i.name,i.id))} <b>${fmt(i.price)}</b></button>`
       ).join('')}</div>` : ''}`;
 }
 
@@ -646,9 +651,9 @@ function renderCart() {
             <div class="cart-row-price">${fmt(Number(item.price)*qty)}</div>
           </div>
           <div class="cart-stepper">
-            <button onclick="changeQty(${JSON.stringify(id)},-1)" aria-label="Quitar uno">−</button>
+            <button onclick="changeQty(${jsArg(id)},-1)" aria-label="Quitar uno">−</button>
             <span>${qty}</span>
-            <button onclick="changeQty(${JSON.stringify(id)},1)" aria-label="Agregar uno">+</button>
+            <button onclick="changeQty(${jsArg(id)},1)" aria-label="Agregar uno">+</button>
           </div>
         </div>`;
       }).join('');
@@ -722,7 +727,7 @@ function showUpsellPanel(id) {
     <button class="upsell-close" onclick="hideUpsell()">✕</button>
     <h3>${t('upsell')}</h3>
     <div class="upsell-items">
-      ${picks.map(i => `<button class="upsell-item-btn" onclick="addToCart(${JSON.stringify(i.id)},false);hideUpsell()">
+      ${picks.map(i => `<button class="upsell-item-btn" onclick="addToCart(${jsArg(i.id)},false);hideUpsell()">
         <span>${esc(localized(i.name,i.id))}</span>
         <strong>${fmt(i.price)}</strong>
       </button>`).join('')}
@@ -763,8 +768,8 @@ function openDishDetail(id, immediate=false) {
         ${influence ? `<div class="detail-note"><strong>${t('frenchTouch')}</strong><span>${esc(influence)}</span></div>` : ''}
         ${tags ? `<div class="detail-meta"><strong>${t('bestFor')}</strong><div>${tags}</div></div>` : ''}
         <div class="detail-meta"><strong>${t('allergens')}</strong><div>${allergens}</div></div>
-        ${addons.length ? `<div class="detail-meta"><strong>${t('addons')}</strong><div>${addons.map(i => `<button onclick="addToCart(${JSON.stringify(i.id)},false)">${esc(localized(i.name,i.id))} · ${fmt(i.price)}</button>`).join('')}</div></div>` : ''}
-        ${pairings.length ? `<div class="detail-meta"><strong>${t('pairWith')}</strong><div>${pairings.map(i => `<button onclick="focusItem(${JSON.stringify(i.id)});closeDishDetail()">${esc(localized(i.name,i.id))}</button>`).join('')}</div></div>` : ''}
+        ${addons.length ? `<div class="detail-meta"><strong>${t('addons')}</strong><div>${addons.map(i => `<button onclick="addToCart(${jsArg(i.id)},false)">${esc(localized(i.name,i.id))} · ${fmt(i.price)}</button>`).join('')}</div></div>` : ''}
+        ${pairings.length ? `<div class="detail-meta"><strong>${t('pairWith')}</strong><div>${pairings.map(i => `<button onclick="focusItem(${jsArg(i.id)});closeDishDetail()">${esc(localized(i.name,i.id))}</button>`).join('')}</div></div>` : ''}
         <div class="dish-detail-actions">
           <span class="dish-detail-price">${fmt(item.price)}</span>
           ${qtyControls(item.id)}
