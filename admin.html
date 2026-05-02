@@ -7,6 +7,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Cg transform='translate(18,18)'%3E%3Cellipse rx='6' ry='11' fill='%23E53888' transform='rotate(0) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%23E53888' transform='rotate(72) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%235F8F4E' transform='rotate(144) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%235F8F4E' transform='rotate(216) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%23E5B94E' transform='rotate(288) translate(0,-6)'/%3E%3Ccircle r='3.5' fill='%23FFF4DF'/%3E%3C/g%3E%3C/svg%3E" type="image/svg+xml">
 <link rel="stylesheet" href="styles.css?v=20260502">
 </head>
 <body>
@@ -58,6 +59,7 @@
   <div class="admin-tabs" id="admin-tabs">
     <button class="tab-btn active" id="tab-menu" onclick="showTab('menu')">🍽️ Menú<span class="dot"></span></button>
     <button class="tab-btn" id="tab-specials" onclick="showTab('specials')">🌟 Especiales<span class="dot"></span></button>
+    <button class="tab-btn" id="tab-combos" onclick="showTab('combos')">LV Combos<span class="dot"></span></button>
     <button class="tab-btn" id="tab-settings" onclick="showTab('settings')">⚙️ Configuración<span class="dot"></span></button>
     <button class="tab-btn" id="tab-preview" onclick="showTab('preview')">👁 Preview<span class="dot"></span></button>
   </div>
@@ -78,6 +80,18 @@
     <div id="specials-container"></div>
   </div>
 
+  <!-- TAB: Combos -->
+  <div class="tab-panel" id="panel-combos">
+    <div class="admin-card">
+      <h2>Combos del sitio</h2>
+      <p class="muted" style="margin-bottom:.75rem">Edita el JSON de combos. Los IDs en <code>items</code> deben existir en el menú.</p>
+      <textarea id="combos-json" class="admin-textarea" rows="16" oninput="markDirty('combos')" spellcheck="false"></textarea>
+      <div class="admin-actions">
+        <button class="btn-admin" onclick="formatCombosJson()">Formatear JSON</button>
+      </div>
+    </div>
+  </div>
+
   <!-- TAB: Settings -->
   <div class="tab-panel" id="panel-settings">
     <div class="admin-card">
@@ -88,6 +102,16 @@
       <input id="cfg-tagline" class="admin-input" placeholder="Sabores del corazón de Tucurrique" oninput="markDirty('settings')">
       <label class="admin-label">Tagline (inglés)</label>
       <input id="cfg-tagline-en" class="admin-input" placeholder="Flavors from the heart of Tucurrique" oninput="markDirty('settings')">
+      <label class="admin-label">Tagline (francés)</label>
+      <input id="cfg-tagline-fr" class="admin-input" placeholder="Un bistrot franco-tico tropical..." oninput="markDirty('settings')">
+      <label class="admin-label">Nombre del dueño / chef</label>
+      <input id="cfg-owner" class="admin-input" placeholder="Jean-Luc" oninput="markDirty('settings')">
+      <label class="admin-label">Historia de marca ES</label>
+      <textarea id="cfg-story-es" class="admin-textarea" rows="3" oninput="markDirty('settings')"></textarea>
+      <label class="admin-label">Brand story EN</label>
+      <textarea id="cfg-story-en" class="admin-textarea" rows="3" oninput="markDirty('settings')"></textarea>
+      <label class="admin-label">Histoire FR</label>
+      <textarea id="cfg-story-fr" class="admin-textarea" rows="3" oninput="markDirty('settings')"></textarea>
       <label class="admin-label">Dirección</label>
       <input id="cfg-address" class="admin-input" placeholder="Las Vueltas de Tucurrique, Cartago" oninput="markDirty('settings')">
       <label class="admin-label">Teléfono</label>
@@ -103,7 +127,24 @@
       <h2>Imagen Hero</h2>
       <label class="admin-label">URL de imagen hero</label>
       <input id="cfg-hero" class="admin-input" placeholder="https://..." oninput="markDirty('settings');updateHeroPreview()">
+      <label class="admin-label">URL de imagen de historia / paisaje</label>
+      <input id="cfg-story-image" class="admin-input" placeholder="https://..." oninput="markDirty('settings')">
       <img id="cfg-hero-preview" class="img-preview" src="" alt="preview" style="display:none;margin-top:.5rem;width:200px;height:100px;object-fit:cover">
+    </div>
+    <div class="admin-card">
+      <h2>SEO local</h2>
+      <label class="admin-label">Google Business URL</label>
+      <input id="cfg-google" class="admin-input" placeholder="https://..." oninput="markDirty('settings')">
+      <div class="item-row-2">
+        <div>
+          <label class="admin-label">Latitud</label>
+          <input id="cfg-lat" class="admin-input" placeholder="9.8..." oninput="markDirty('settings')">
+        </div>
+        <div>
+          <label class="admin-label">Longitud</label>
+          <input id="cfg-lng" class="admin-input" placeholder="-83.7..." oninput="markDirty('settings')">
+        </div>
+      </div>
     </div>
     <div class="admin-card">
       <h2>Horario</h2>
@@ -134,8 +175,9 @@
 /* ── State ── */
 let menuData = { categories: [] };
 let specialsData = [];
+let combosData = [];
 let configData = {};
-let dirty = { menu:false, specials:false, settings:false };
+let dirty = { menu:false, specials:false, combos:false, settings:false };
 
 const ALLERGENS = ['Gluten','Lácteos','Huevo','Mariscos','Nueces','Soya','Maní','Sésamo'];
 const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
@@ -181,7 +223,7 @@ async function connect() {
 
 /* ── Load data ── */
 async function loadAll() {
-  await Promise.all([loadMenu(), loadConfig(), loadSpecialsData()]);
+  await Promise.all([loadMenu(), loadConfig(), loadSpecialsData(), loadCombosData()]);
   updateStats();
 }
 
@@ -206,6 +248,14 @@ async function loadSpecialsData() {
     const res = await fetch('data/specials.json', { cache:'no-store' });
     if (res.ok) { const d = await res.json(); specialsData = Array.isArray(d) ? d : []; }
     renderSpecials();
+  } catch(e) {}
+}
+
+async function loadCombosData() {
+  try {
+    const res = await fetch('data/combos.json', { cache:'no-store' });
+    if (res.ok) { const d = await res.json(); combosData = Array.isArray(d) ? d : []; }
+    renderCombos();
   } catch(e) {}
 }
 
@@ -236,10 +286,19 @@ function populateSettings() {
   set('cfg-name', s.restaurantName);
   set('cfg-tagline', s.tagline);
   set('cfg-tagline-en', s.taglineEn);
+  set('cfg-tagline-fr', s.taglineFr);
+  set('cfg-owner', s.ownerName);
+  set('cfg-story-es', s.brandStory?.es);
+  set('cfg-story-en', s.brandStory?.en);
+  set('cfg-story-fr', s.brandStory?.fr);
   set('cfg-address', s.address);
   set('cfg-phone', s.phone);
   set('cfg-wa', s.whatsappNumber);
   set('cfg-hero', s.heroImage);
+  set('cfg-story-image', s.storyImage);
+  set('cfg-google', s.googleBusinessUrl);
+  set('cfg-lat', s.geo?.latitude);
+  set('cfg-lng', s.geo?.longitude);
   set('cfg-fb', s.socialLinks?.facebook);
   set('cfg-ig', s.socialLinks?.instagram);
   set('cfg-tt', s.socialLinks?.tiktok);
@@ -279,10 +338,18 @@ function readSettings() {
     restaurantName: g('cfg-name'),
     tagline: g('cfg-tagline'),
     taglineEn: g('cfg-tagline-en'),
+    taglineFr: g('cfg-tagline-fr'),
+    ownerName: g('cfg-owner'),
+    brandStory: { es:g('cfg-story-es'), en:g('cfg-story-en'), fr:g('cfg-story-fr') },
     address: g('cfg-address'),
     phone: g('cfg-phone'),
     whatsappNumber: g('cfg-wa'),
     heroImage: g('cfg-hero'),
+    storyImage: g('cfg-story-image'),
+    geo: { latitude:g('cfg-lat'), longitude:g('cfg-lng') },
+    googleBusinessUrl: g('cfg-google'),
+    openStatusMode: 'hours',
+    availableLanguages: ['es','en','fr'],
     hours,
     socialLinks: { facebook:g('cfg-fb'), instagram:g('cfg-ig'), tiktok:g('cfg-tt') }
   };
@@ -312,6 +379,8 @@ function renderCategories() {
             <input class="admin-input" value="${esc(cat.name?.en||'')}" oninput="menuData.categories[${ci}].name.en=this.value;markDirty('menu')">
           </div>
         </div>
+        <label class="admin-label" style="margin-top:0">Nombre FR</label>
+        <input class="admin-input" value="${esc(cat.name?.fr||'')}" oninput="menuData.categories[${ci}].name.fr=this.value;markDirty('menu')">
         <label class="admin-label" style="margin-top:0">Emoji</label>
         <input class="admin-input" value="${esc(cat.emoji||'')}" style="width:80px" oninput="menuData.categories[${ci}].emoji=this.value;markDirty('menu')">
         <div style="margin:1rem 0">${(cat.items||[]).map((_,ii) => itemEditor(ci,ii)).join('')}</div>
@@ -356,6 +425,8 @@ function itemEditor(ci, ii) {
         <input class="admin-input" value="${esc(item.name?.en||'')}" oninput="setItemField(${ci},${ii},'name.en',this.value)">
       </div>
     </div>
+    <label class="admin-label">Nombre FR</label>
+    <input class="admin-input" value="${esc(item.name?.fr||'')}" oninput="setItemField(${ci},${ii},'name.fr',this.value)">
     <div class="item-row-2">
       <div>
         <label class="admin-label">Descripción ES</label>
@@ -366,6 +437,48 @@ function itemEditor(ci, ii) {
         <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.en',this.value)">${esc(item.description?.en||'')}</textarea>
       </div>
     </div>
+    <label class="admin-label">Descripción FR</label>
+    <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.fr',this.value)">${esc(item.description?.fr||'')}</textarea>
+    <div class="item-row-2">
+      <div>
+        <label class="admin-label">Historia ES</label>
+        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.es',this.value)">${esc(item.story?.es||'')}</textarea>
+      </div>
+      <div>
+        <label class="admin-label">Story EN</label>
+        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.en',this.value)">${esc(item.story?.en||'')}</textarea>
+      </div>
+    </div>
+    <label class="admin-label">Histoire FR</label>
+    <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.fr',this.value)">${esc(item.story?.fr||'')}</textarea>
+    <div class="item-row-2">
+      <div>
+        <label class="admin-label">Toque francés ES</label>
+        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.es',this.value)">${esc(item.frenchInfluence?.es||'')}</textarea>
+      </div>
+      <div>
+        <label class="admin-label">French touch EN</label>
+        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.en',this.value)">${esc(item.frenchInfluence?.en||'')}</textarea>
+      </div>
+    </div>
+    <label class="admin-label">Touche française FR</label>
+    <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.fr',this.value)">${esc(item.frenchInfluence?.fr||'')}</textarea>
+    <div class="item-row-3">
+      <div>
+        <label class="admin-label">Best for (CSV)</label>
+        <input class="admin-input" value="${esc((item.bestFor||[]).join(','))}" placeholder="quick-lunch,local-favorite" oninput="setItemList(${ci},${ii},'bestFor',this.value)">
+      </div>
+      <div>
+        <label class="admin-label">Dietary tags (CSV)</label>
+        <input class="admin-input" value="${esc((item.dietaryTags||[]).join(','))}" placeholder="vegetarian" oninput="setItemList(${ci},${ii},'dietaryTags',this.value)">
+      </div>
+      <div>
+        <label class="admin-label">Add-ons (CSV IDs)</label>
+        <input class="admin-input" value="${esc((item.addons||[]).join(','))}" placeholder="mayo,papas" oninput="setItemList(${ci},${ii},'addons',this.value)">
+      </div>
+    </div>
+    <label class="admin-label">Pairings (CSV IDs)</label>
+    <input class="admin-input" value="${esc((item.pairings||[]).join(','))}" placeholder="crepas,papas" oninput="setItemList(${ci},${ii},'pairings',this.value)">
     <div class="item-row-3">
       <div>
         <label class="admin-label">Precio (₡)</label>
@@ -403,6 +516,13 @@ function setItemField(ci, ii, path, value) {
   markDirty('menu');
 }
 
+function setItemList(ci, ii, field, value) {
+  const item = menuData.categories[ci]?.items?.[ii];
+  if (!item) return;
+  item[field] = value.split(',').map(s => s.trim()).filter(Boolean);
+  markDirty('menu');
+}
+
 function updateItemImg(ci, ii, url) {
   const img = document.getElementById(`img-${ci}-${ii}`);
   if (!img) return;
@@ -422,7 +542,7 @@ function toggleAllergen(ci, ii, allergen, el) {
 
 function addCategory() {
   if (!menuData.categories) menuData.categories = [];
-  menuData.categories.push({ id:'nueva-cat-'+Date.now(), emoji:'🍽️', name:{es:'Nueva Categoría',en:'New Category'}, items:[] });
+  menuData.categories.push({ id:'nueva-cat-'+Date.now(), emoji:'🍽️', name:{es:'Nueva Categoría',en:'New Category',fr:'Nouvelle categorie'}, items:[] });
   markDirty('menu');
   renderCategories();
   // Open newly added
@@ -439,7 +559,24 @@ function removeCategory(ci) {
 
 function addItem(ci) {
   if (!menuData.categories[ci].items) menuData.categories[ci].items = [];
-  menuData.categories[ci].items.push({ id:'nuevo-'+Date.now(), name:{es:'Nuevo plato',en:'New dish'}, description:{es:'',en:''}, price:'0', image:'', featured:false, popular:false, badgeText:'', allergens:[] });
+  menuData.categories[ci].items.push({
+    id:'nuevo-'+Date.now(),
+    name:{es:'Nuevo plato',en:'New dish',fr:'Nouveau plat'},
+    description:{es:'',en:'',fr:''},
+    story:{es:'',en:'',fr:''},
+    frenchInfluence:{es:'',en:'',fr:''},
+    price:'0',
+    image:'',
+    featured:false,
+    popular:false,
+    badgeText:'',
+    allergens:[],
+    bestFor:[],
+    dietaryTags:[],
+    addons:[],
+    pairings:[],
+    photoAlt:{es:'',en:'',fr:''}
+  });
   markDirty('menu');
   renderCategories();
   // Re-open category
@@ -474,6 +611,8 @@ function renderSpecials() {
           <input class="admin-input" value="${esc(s.titleEn||'')}" oninput="specialsData[${i}].titleEn=this.value;markDirty('specials')">
         </div>
       </div>
+      <label class="admin-label">Título FR</label>
+      <input class="admin-input" value="${esc(s.titleFr||'')}" oninput="specialsData[${i}].titleFr=this.value;markDirty('specials')">
       <div class="item-row-2">
         <div>
           <label class="admin-label">Descripción ES</label>
@@ -484,6 +623,8 @@ function renderSpecials() {
           <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].descriptionEn=this.value;markDirty('specials')">${esc(s.descriptionEn||'')}</textarea>
         </div>
       </div>
+      <label class="admin-label">Descripción FR</label>
+      <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].descriptionFr=this.value;markDirty('specials')">${esc(s.descriptionFr||'')}</textarea>
       <div class="item-row-3">
         <div>
           <label class="admin-label">Precio (₡, opcional)</label>
@@ -512,7 +653,7 @@ function renderSpecials() {
 }
 
 function addSpecial() {
-  specialsData.push({ id:'special-'+Date.now(), title:'', titleEn:'', description:'', descriptionEn:'', price:'', image:'', validUntil:'', isEvent:false, eventDate:'' });
+  specialsData.push({ id:'special-'+Date.now(), title:'', titleEn:'', titleFr:'', description:'', descriptionEn:'', descriptionFr:'', price:'', image:'', validUntil:'', isEvent:false, eventDate:'' });
   markDirty('specials');
   renderSpecials();
 }
@@ -522,6 +663,29 @@ function removeSpecial(i) {
   specialsData.splice(i, 1);
   markDirty('specials');
   renderSpecials();
+}
+
+/* ── Combos ── */
+function renderCombos() {
+  const ta = document.getElementById('combos-json');
+  if (ta) ta.value = JSON.stringify(combosData, null, 2);
+}
+
+function readCombos() {
+  const ta = document.getElementById('combos-json');
+  if (!ta) return combosData;
+  const parsed = JSON.parse(ta.value || '[]');
+  if (!Array.isArray(parsed)) throw new Error('Combos debe ser un arreglo JSON.');
+  return parsed;
+}
+
+function formatCombosJson() {
+  try {
+    combosData = readCombos();
+    renderCombos();
+  } catch(e) {
+    alert(e.message);
+  }
 }
 
 /* ── GitHub file helpers ── */
@@ -575,15 +739,17 @@ async function publishAll() {
   status.className = 'status-badge';
   try {
     const cfgToSave = readSettings();
+    combosData = readCombos();
     const ts = new Date().toISOString().slice(0,16).replace('T',' ');
     await putFile('data/menu.json', JSON.stringify(menuData, null, 2), `✏️ Admin: actualizar menú [${ts}]`);
     await putFile('data/specials.json', JSON.stringify(specialsData, null, 2), `✏️ Admin: actualizar especiales [${ts}]`);
+    await putFile('data/combos.json', JSON.stringify(combosData, null, 2), `✏️ Admin: actualizar combos [${ts}]`);
     await putFile('data/config.json', JSON.stringify(cfgToSave, null, 2), `✏️ Admin: actualizar configuración [${ts}]`);
     localStorage.setItem('lv-last-saved', new Date().toISOString());
     status.textContent = '✓ Publicado';
     status.className = 'status-badge connected';
     btn.textContent = '✓ Publicado';
-    ['menu','specials','settings'].forEach(clearDirty);
+    ['menu','specials','combos','settings'].forEach(clearDirty);
     updateStats();
     setTimeout(() => { btn.textContent = '🚀 Publicar Todo'; btn.disabled = false; }, 3000);
   } catch(e) {
@@ -597,7 +763,7 @@ async function publishAll() {
 
 /* ── Backup ── */
 function downloadBackup() {
-  const data = { menu: menuData, specials: specialsData, config: configData, exportedAt: new Date().toISOString() };
+  const data = { menu: menuData, specials: specialsData, combos: combosData, config: configData, exportedAt: new Date().toISOString() };
   const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);

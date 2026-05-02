@@ -1,11 +1,26 @@
 {
   "restaurantName": "Las Veraneras",
-  "tagline": "Sabores del corazón de Tucurrique",
-  "taglineEn": "Flavors from the heart of Tucurrique",
+  "tagline": "Bistro tropical franco-tico en el corazón de Tucurrique",
+  "taglineEn": "A tropical French-Tico bistro in the heart of Tucurrique",
+  "taglineFr": "Un bistrot franco-tico tropical au coeur de Tucurrique",
+  "ownerName": "Jean-Luc",
+  "brandStory": {
+    "es": "Las Veraneras une el oficio de un cocinero francés viviendo en Costa Rica con la generosidad de las montañas de Tucurrique. Aquí la salsa francesa se sirve con arroz blanco, las crepas conviven con chifrijo, y cada plato busca sentirse familiar sin perder el detalle artesanal.",
+    "en": "Las Veraneras blends the craft of a French cook living in Costa Rica with the warmth of the Tucurrique mountains. French sauces sit beside white rice, crepes share the table with chifrijo, and every dish is designed to feel familiar while still carrying a handmade touch.",
+    "fr": "Las Veraneras marie le savoir-faire d'un cuisinier francais installe au Costa Rica avec la chaleur des montagnes de Tucurrique. Les sauces francaises accompagnent le riz blanc, les crepes partagent la table avec le chifrijo, et chaque plat garde une touche artisanale."
+  },
   "whatsappNumber": "50664274326",
-  "heroImage": "https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=1600",
+  "heroImage": "https://images.pexels.com/photos/34980252/pexels-photo-34980252.jpeg?auto=compress&cs=tinysrgb&w=1800",
+  "storyImage": "https://images.pexels.com/photos/19938719/pexels-photo-19938719.jpeg?auto=compress&cs=tinysrgb&w=1200",
   "address": "Las Vueltas de Tucurrique, Cartago, Costa Rica",
   "phone": "",
+  "geo": {
+    "latitude": "",
+    "longitude": ""
+  },
+  "googleBusinessUrl": "",
+  "openStatusMode": "hours",
+  "availableLanguages": ["es", "en", "fr"],
   "hours": {
     "Lunes": "11:00–21:00",
     "Martes": "11:00–21:00",
