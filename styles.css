@@ -4,11 +4,15 @@
 .actions button:first-child::after{content:' +1';font-weight:800}
 .dish:active{transform:scale(.98)}
 .cart-fab{font-size:1.1rem}
-/* faster thumb reach */
 .hero-actions{margin-bottom:.5rem}
-/* reduce scroll fatigue */
 .featured-row{scroll-padding-left:1rem}
-/* improve tap zones */
 button{min-height:40px}
-/* emphasize combos if added later */
 .combo{border:2px solid #ffd166}
+
+/* REVENUE LAYER */
+.combo-card{border:2px solid #ffd166;background:rgba(255,209,102,.08);transform:scale(1.02)}
+.combo-card h3::after{content:' 🔥';}
+.combo-card .dish-bottom strong::before{content:'₡9000 ';text-decoration:line-through;color:#aaa;font-size:.8rem;margin-right:.3rem}
+.popular-row button{background:#ff3d00;color:#fff;font-weight:700;border-radius:999px;padding:.5rem .8rem}
+.cart-nudge{font-weight:700;color:#ffd166;margin:.5rem 0}
+.cart-total strong{font-size:1.3rem}
