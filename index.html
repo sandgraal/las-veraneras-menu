@@ -4,103 +4,53 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Las Veraneras | Menú</title>
-<meta name="description" content="Menú bilingüe de Las Veraneras en Las Vueltas de Tucurrique.">
-<link rel="manifest" href="manifest.json">
-<link rel="stylesheet" href="styles.css?v=20260501-2">
+<link rel="stylesheet" href="styles.css?v=20260501-3">
 </head>
 <body>
 <header class="hero">
   <div class="hero-overlay">
-    <p class="eyebrow">Menú digital · Digital menu</p>
     <h1>Las Veraneras</h1>
-    <p class="location">Las Vueltas de Tucurrique</p>
+    <p>Las Vueltas de Tucurrique</p>
     <div class="hero-actions">
-      <button onclick="surpriseMe()">🎲 Sorpréndeme</button>
-      <button onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})">Ver menú</button>
+      <button onclick="surpriseMe()">🎲</button>
+      <button onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})">Menú</button>
     </div>
   </div>
 </header>
+
 <main>
   <section class="toolbar">
     <div class="language">
-      <button class="active" id="btn-es" onclick="setLang('es')">ES</button>
+      <button id="btn-es" class="active" onclick="setLang('es')">ES</button>
       <button id="btn-en" onclick="setLang('en')">EN</button>
     </div>
-    <input id="search" type="search" placeholder="Buscar / Search" oninput="render()">
+    <input id="search" placeholder="Buscar" oninput="render()" />
   </section>
+
   <nav id="filters" class="filters"></nav>
-  <section id="conversion" class="conversion"></section>
-  <section id="featured" class="featured"></section>
-  <section id="menu" class="menu"></section>
+  <section id="conversion"></section>
+  <section id="featured"></section>
+  <section id="menu"></section>
 </main>
+
 <section id="upsell" class="upsell"></section>
 <section id="cart" class="cart">
-  <div class="cart-header"><strong id="cart-title">Pedido</strong><button onclick="toggleCart()">×</button></div>
-  <p class="cart-nudge" id="cart-nudge">🚀 Pedido listo para enviar</p>
+  <div class="cart-header">
+    <strong id="cart-title">Pedido</strong>
+    <button onclick="toggleCart()">×</button>
+  </div>
+  <p id="cart-nudge">🚀 Pedido listo para enviar</p>
   <div id="cart-items"></div>
-  <div class="cart-total"><span>Total</span><strong id="cart-total">₡0</strong></div>
-  <textarea id="order-notes" placeholder="Notas: sin cebolla, para llevar, mesa 3..."></textarea>
-  <button class="checkout" onclick="checkout()">Enviar pedido</button>
+  <div class="cart-total">
+    <span>Total</span>
+    <strong id="cart-total">₡0</strong>
+  </div>
+  <textarea id="order-notes"></textarea>
+  <button class="checkout" onclick="checkout()">Enviar</button>
 </section>
+
 <button id="cart-fab" class="cart-fab" onclick="toggleCart()">🛒 <span id="cart-count">0</span></button>
-<footer><p>Las Veraneras · Las Vueltas de Tucurrique</p></footer>
-<script>
-const FALLBACK_MENU={categories:[{id:'snacks',emoji:'🍟',name:{es:'Snacks y Postres',en:'Snacks & Desserts'},items:[
-{id:'papas',featured:true,name:{es:'Papas a la francesa',en:'French Fries'},description:{es:'Papas fritas, mayonesa y salsa de tomate.',en:'French fries with mayonnaise and ketchup.'},price:'2000',image:'https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'salchipapas',popular:true,name:{es:'Salchipapas',en:'Sausage Fries'},description:{es:'Papas, salchichas, mayonesa y salsa.',en:'Fries, sausage, mayonnaise and sauce.'},price:'2500',image:'https://images.pexels.com/photos/4109234/pexels-photo-4109234.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'nachos',featured:true,popular:true,name:{es:'Nachos',en:'Nachos'},description:{es:'Nachos, frijoles molidos, carne arreglada y chimichurri.',en:'Nachos with refried beans, seasoned meat and chimichurri.'},price:'3000',image:'https://images.pexels.com/photos/6941010/pexels-photo-6941010.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'papanachos',name:{es:'Papanachos',en:'Loaded Nacho Fries'},description:{es:'Papas a la francesa, frijoles molidos, carne en salsa y chimichurri.',en:'French fries, refried beans, meat in sauce and chimichurri.'},price:'3500',image:'https://images.pexels.com/photos/4109272/pexels-photo-4109272.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'burger',featured:true,popular:true,name:{es:'Hamburguesa con papas',en:'Burger & Fries'},description:{es:'Torta de carne molida 100% res, jamón, lechuga, tomate y salsa.',en:'100% beef patty, ham, lettuce, tomato and sauce.'},price:'2800',image:'https://images.pexels.com/photos/15362092/pexels-photo-15362092.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'tacos-sencillos',name:{es:'3x1 Tacos sencillos',en:'3-for-1 Simple Tacos'},description:{es:'Tres tacos sencillos.',en:'Three simple tacos.'},price:'1200',image:'https://images.pexels.com/photos/4958641/pexels-photo-4958641.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'tacos-arreglados',popular:true,name:{es:'3x1 Tacos arreglados',en:'3-for-1 Loaded Tacos'},description:{es:'Tres tacos arreglados.',en:'Three loaded tacos.'},price:'1700',image:'https://images.pexels.com/photos/4958792/pexels-photo-4958792.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'mayo',name:{es:'Mayonesa de la casa',en:'House Mayonnaise'},description:{es:'Aderezo tipo mayonesa francesa, hecho al momento.',en:'French-style mayonnaise dressing, made fresh.'},price:'500',image:'https://images.pexels.com/photos/821365/pexels-photo-821365.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'crepas',name:{es:'Crepas',en:'Crepes'},description:{es:'Crepas con helado, chocolate líquido y leche condensada.',en:'Crepes with ice cream, chocolate sauce and condensed milk.'},price:'2000',image:'https://images.pexels.com/photos/1352278/pexels-photo-1352278.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'helado',name:{es:'Helado',en:'Ice Cream'},description:{es:'Dos bolas de helado con chocolate líquido.',en:'Two scoops of ice cream with chocolate sauce.'},price:'1500',image:'https://images.pexels.com/photos/1362534/pexels-photo-1362534.jpeg?auto=compress&cs=tinysrgb&w=900'}]},
-{id:'main',emoji:'🍽️',name:{es:'Menú Principal',en:'Main Menu'},items:[
-{id:'arroz-pollo',name:{es:'Arroz con pollo',en:'Chicken Rice'},description:{es:'Arroz con pollo, ensalada y piquitos.',en:'Chicken rice with salad and piquitos.'},price:'3000',image:'https://images.pexels.com/photos/5835353/pexels-photo-5835353.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'arroz-carne',name:{es:'Arroz con carne',en:'Pork Rice'},description:{es:'Arroz con carne de cerdo, ensalada y piquitos.',en:'Rice with pork, salad and piquitos.'},price:'3000',image:'https://images.pexels.com/photos/5710170/pexels-photo-5710170.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'arroz-carne-salsa',name:{es:'Arroz con carne en salsa',en:'Beef in Sauce with Rice'},description:{es:'Arroz blanco, carne de res en salsa, ensalada y piquitos.',en:'White rice, beef in sauce, salad and piquitos.'},price:'3000',image:'https://images.pexels.com/photos/6419726/pexels-photo-6419726.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'chuleta',featured:true,name:{es:'Chuleta en salsa francesa',en:'Pork Chop in French Sauce'},description:{es:'Chuleta de cerdo con crema dulce, hongos, cebolla, ensalada y arroz blanco.',en:'Pork chop with cream, mushrooms, onion, salad and white rice.'},price:'4300',image:'https://images.pexels.com/photos/675951/pexels-photo-675951.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'pollo-francesa',featured:true,popular:true,name:{es:'Pollo en salsa francesa',en:'Chicken in French Sauce'},description:{es:'Fajitas de pollo, crema dulce, hongos, cebolla, ensalada y arroz blanco.',en:'Chicken strips, cream, mushrooms, onion, salad and white rice.'},price:'3800',image:'https://images.pexels.com/photos/2338407/pexels-photo-2338407.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'daube',featured:true,name:{es:'Daube Nicoise',en:'Daube Nicoise'},description:{es:'Lomo de paleta de res cocinada en vino tinto con cebolla y zanahoria; servido con ensalada y arroz.',en:'Beef shoulder cooked in red wine with onion and carrot; served with salad and rice.'},price:'7000',image:'https://images.pexels.com/photos/533325/pexels-photo-533325.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'chifrijo',featured:true,popular:true,name:{es:'Chifrijo',en:'Chifrijo'},description:{es:'Frijol tierno, arroz blanco, chicharrón, chimichurri y piquitos.',en:'Tender beans, white rice, pork cracklings, chimichurri and piquitos.'},price:'4000',image:'https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'fajitas',name:{es:'Fajitas de pollo',en:'Chicken Fajitas'},description:{es:'Pechuga de pollo, cebolla, chile dulce, papas fritas o arroz y ensalada.',en:'Chicken breast, onion, sweet pepper, fries or rice and salad.'},price:'3300',image:'https://images.pexels.com/photos/2092507/pexels-photo-2092507.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'arroz-camarones',featured:true,name:{es:'Arroz con camarones',en:'Shrimp Rice'},description:{es:'Arroz con camarón, ensalada y piquitos.',en:'Shrimp rice with salad and piquitos.'},price:'3800',image:'https://images.pexels.com/photos/20095296/pexels-photo-20095296.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'tilapia',name:{es:'Filet de tilapia',en:'Tilapia Fillet'},description:{es:'Filet de tilapia empanizado o al ajillo, con papas fritas o arroz blanco.',en:'Breaded or garlic tilapia fillet with fries or white rice.'},price:'4000',image:'https://images.pexels.com/photos/3296279/pexels-photo-3296279.jpeg?auto=compress&cs=tinysrgb&w=900'},
-{id:'camarones',featured:true,name:{es:'Camarones empanizados',en:'Breaded Shrimp'},description:{es:'Camarones empanizados con papas fritas y ensalada.',en:'Breaded shrimp with fries and salad.'},price:'4000',image:'https://images.pexels.com/photos/7636383/pexels-photo-7636383.jpeg?auto=compress&cs=tinysrgb&w=900'}]}]};
-let lang='es',selected='all',menuData=FALLBACK_MENU,cart=JSON.parse(localStorage.getItem('lv-cart')||'{}');
-const whatsappNumber='';
-const labels={es:{all:'Todo',noResults:'No hay resultados',featured:'Recomendados',popular:'Muy pedido',share:'Compartir',add:'Agregar',order:'Enviar pedido',combos:'Combos fáciles',most:'Más pedidos',upsell:'¿Le sumamos algo?',ready:'🚀 Pedido listo para enviar'},en:{all:'All',noResults:'No results',featured:'Top Picks',popular:'Most ordered',share:'Share',add:'Add',order:'Send order',combos:'Easy Combos',most:'Most Ordered',upsell:'Add something else?',ready:'🚀 Order ready to send'}};
-const combos=[{id:'combo-snack',emoji:'🍔',name:{es:'Combo Antojo',en:'Craving Combo'},description:{es:'Hamburguesa con papas + helado',en:'Burger & fries + ice cream'},items:['burger','helado'],price:'4300',tag:{es:'Rápido y popular',en:'Fast and popular'}},{id:'combo-amigos',emoji:'🔥',name:{es:'Combo Amigos',en:'Friends Combo'},description:{es:'Nachos + 3x1 tacos arreglados + salchipapas',en:'Nachos + loaded tacos + sausage fries'},items:['nachos','tacos-arreglados','salchipapas'],price:'7200',tag:{es:'Para compartir',en:'Shareable'}},{id:'combo-casero',emoji:'🍽️',name:{es:'Combo Casero',en:'House Combo'},description:{es:'Chifrijo + papas a la francesa',en:'Chifrijo + french fries'},items:['chifrijo','papas'],price:'6000',tag:{es:'Recomendado',en:'Recommended'}}];
-const upsells={burger:['helado','papas'],nachos:['mayo','tacos-arreglados'],chifrijo:['papas'],salchipapas:['mayo'],pollo-francesa:['papas'],arroz-camarones:['papas'],camarones:['papas'],tilapia:['papas']};
-function allItems(){return menuData.categories.flatMap((c,ci)=>c.items.map(i=>({...i,category:c,categoryIndex:ci})));}
-function findItem(id){return allItems().find(i=>i.id===id)}
-function formatPrice(value){return '₡'+String(value).replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
-function setLang(l){lang=l;document.documentElement.lang=l;document.getElementById('btn-es').classList.toggle('active',l==='es');document.getElementById('btn-en').classList.toggle('active',l==='en');document.getElementById('cart-title').textContent=l==='es'?'Pedido':'Order';document.querySelector('.checkout').textContent=labels[l].order;document.getElementById('cart-nudge').textContent=labels[l].ready;renderAll();}
-function setCategory(id){selected=id;renderAll();}
-function saveCart(){localStorage.setItem('lv-cart',JSON.stringify(cart));renderAll();}
-function renderFilters(){const root=document.getElementById('filters');root.innerHTML=[`<button class="${selected==='all'?'active':''}" onclick="setCategory('all')">${labels[lang].all}</button>`,...menuData.categories.map((c,idx)=>`<button class="${selected===String(idx)?'active':''}" onclick="setCategory('${idx}')">${c.emoji||''} ${c.name[lang]}</button>`)].join('');}
-function qtyControls(id){const qty=cart[id]||0;return qty?`<div class="stepper"><button onclick="changeQty('${id}',-1)">−</button><span>${qty}</span><button onclick="addToCart('${id}',false)">+</button></div>`:`<button class="add-btn" onclick="addToCart('${id}',true)">＋ ${labels[lang].add}</button>`;}
-function itemCard(i,compact=false){const badge=i.popular?`<span class="badge">🔥 ${labels[lang].popular}</span>`:'';const img=i.image?`<img loading="lazy" src="${i.image}" alt="${i.name[lang]}" onerror="this.closest('.dish').classList.add('no-image')">`:'';return `<article class="dish ${compact?'compact':''}" id="item-${i.id}">${img}<div class="dish-body">${badge}<h3>${i.name[lang]}</h3><p>${i.description?.[lang]||''}</p><div class="dish-bottom"><strong>${formatPrice(i.price)}</strong><div class="actions">${qtyControls(i.id)}<button onclick="shareItem('${i.id}')">↗</button></div></div></div></article>`;}
-function comboCard(c){return `<article class="combo-card"><div class="combo-top"><span>${c.emoji}</span><b>${c.tag[lang]}</b></div><h3>${c.name[lang]}</h3><p>${c.description[lang]}</p><div class="dish-bottom"><strong>${formatPrice(c.price)}</strong><button onclick="addCombo('${c.id}')">＋ ${labels[lang].add}</button></div></article>`;}
-function renderConversion(){const popular=allItems().filter(i=>i.popular).slice(0,5);document.getElementById('conversion').innerHTML=`<div class="section-title"><span>💸</span><h2>${labels[lang].combos}</h2></div><div class="combo-row">${combos.map(comboCard).join('')}</div><div class="section-title"><span>🔥</span><h2>${labels[lang].most}</h2></div><div class="popular-row">${popular.map(i=>`<button onclick="focusItem('${i.id}')">${i.name[lang]} <b>${formatPrice(i.price)}</b></button>`).join('')}</div>`;}
-function renderFeatured(){const featured=allItems().filter(i=>i.featured).slice(0,8);document.getElementById('featured').innerHTML=featured.length?`<div class="section-title"><span>⭐</span><h2>${labels[lang].featured}</h2></div><div class="featured-row">${featured.map(i=>itemCard(i,true)).join('')}</div>`:'';}
-function render(){const q=document.getElementById('search').value.trim().toLowerCase();let html='';menuData.categories.forEach((c,idx)=>{if(selected!=='all'&&selected!==String(idx))return;const matched=c.items.filter(i=>!q||[i.name.es,i.name.en,i.description?.es||'',i.description?.en||''].join(' ').toLowerCase().includes(q));if(!matched.length)return;html+=`<article class="category"><div class="section-title"><span>${c.emoji||'🍴'}</span><h2>${c.name[lang]}</h2></div><div class="grid">${matched.map(i=>itemCard(i)).join('')}</div></article>`});document.getElementById('menu').innerHTML=html||`<p class="empty">${labels[lang].noResults}</p>`;}
-function renderCart(){const items=allItems();const rows=Object.entries(cart).map(([id,qty])=>{const item=items.find(i=>i.id===id);return item?`<div class="cart-row"><span>${qty}× ${item.name[lang]}</span><strong>${formatPrice(Number(item.price)*qty)}</strong><div><button onclick="changeQty('${id}',-1)">−</button><button onclick="changeQty('${id}',1)">+</button></div></div>`:''}).join('');document.getElementById('cart-items').innerHTML=rows||'<p class="empty">Sin items</p>';const total=Object.entries(cart).reduce((s,[id,qty])=>{const item=items.find(i=>i.id===id);return s+(item?Number(item.price)*qty:0)},0);document.getElementById('cart-total').textContent=formatPrice(total);document.getElementById('cart-count').textContent=Object.values(cart).reduce((a,b)=>a+b,0);}
-function renderAll(){renderFilters();renderConversion();renderFeatured();render();renderCart();}
-function addToCart(id,show=true){cart[id]=(cart[id]||0)+1;localStorage.setItem('lv-cart',JSON.stringify(cart));renderAll();if(show)showUpsell(id);}
-function addCombo(id){const combo=combos.find(c=>c.id===id);if(!combo)return;combo.items.forEach(x=>cart[x]=(cart[x]||0)+1);localStorage.setItem('lv-cart',JSON.stringify(cart));renderAll();toggleCartOpen();}
-function changeQty(id,delta){cart[id]=(cart[id]||0)+delta;if(cart[id]<=0)delete cart[id];localStorage.setItem('lv-cart',JSON.stringify(cart));renderAll();}
-function showUpsell(id){const picks=(upsells[id]||[]).map(findItem).filter(Boolean).slice(0,2);if(!picks.length)return;const box=document.getElementById('upsell');box.innerHTML=`<div class="upsell-card"><button class="upsell-close" onclick="hideUpsell()">×</button><h3>${labels[lang].upsell}</h3>${picks.map(i=>`<button onclick="addToCart('${i.id}',false);hideUpsell()">＋ ${i.name[lang]} <b>${formatPrice(i.price)}</b></button>`).join('')}</div>`;box.classList.add('open');setTimeout(()=>box.classList.remove('open'),6500)}
-function hideUpsell(){document.getElementById('upsell').classList.remove('open')}
-function toggleCart(){document.getElementById('cart').classList.toggle('open')}function toggleCartOpen(){document.getElementById('cart').classList.add('open')}
-function focusItem(id){const el=document.getElementById('item-'+id);if(!el){selected='all';renderAll();setTimeout(()=>focusItem(id),100);return}el.scrollIntoView({behavior:'smooth',block:'center'});el.classList.add('spotlight');setTimeout(()=>el.classList.remove('spotlight'),2500)}
-function surpriseMe(){const items=allItems();focusItem(items[Math.floor(Math.random()*items.length)].id)}
-function orderText(){const items=allItems();const lines=Object.entries(cart).map(([id,qty])=>{const item=items.find(i=>i.id===id);return item?`${qty} x ${item.name.es} / ${item.name.en} - ${formatPrice(Number(item.price)*qty)}`:''}).filter(Boolean);const total=Object.entries(cart).reduce((s,[id,qty])=>{const item=items.find(i=>i.id===id);return s+(item?Number(item.price)*qty:0)},0);const notes=document.getElementById('order-notes').value.trim();return `Hola Las Veraneras, quiero pedir:\n${lines.join('\n')}\nTotal: ${formatPrice(total)}${notes?'\nNotas: '+notes:''}`}
-async function checkout(){if(!Object.keys(cart).length)return;const text=orderText();if(whatsappNumber){location.href=`https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`}else{await navigator.clipboard.writeText(text).catch(()=>{});alert('Pedido copiado. Agrega el número de WhatsApp para enviar directo.')}}
-async function shareItem(id){const item=findItem(id);if(!item)return;const url=new URL(location.href);url.searchParams.set('item',id);const text=`${item.name[lang]} · ${formatPrice(item.price)} · Las Veraneras`;if(navigator.share){await navigator.share({title:item.name[lang],text,url:url.toString()}).catch(()=>{})}else{await navigator.clipboard.writeText(`${text} ${url}`).catch(()=>{});alert(lang==='es'?'Enlace copiado':'Link copied')}}
-async function load(){renderAll();try{const fresh=await fetch('data/menu.json?v=20260501-2',{cache:'no-store'}).then(r=>r.ok?r.json():null);if(fresh&&fresh.categories){menuData=fresh;renderAll()}}catch(e){console.warn('Using embedded menu fallback',e)}const params=new URLSearchParams(location.search);const item=params.get('item');if(item)setTimeout(()=>focusItem(item),500)}
-load();
-</script>
+
+<script src="app.js?v=20260501-3"></script>
 </body>
 </html>
