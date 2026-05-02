@@ -10,11 +10,14 @@
 </head>
 <body>
 <header class="hero">
-  <div class="flower-strip"></div>
-  <div class="brand-card">
-    <p class="eyebrow">Snacks · Postres · Comidas</p>
+  <div class="hero-overlay">
+    <p class="eyebrow">Menú digital · Digital menu</p>
     <h1>Las Veraneras</h1>
     <p class="location">Las Vueltas de Tucurrique</p>
+    <div class="hero-actions">
+      <button onclick="surpriseMe()">🎲 Sorpréndeme</button>
+      <button onclick="document.getElementById('menu').scrollIntoView({behavior:'smooth'})">Ver menú</button>
+    </div>
   </div>
 </header>
 <main>
@@ -26,6 +29,7 @@
     <input id="search" type="search" placeholder="Buscar / Search" oninput="render()" aria-label="Search menu">
   </section>
   <nav id="filters" class="filters" aria-label="Categories"></nav>
+  <section id="featured" class="featured" aria-label="Featured dishes"></section>
   <section id="menu" class="menu" aria-live="polite"></section>
 </main>
 <footer>
@@ -35,47 +39,59 @@
 let lang='es';
 let selected='all';
 let menuData={categories:[]};
-const labels={es:{all:'Todo',noResults:'No hay resultados'},en:{all:'All',noResults:'No results'}};
+const labels={
+  es:{all:'Todo',noResults:'No hay resultados',featured:'Recomendados',popular:'Popular',share:'Compartir'},
+  en:{all:'All',noResults:'No results',featured:'Top Picks',popular:'Popular',share:'Share'}
+};
+function allItems(){return menuData.categories.flatMap((c,ci)=>c.items.map(i=>({...i,category:c,categoryIndex:ci})));}
 function setLang(l){
-  lang=l;
-  document.documentElement.lang=l;
+  lang=l; document.documentElement.lang=l;
   document.getElementById('btn-es').classList.toggle('active',l==='es');
   document.getElementById('btn-en').classList.toggle('active',l==='en');
-  renderFilters();
-  render();
+  renderFilters(); renderFeatured(); render();
 }
 function setCategory(id){selected=id;renderFilters();render();}
 function formatPrice(value){return '₡'+String(value).replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
 async function load(){
   menuData=await fetch('data/menu.json').then(r=>r.json());
-  renderFilters();
-  render();
+  renderFilters(); renderFeatured(); render();
+  const params=new URLSearchParams(location.search); const item=params.get('item');
+  if(item)setTimeout(()=>focusItem(item),500);
   if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js').catch(()=>{});}
 }
 function renderFilters(){
   const root=document.getElementById('filters');
   const items=[`<button class="${selected==='all'?'active':''}" onclick="setCategory('all')">${labels[lang].all}</button>`];
-  menuData.categories.forEach((c,idx)=>items.push(`<button class="${selected===String(idx)?'active':''}" onclick="setCategory('${idx}')">${c.name[lang]}</button>`));
+  menuData.categories.forEach((c,idx)=>items.push(`<button class="${selected===String(idx)?'active':''}" onclick="setCategory('${idx}')">${c.emoji||''} ${c.name[lang]}</button>`));
   root.innerHTML=items.join('');
+}
+function itemCard(i,compact=false){
+  const badge=i.popular?`<span class="badge">🔥 ${labels[lang].popular}</span>`:'';
+  const img=i.image?`<img loading="lazy" src="${i.image}" alt="${i.name[lang]}" onerror="this.closest('.dish').classList.add('no-image')">`:'';
+  return `<article class="dish ${compact?'compact':''}" id="item-${i.id}">${img}<div class="dish-body">${badge}<h3>${i.name[lang]}</h3><p>${i.description?.[lang]||''}</p><div class="dish-bottom"><strong>${formatPrice(i.price)}</strong><button onclick="shareItem('${i.id}')">${labels[lang].share}</button></div></div></article>`;
+}
+function renderFeatured(){
+  const featured=allItems().filter(i=>i.featured).slice(0,8);
+  document.getElementById('featured').innerHTML=featured.length?`<div class="section-title"><span>⭐</span><h2>${labels[lang].featured}</h2></div><div class="featured-row">${featured.map(i=>itemCard(i,true)).join('')}</div>`:'';
 }
 function render(){
   const q=document.getElementById('search').value.trim().toLowerCase();
-  const root=document.getElementById('menu');
-  let html='';
+  const root=document.getElementById('menu'); let html='';
   menuData.categories.forEach((c,idx)=>{
     if(selected!=='all'&&selected!==String(idx))return;
-    const matched=c.items.filter(i=>{
-      const hay=[i.name.es,i.name.en,i.description?.es||'',i.description?.en||''].join(' ').toLowerCase();
-      return !q||hay.includes(q);
-    });
+    const matched=c.items.filter(i=>{const hay=[i.name.es,i.name.en,i.description?.es||'',i.description?.en||''].join(' ').toLowerCase();return !q||hay.includes(q);});
     if(!matched.length)return;
-    html+=`<article class="category"><h2>${c.name[lang]}</h2>`;
-    matched.forEach(i=>{
-      html+=`<div class="item"><div><h3>${i.name[lang]}</h3>${i.description?.[lang]?`<p>${i.description[lang]}</p>`:''}</div><strong>${formatPrice(i.price)}</strong></div>`;
-    });
-    html+='</article>';
+    html+=`<article class="category"><div class="section-title"><span>${c.emoji||'🍴'}</span><h2>${c.name[lang]}</h2></div><div class="grid">${matched.map(i=>itemCard(i)).join('')}</div></article>`;
   });
   root.innerHTML=html||`<p class="empty">${labels[lang].noResults}</p>`;
+}
+function focusItem(id){const el=document.getElementById('item-'+id); if(!el)return; el.scrollIntoView({behavior:'smooth',block:'center'}); el.classList.add('spotlight'); setTimeout(()=>el.classList.remove('spotlight'),2500);}
+function surpriseMe(){const items=allItems(); const pick=items[Math.floor(Math.random()*items.length)]; selected='all'; renderFilters(); render(); setTimeout(()=>focusItem(pick.id),100);}
+async function shareItem(id){
+  const item=allItems().find(i=>i.id===id); if(!item)return;
+  const url=new URL(location.href); url.searchParams.set('item',id);
+  const text=`${item.name[lang]} · ${formatPrice(item.price)} · Las Veraneras`;
+  if(navigator.share){await navigator.share({title:item.name[lang],text,url:url.toString()}).catch(()=>{});}else{await navigator.clipboard.writeText(`${text} ${url}`).catch(()=>{}); alert(lang==='es'?'Enlace copiado':'Link copied');}
 }
 load();
 </script>
