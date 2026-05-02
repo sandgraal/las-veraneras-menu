@@ -119,6 +119,10 @@ const allItems = () => menuData.categories.flatMap((c,ci) => c.items.map(i => ({
 const findItem = id => allItems().find(i => i.id === id);
 const fmt = v => '₡' + String(v||0).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 const t = key => (T[lang]||T.es)[key] || key;
+const jsArg = v => JSON.stringify(String(v ?? ''))
+  .replace(/&/g, '&amp;')
+  .replace(/"/g, '&quot;')
+  .replace(/</g, '&lt;');
 
 function saveCart() { localStorage.setItem('lv-cart',JSON.stringify(cart)); renderAll(); }
 function saveCartOnly() { localStorage.setItem('lv-cart',JSON.stringify(cart)); }
@@ -237,7 +241,7 @@ function renderFilters() {
   root.innerHTML = [
     `<button class="filter-btn ${selected==='all'?'active':''}" onclick="setCategory('all')">${t('all')}</button>`,
     ...menuData.categories.map((c,i) =>
-      `<button class="filter-btn ${selected===String(i)?'active':''}" onclick="setCategory('${i}')">${c.emoji||''} ${c.name[lang]}</button>`)
+      `<button class="filter-btn ${selected===String(i)?'active':''}" onclick="setCategory(${jsArg(i)})">${c.emoji||''} ${c.name[lang]}</button>`)
   ].join('');
 }
 
@@ -270,8 +274,8 @@ function renderSpecials() {
 /* ── qty controls ────────────────────────────────────────────────────── */
 function qtyControls(id) {
   const qty = cart[id]||0;
-  if (!qty) return `<button class="add-btn" onclick="addToCart('${id}',true)">＋ ${t('add')}</button>`;
-  return `<div class="stepper"><button onclick="changeQty('${id}',-1)">−</button><span>${qty}</span><button onclick="addToCart('${id}',false)">+</button></div>`;
+  if (!qty) return `<button class="add-btn" onclick="addToCart(${jsArg(id)},true)">＋ ${t('add')}</button>`;
+  return `<div class="stepper"><button onclick="changeQty(${jsArg(id)},-1)">−</button><span>${qty}</span><button onclick="addToCart(${jsArg(id)},false)">+</button></div>`;
 }
 
 /* ── Item card ───────────────────────────────────────────────────────── */
@@ -295,7 +299,7 @@ function itemCard(item, compact=false) {
         <span class="dish-price">${fmt(item.price)}</span>
         <div class="dish-actions">
           ${qtyControls(item.id)}
-          <button class="share-btn" onclick="shareItem('${item.id}')" aria-label="Compartir">↗</button>
+          <button class="share-btn" onclick="shareItem(${jsArg(item.id)})" aria-label="Compartir">↗</button>
         </div>
       </div>
     </div>
@@ -314,7 +318,7 @@ function comboCard(c) {
       <p>${c.description[lang]}</p>
       <div class="combo-bottom">
         <span class="combo-price">${fmt(c.price)}</span>
-        <button class="combo-add-btn" onclick="addCombo('${c.id}')">＋ ${t('add')}</button>
+        <button class="combo-add-btn" onclick="addCombo(${jsArg(c.id)})">＋ ${t('add')}</button>
       </div>
     </div>
   </article>`;
@@ -331,7 +335,7 @@ function renderConversion() {
     ${popular.length ? `
       <div class="sec-title"><span>🔥</span><h2>${t('most')}</h2></div>
       <div class="popular-row">${popular.map(i =>
-        `<button onclick="focusItem('${i.id}')">${i.name[lang]} <b>${fmt(i.price)}</b></button>`
+        `<button onclick="focusItem(${jsArg(i.id)})">${i.name[lang]} <b>${fmt(i.price)}</b></button>`
       ).join('')}</div>` : ''}`;
 }
 
@@ -386,9 +390,9 @@ function renderCart() {
             <div class="cart-row-price">${fmt(Number(item.price)*qty)}</div>
           </div>
           <div class="cart-stepper">
-            <button onclick="changeQty('${id}',-1)" aria-label="Quitar uno">−</button>
+            <button onclick="changeQty(${jsArg(id)},-1)" aria-label="Quitar uno">−</button>
             <span>${qty}</span>
-            <button onclick="changeQty('${id}',1)" aria-label="Agregar uno">+</button>
+            <button onclick="changeQty(${jsArg(id)},1)" aria-label="Agregar uno">+</button>
           </div>
         </div>`;
       }).join('');
@@ -451,7 +455,7 @@ function showUpsellPanel(id) {
     <button class="upsell-close" onclick="hideUpsell()">✕</button>
     <h3>${t('upsell')}</h3>
     <div class="upsell-items">
-      ${picks.map(i => `<button class="upsell-item-btn" onclick="addToCart('${i.id}',false);hideUpsell()">
+      ${picks.map(i => `<button class="upsell-item-btn" onclick="addToCart(${jsArg(i.id)},false);hideUpsell()">
         <span>${i.name[lang]}</span>
         <strong>${fmt(i.price)}</strong>
       </button>`).join('')}
