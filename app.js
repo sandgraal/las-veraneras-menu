@@ -121,6 +121,7 @@ const fmt = v => '₡' + String(v||0).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 const t = key => (T[lang]||T.es)[key] || key;
 const jsArg = v => JSON.stringify(String(v ?? ''))
   .replace(/&/g, '&amp;')
+  .replace(/'/g, '&#39;')
   .replace(/"/g, '&quot;')
   .replace(/</g, '&lt;');
 
