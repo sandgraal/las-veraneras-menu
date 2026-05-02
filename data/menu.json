@@ -28,7 +28,7 @@
             "fr": "Frites avec mayonnaise et ketchup."
           },
           "price": "2000",
-          "image": "https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Plate_of_thick-cut_french_fries_%28frites%29_served_with_a_side_of_dipping_sauces_%28ketchup_and_mayonnaise%29_at_Clyde_Common_in_Portland%2C_Oregon_%28May_2008%29.jpg/960px-Plate_of_thick-cut_french_fries_%28frites%29_served_with_a_side_of_dipping_sauces_%28ketchup_and_mayonnaise%29_at_Clyde_Common_in_Portland%2C_Oregon_%28May_2008%29.jpg",
           "badgeText": "",
           "allergens": [
             "Huevo"
@@ -61,7 +61,9 @@
             "es": "Papas fritas doradas servidas estilo bistro.",
             "en": "Papas fritas doradas servidas estilo bistro.",
             "fr": "Papas fritas doradas servidas estilo bistro."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Plate_of_thick-cut_french_fries_(frites)_served_with_a_side_of_dipping_sauces_(ketchup_and_mayonnaise)_at_Clyde_Common_in_Portland%2C_Oregon_(May_2008).jpg",
+          "imageCurationNote": "Thick-cut fries served with ketchup and mayonnaise; closer to the actual papas setup."
         },
         {
           "id": "salchipapas",
@@ -77,7 +79,7 @@
             "fr": "Frites, saucisse, mayonnaise et sauce."
           },
           "price": "2500",
-          "image": "https://images.pexels.com/photos/4109234/pexels-photo-4109234.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/a/a8/Salchipapas.jpg",
           "badgeText": "",
           "allergens": [
             "Huevo"
@@ -103,7 +105,9 @@
             "es": "Salchipapas abundantes con papas y salchicha.",
             "en": "Salchipapas abundantes con papas y salchicha.",
             "fr": "Salchipapas abundantes con papas y salchicha."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Salchipapas.jpg",
+          "imageCurationNote": "Actual salchipapas with fries and sausage."
         },
         {
           "id": "nachos",
@@ -120,7 +124,7 @@
             "fr": "Nachos avec haricots moulus, viande assaisonnee et chimichurri."
           },
           "price": "3000",
-          "image": "https://images.pexels.com/photos/6941010/pexels-photo-6941010.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/Camping-wok-nachos.jpg/960px-Camping-wok-nachos.jpg",
           "badgeText": "",
           "allergens": [],
           "story": {
@@ -145,7 +149,9 @@
             "es": "Nachos con frijoles, carne y chimichurri.",
             "en": "Nachos con frijoles, carne y chimichurri.",
             "fr": "Nachos con frijoles, carne y chimichurri."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Camping-wok-nachos.jpg",
+          "imageCurationNote": "Loaded nachos with beans, beef, and toppings."
         },
         {
           "id": "papanachos",
@@ -160,7 +166,7 @@
             "fr": "Frites, haricots moulus, viande en sauce et chimichurri."
           },
           "price": "3500",
-          "image": "https://images.pexels.com/photos/4109272/pexels-photo-4109272.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Loaded_fries_food.jpg/960px-Loaded_fries_food.jpg",
           "badgeText": "",
           "allergens": [],
           "story": {
@@ -184,7 +190,9 @@
             "es": "Papanachos con papas, frijoles, carne y chimichurri.",
             "en": "Papanachos con papas, frijoles, carne y chimichurri.",
             "fr": "Papanachos con papas, frijoles, carne y chimichurri."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Loaded_fries_food.jpg",
+          "imageCurationNote": "Loaded fries, closer to papanachos than generic fries."
         },
         {
           "id": "burger",
@@ -201,7 +209,7 @@
             "fr": "Steak hache 100% boeuf, jambon, laitue, tomate et sauce."
           },
           "price": "2800",
-          "image": "https://images.pexels.com/photos/15362092/pexels-photo-15362092.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Hamburger_and_fries.jpg/960px-Hamburger_and_fries.jpg",
           "badgeText": "",
           "allergens": [
             "Gluten",
@@ -230,7 +238,9 @@
             "es": "Hamburguesa con papas servida para almuerzo rapido.",
             "en": "Hamburguesa con papas servida para almuerzo rapido.",
             "fr": "Hamburguesa con papas servida para almuerzo rapido."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Hamburger_and_fries.jpg",
+          "imageCurationNote": "Burger served with fries."
         },
         {
           "id": "tacos-sencillos",
@@ -245,7 +255,7 @@
             "fr": "Trois tacos simples."
           },
           "price": "1200",
-          "image": "https://images.pexels.com/photos/4958641/pexels-photo-4958641.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/73/001_Tacos_de_carnitas%2C_carne_asada_y_al_pastor.jpg/960px-001_Tacos_de_carnitas%2C_carne_asada_y_al_pastor.jpg",
           "badgeText": "",
           "allergens": [
             "Gluten"
@@ -270,7 +280,9 @@
             "es": "Tres tacos sencillos listos para compartir.",
             "en": "Tres tacos sencillos listos para compartir.",
             "fr": "Tres tacos sencillos listos para compartir."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:001_Tacos_de_carnitas%2C_carne_asada_y_al_pastor.jpg",
+          "imageCurationNote": "Three tacos presentation for the taco special."
         },
         {
           "id": "tacos-arreglados",
@@ -286,7 +298,7 @@
             "fr": "Trois tacos garnis."
           },
           "price": "1700",
-          "image": "https://images.pexels.com/photos/4958792/pexels-photo-4958792.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/22/Tacos_in_a_soft_tortilla_6.jpg/960px-Tacos_in_a_soft_tortilla_6.jpg",
           "badgeText": "",
           "allergens": [
             "Gluten"
@@ -312,7 +324,9 @@
             "es": "Tres tacos arreglados con estilo local.",
             "en": "Tres tacos arreglados con estilo local.",
             "fr": "Tres tacos arreglados con estilo local."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Tacos_in_a_soft_tortilla_6.jpg",
+          "imageCurationNote": "Soft tacos with visible toppings."
         },
         {
           "id": "mayo",
@@ -327,7 +341,7 @@
             "fr": "Sauce type mayonnaise francaise, preparee au moment."
           },
           "price": "500",
-          "image": "https://images.pexels.com/photos/821365/pexels-photo-821365.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/60/Mayonnaise_%281%29.jpg/960px-Mayonnaise_%281%29.jpg",
           "badgeText": "",
           "allergens": [
             "Huevo"
@@ -358,7 +372,9 @@
             "es": "Mayonesa de la casa preparada al momento.",
             "en": "Mayonesa de la casa preparada al momento.",
             "fr": "Mayonesa de la casa preparada al momento."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Mayonnaise_(1).jpg",
+          "imageCurationNote": "Actual mayonnaise in a bowl."
         },
         {
           "id": "crepas",
@@ -373,7 +389,7 @@
             "fr": "Crepes avec glace, sauce chocolat et lait concentre."
           },
           "price": "2000",
-          "image": "https://images.pexels.com/photos/1352278/pexels-photo-1352278.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Ice_Cream_Crepe_%28218792%29.jpg/960px-Ice_Cream_Crepe_%28218792%29.jpg",
           "badgeText": "",
           "allergens": [
             "Gluten",
@@ -407,7 +423,9 @@
             "es": "Crepas dulces con helado y chocolate.",
             "en": "Crepas dulces con helado y chocolate.",
             "fr": "Crepas dulces con helado y chocolate."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Ice_Cream_Crepe_(218792).jpg",
+          "imageCurationNote": "Crepe served with ice cream."
         },
         {
           "id": "helado",
@@ -422,7 +440,7 @@
             "fr": "Deux boules de glace avec sauce chocolat."
           },
           "price": "1500",
-          "image": "https://images.pexels.com/photos/1362534/pexels-photo-1362534.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Ice_cream_with_whipped_cream%2C_chocolate_syrup%2C_and_a_wafer_%28cropped%29.jpg/960px-Ice_cream_with_whipped_cream%2C_chocolate_syrup%2C_and_a_wafer_%28cropped%29.jpg",
           "badgeText": "",
           "allergens": [
             "Lácteos"
@@ -448,7 +466,9 @@
             "es": "Dos bolas de helado con chocolate.",
             "en": "Dos bolas de helado con chocolate.",
             "fr": "Dos bolas de helado con chocolate."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Ice_cream_with_whipped_cream%2C_chocolate_syrup%2C_and_a_wafer_(cropped).jpg",
+          "imageCurationNote": "Ice cream with chocolate syrup."
         }
       ]
     },
@@ -474,7 +494,7 @@
             "fr": "Riz au poulet avec salade et piquitos."
           },
           "price": "3000",
-          "image": "https://images.pexels.com/photos/5835353/pexels-photo-5835353.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Arroz_con_pollo_tico.jpg/960px-Arroz_con_pollo_tico.jpg",
           "badgeText": "",
           "allergens": [],
           "story": {
@@ -498,7 +518,9 @@
             "es": "Arroz con pollo con ensalada y piquitos.",
             "en": "Arroz con pollo con ensalada y piquitos.",
             "fr": "Arroz con pollo con ensalada y piquitos."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Arroz_con_pollo_tico.jpg",
+          "imageCurationNote": "Costa Rican arroz con pollo."
         },
         {
           "id": "arroz-carne",
@@ -513,7 +535,7 @@
             "fr": "Riz avec porc, salade et piquitos."
           },
           "price": "3000",
-          "image": "https://images.pexels.com/photos/5710170/pexels-photo-5710170.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/ce/Roasted_Pork_Fried_Rice_at_Wo_Hop.jpg/960px-Roasted_Pork_Fried_Rice_at_Wo_Hop.jpg",
           "badgeText": "",
           "allergens": [],
           "story": {
@@ -536,7 +558,9 @@
             "es": "Arroz con carne de cerdo y ensalada.",
             "en": "Arroz con carne de cerdo y ensalada.",
             "fr": "Arroz con carne de cerdo y ensalada."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Roasted_Pork_Fried_Rice_at_Wo_Hop.jpg",
+          "imageCurationNote": "Rice dish with pork pieces; closer to arroz con carne than the prior stock photo."
         },
         {
           "id": "arroz-carne-salsa",
@@ -551,7 +575,7 @@
             "fr": "Riz blanc, boeuf en sauce, salade et piquitos."
           },
           "price": "3000",
-          "image": "https://images.pexels.com/photos/6419726/pexels-photo-6419726.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Beef_bourguignon_at_a_sittning.jpg/960px-Beef_bourguignon_at_a_sittning.jpg",
           "badgeText": "",
           "allergens": [],
           "story": {
@@ -574,7 +598,9 @@
             "es": "Carne de res en salsa con arroz blanco.",
             "en": "Carne de res en salsa con arroz blanco.",
             "fr": "Carne de res en salsa con arroz blanco."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Beef_bourguignon_at_a_sittning.jpg",
+          "imageCurationNote": "Beef in sauce served with rice."
         },
         {
           "id": "chuleta",
@@ -590,7 +616,7 @@
             "fr": "Cote de porc avec creme, champignons, oignon, salade et riz blanc."
           },
           "price": "4300",
-          "image": "https://images.pexels.com/photos/675951/pexels-photo-675951.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/63/Pork-Chop-Dinner-2009.jpg/960px-Pork-Chop-Dinner-2009.jpg",
           "badgeText": "",
           "allergens": [
             "Lácteos"
@@ -620,7 +646,9 @@
             "es": "Chuleta en salsa francesa con arroz y ensalada.",
             "en": "Chuleta en salsa francesa con arroz y ensalada.",
             "fr": "Chuleta en salsa francesa con arroz y ensalada."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Pork-Chop-Dinner-2009.jpg",
+          "imageCurationNote": "Pan-fried pork chop with mushroom sauce."
         },
         {
           "id": "pollo-francesa",
@@ -637,7 +665,7 @@
             "fr": "Emince de poulet, creme, champignons, oignon, salade et riz blanc."
           },
           "price": "3800",
-          "image": "https://images.pexels.com/photos/2338407/pexels-photo-2338407.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/f/f2/-2020-02-24_Dijon_Chicken%2C_Cream_of_Mushroom%2C_Nutmeg%2C_Spinach_Sauce%2C_Bay_Scented_Smashed_Roast_Potatoes%2C_Trimingham.JPG/960px--2020-02-24_Dijon_Chicken%2C_Cream_of_Mushroom%2C_Nutmeg%2C_Spinach_Sauce%2C_Bay_Scented_Smashed_Roast_Potatoes%2C_Trimingham.JPG",
           "badgeText": "",
           "allergens": [
             "Lácteos"
@@ -668,7 +696,9 @@
             "es": "Pollo en salsa francesa con arroz blanco.",
             "en": "Pollo en salsa francesa con arroz blanco.",
             "fr": "Pollo en salsa francesa con arroz blanco."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:-2020-02-24_Dijon_Chicken%2C_Cream_of_Mushroom%2C_Nutmeg%2C_Spinach_Sauce%2C_Bay_Scented_Smashed_Roast_Potatoes%2C_Trimingham.JPG",
+          "imageCurationNote": "Chicken with cream of mushroom sauce."
         },
         {
           "id": "daube",
@@ -684,7 +714,7 @@
             "fr": "Palette de boeuf mijotee au vin rouge avec oignon et carotte; servie avec salade et riz."
           },
           "price": "7000",
-          "image": "https://images.pexels.com/photos/533325/pexels-photo-533325.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/be/Daube_of_beef.jpg/960px-Daube_of_beef.jpg",
           "badgeText": "",
           "allergens": [],
           "story": {
@@ -711,7 +741,9 @@
             "es": "Daube nicoise de res cocinada en vino tinto.",
             "en": "Daube nicoise de res cocinada en vino tinto.",
             "fr": "Daube nicoise de res cocinada en vino tinto."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Daube_of_beef.jpg",
+          "imageCurationNote": "Actual French beef daube."
         },
         {
           "id": "chifrijo",
@@ -728,7 +760,7 @@
             "fr": "Haricots tendres, riz blanc, chicharron, chimichurri et piquitos."
           },
           "price": "4000",
-          "image": "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Chifrijo.jpg/960px-Chifrijo.jpg",
           "badgeText": "",
           "allergens": [],
           "story": {
@@ -752,7 +784,9 @@
             "es": "Chifrijo tradicional con chicharron y chimichurri.",
             "en": "Chifrijo tradicional con chicharron y chimichurri.",
             "fr": "Chifrijo tradicional con chicharron y chimichurri."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Chifrijo.jpg",
+          "imageCurationNote": "Actual chifrijo."
         },
         {
           "id": "fajitas",
@@ -767,7 +801,7 @@
             "fr": "Blanc de poulet, oignon, poivron, frites ou riz et salade."
           },
           "price": "3300",
-          "image": "https://images.pexels.com/photos/2092507/pexels-photo-2092507.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/cf/Chicken_fajitas.jpg/960px-Chicken_fajitas.jpg",
           "badgeText": "",
           "allergens": [],
           "story": {
@@ -790,7 +824,9 @@
             "es": "Fajitas de pollo con chile dulce y cebolla.",
             "en": "Fajitas de pollo con chile dulce y cebolla.",
             "fr": "Fajitas de pollo con chile dulce y cebolla."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Chicken_fajitas.jpg",
+          "imageCurationNote": "Chicken fajitas."
         },
         {
           "id": "arroz-camarones",
@@ -806,7 +842,7 @@
             "fr": "Riz aux crevettes avec salade et piquitos."
           },
           "price": "3800",
-          "image": "https://images.pexels.com/photos/20095296/pexels-photo-20095296.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6d/Prawn_fried_rice_shrimp_bowls.jpg/960px-Prawn_fried_rice_shrimp_bowls.jpg",
           "badgeText": "",
           "allergens": [
             "Mariscos"
@@ -831,7 +867,9 @@
             "es": "Arroz con camarones y ensalada.",
             "en": "Arroz con camarones y ensalada.",
             "fr": "Arroz con camarones y ensalada."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Prawn_fried_rice_shrimp_bowls.jpg",
+          "imageCurationNote": "Shrimp rice bowl."
         },
         {
           "id": "tilapia",
@@ -846,7 +884,7 @@
             "fr": "Filet de tilapia pane ou a l ail avec frites ou riz blanc."
           },
           "price": "4000",
-          "image": "https://images.pexels.com/photos/3296279/pexels-photo-3296279.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Tilapia_again_%281659491117%29.jpg/960px-Tilapia_again_%281659491117%29.jpg",
           "badgeText": "",
           "allergens": [
             "Gluten"
@@ -872,7 +910,9 @@
             "es": "Filet de tilapia con papas o arroz.",
             "en": "Filet de tilapia con papas o arroz.",
             "fr": "Filet de tilapia con papas o arroz."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Tilapia_again_(1659491117).jpg",
+          "imageCurationNote": "Tilapia fillet with sauce."
         },
         {
           "id": "camarones",
@@ -888,7 +928,7 @@
             "fr": "Crevettes panees avec frites et salade."
           },
           "price": "4000",
-          "image": "https://images.pexels.com/photos/7636383/pexels-photo-7636383.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Camarones_Empanizados_-_Mi_Pueblo_-_April_2023_-_Sarah_Stierch_02.jpg/960px-Camarones_Empanizados_-_Mi_Pueblo_-_April_2023_-_Sarah_Stierch_02.jpg",
           "badgeText": "",
           "allergens": [
             "Mariscos",
@@ -915,7 +955,9 @@
             "es": "Camarones empanizados con papas y ensalada.",
             "en": "Camarones empanizados con papas y ensalada.",
             "fr": "Camarones empanizados con papas y ensalada."
-          }
+          },
+          "imageSource": "https://commons.wikimedia.org/wiki/File:Camarones_Empanizados_-_Mi_Pueblo_-_April_2023_-_Sarah_Stierch_02.jpg",
+          "imageCurationNote": "Breaded shrimp plate."
         }
       ]
     }

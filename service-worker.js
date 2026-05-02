@@ -1,4 +1,4 @@
-const CACHE = 'las-veraneras-v9';
+const CACHE = 'las-veraneras-v10';
 const STATIC = ['./','index.html','styles.css','app.js','manifest.json','data/menu.json','data/combos.json'];
 const FRESH = ['data/config.json','data/specials.json','data/combos.json'];
 
