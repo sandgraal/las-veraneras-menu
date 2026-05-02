@@ -4,44 +4,620 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin | Las Veraneras</title>
-<link rel="stylesheet" href="styles.css">
-<style>
-.admin-wrap{max-width:1100px;margin:auto;padding:1rem}.admin-card{background:rgba(255,255,255,.06);border-radius:18px;padding:1rem;margin:1rem 0;box-shadow:0 8px 20px rgba(0,0,0,.4)}.admin-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:.75rem}label{display:block;font-size:.8rem;color:#ccc;margin:.4rem 0}input,textarea,select{width:100%;box-sizing:border-box;padding:.65rem;border-radius:10px;border:1px solid #333;background:#101010;color:white}textarea{min-height:80px}.admin-row{border-top:1px solid #333;padding:1rem 0}.admin-actions{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:.75rem}.danger{background:#8b1e1e}.success{background:#0f7b45}.muted{color:#aaa;font-size:.85rem}.topbar{display:flex;justify-content:space-between;gap:1rem;align-items:center;flex-wrap:wrap}.status{padding:.5rem .75rem;border-radius:999px;background:#222}.item-editor{background:rgba(0,0,0,.25);border-radius:14px;padding:1rem;margin:.75rem 0}.preview-img{width:100%;height:120px;object-fit:cover;border-radius:12px;background:#222}.small{font-size:.8rem}</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=20260502">
 </head>
 <body>
-<header class="hero" style="height:220px"><div class="hero-overlay"><p class="eyebrow">Admin</p><h1>Las Veraneras</h1><p class="location">Editor del menú</p></div></header>
-<main class="admin-wrap">
+
+<header class="admin-header">
+  <div class="admin-header-title">
+    <h1>🌺 Las Veraneras — Admin</h1>
+    <p>Panel de administración del restaurante</p>
+  </div>
+  <div class="admin-header-right">
+    <span id="status" class="status-badge">Sin conectar</span>
+    <button class="publish-btn" id="publish-btn" onclick="publishAll()" disabled>🚀 Publicar Todo</button>
+    <a href="./" class="btn-admin" style="text-decoration:none">👁 Ver Sitio</a>
+  </div>
+</header>
+
+<div class="admin-wrap">
+
+  <!-- Auth -->
   <section class="admin-card">
-    <div class="topbar"><div><h2>Conexión GitHub</h2><p class="muted">Usa un Fine-grained Personal Access Token con acceso de lectura/escritura a Contents para este repo.</p></div><span id="status" class="status">Sin conectar</span></div>
-    <label>GitHub token</label><input id="token" type="password" placeholder="github_pat_...">
-    <div class="admin-actions"><button onclick="connect()">Conectar</button><button onclick="loadMenu()">Recargar menú</button><button class="success" onclick="saveMenu()">Guardar en GitHub</button></div>
-    <p class="muted small">El token no se guarda en el repo. Si marcas “recordar”, solo se guarda en este navegador.</p>
-    <label><input id="remember" type="checkbox" style="width:auto"> Recordar token en este navegador</label>
+    <div class="topbar">
+      <div>
+        <h2>Conexión GitHub</h2>
+        <p class="muted">Usa un Fine-grained PAT con permiso de Contents en este repo.</p>
+      </div>
+    </div>
+    <label class="admin-label">GitHub Token</label>
+    <input id="token" type="password" class="admin-input" placeholder="github_pat_...">
+    <label class="admin-label" style="margin-top:.75rem;display:flex;align-items:center;gap:.5rem;cursor:pointer">
+      <input id="remember" type="checkbox" style="width:auto"> Recordar token (solo en este navegador)
+    </label>
+    <div class="admin-actions">
+      <button class="btn-admin-primary" onclick="connect()">Conectar</button>
+      <button class="btn-admin" onclick="loadAll()">Recargar datos</button>
+      <button class="btn-admin" onclick="downloadBackup()">⬇ Respaldo JSON</button>
+    </div>
+    <p class="muted small" style="margin-top:.5rem">El token nunca se guarda en el repositorio.</p>
   </section>
-  <section class="admin-card">
-    <h2>Acciones rápidas</h2>
-    <div class="admin-actions"><button onclick="addCategory()">＋ Categoría</button><button onclick="addItem()">＋ Item</button><button onclick="downloadJson()">Descargar respaldo JSON</button><a href="./" style="color:#ffd166;align-self:center">Ver sitio</a></div>
-  </section>
-  <section id="editor"></section>
-</main>
+
+  <!-- Dashboard stats -->
+  <div class="stat-grid" id="stat-grid">
+    <div class="stat-card"><span class="stat-value" id="stat-items">—</span><div class="stat-label">Platos en menú</div></div>
+    <div class="stat-card"><span class="stat-value" id="stat-specials">—</span><div class="stat-label">Especiales activos</div></div>
+    <div class="stat-card"><span class="stat-value" id="stat-events">—</span><div class="stat-label">Eventos próximos</div></div>
+    <div class="stat-card"><span class="stat-value" id="stat-saved">—</span><div class="stat-label">Último guardado</div></div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="admin-tabs" id="admin-tabs">
+    <button class="tab-btn active" id="tab-menu" onclick="showTab('menu')">🍽️ Menú<span class="dot"></span></button>
+    <button class="tab-btn" id="tab-specials" onclick="showTab('specials')">🌟 Especiales<span class="dot"></span></button>
+    <button class="tab-btn" id="tab-settings" onclick="showTab('settings')">⚙️ Configuración<span class="dot"></span></button>
+    <button class="tab-btn" id="tab-preview" onclick="showTab('preview')">👁 Preview<span class="dot"></span></button>
+  </div>
+
+  <!-- TAB: Menu -->
+  <div class="tab-panel active" id="panel-menu">
+    <div class="admin-actions" style="margin-bottom:1rem">
+      <button class="btn-admin-primary" onclick="addCategory()">＋ Categoría</button>
+    </div>
+    <div id="categories-container"></div>
+  </div>
+
+  <!-- TAB: Specials -->
+  <div class="tab-panel" id="panel-specials">
+    <div class="admin-actions" style="margin-bottom:1rem">
+      <button class="btn-admin-primary" onclick="addSpecial()">＋ Especial / Evento</button>
+    </div>
+    <div id="specials-container"></div>
+  </div>
+
+  <!-- TAB: Settings -->
+  <div class="tab-panel" id="panel-settings">
+    <div class="admin-card">
+      <h2>Restaurante</h2>
+      <label class="admin-label">Nombre del restaurante</label>
+      <input id="cfg-name" class="admin-input" placeholder="Las Veraneras" oninput="markDirty('settings')">
+      <label class="admin-label">Tagline (español)</label>
+      <input id="cfg-tagline" class="admin-input" placeholder="Sabores del corazón de Tucurrique" oninput="markDirty('settings')">
+      <label class="admin-label">Tagline (inglés)</label>
+      <input id="cfg-tagline-en" class="admin-input" placeholder="Flavors from the heart of Tucurrique" oninput="markDirty('settings')">
+      <label class="admin-label">Dirección</label>
+      <input id="cfg-address" class="admin-input" placeholder="Las Vueltas de Tucurrique, Cartago" oninput="markDirty('settings')">
+      <label class="admin-label">Teléfono</label>
+      <input id="cfg-phone" class="admin-input" placeholder="+506 XXXX-XXXX" oninput="markDirty('settings')">
+    </div>
+    <div class="admin-card">
+      <h2>WhatsApp</h2>
+      <p class="muted" style="margin-bottom:.75rem">Número con código de país, sin + ni espacios. Ejemplo: <code>50688887777</code></p>
+      <label class="admin-label">Número de WhatsApp</label>
+      <input id="cfg-wa" class="admin-input" placeholder="50688887777" oninput="markDirty('settings')">
+    </div>
+    <div class="admin-card">
+      <h2>Imagen Hero</h2>
+      <label class="admin-label">URL de imagen hero</label>
+      <input id="cfg-hero" class="admin-input" placeholder="https://..." oninput="markDirty('settings');updateHeroPreview()">
+      <img id="cfg-hero-preview" class="img-preview" src="" alt="preview" style="display:none;margin-top:.5rem;width:200px;height:100px;object-fit:cover">
+    </div>
+    <div class="admin-card">
+      <h2>Horario</h2>
+      <div class="hours-admin" id="hours-admin"></div>
+    </div>
+    <div class="admin-card">
+      <h2>Redes Sociales</h2>
+      <label class="admin-label">Facebook URL</label>
+      <input id="cfg-fb" class="admin-input" placeholder="https://facebook.com/..." oninput="markDirty('settings')">
+      <label class="admin-label">Instagram URL</label>
+      <input id="cfg-ig" class="admin-input" placeholder="https://instagram.com/..." oninput="markDirty('settings')">
+      <label class="admin-label">TikTok URL</label>
+      <input id="cfg-tt" class="admin-input" placeholder="https://tiktok.com/..." oninput="markDirty('settings')">
+    </div>
+  </div>
+
+  <!-- TAB: Preview -->
+  <div class="tab-panel" id="panel-preview">
+    <p class="muted" style="margin-bottom:.75rem">Vista previa del sitio. Guarda los cambios primero para ver actualizaciones.</p>
+    <iframe src="./index.html" style="width:100%;height:80vh;border:none;border-radius:16px;background:#0D0A14" title="Vista previa"></iframe>
+  </div>
+
+</div><!-- /admin-wrap -->
+
 <script>
-const owner='sandgraal';const repo='las-veraneras-menu';const path='data/menu.json';const branch='main';
-let token='';let sha='';let data={categories:[]};
-const headers=()=>({'Accept':'application/vnd.github+json','Authorization':'Bearer '+token,'X-GitHub-Api-Version':'2022-11-28'});
-function setStatus(t){document.getElementById('status').textContent=t;}
-function connect(){token=document.getElementById('token').value.trim();if(!token){alert('Pega un token de GitHub');return;}if(document.getElementById('remember').checked)localStorage.setItem('lv-admin-token',token);setStatus('Conectado');loadMenu();}
-async function loadMenu(){if(!token){token=localStorage.getItem('lv-admin-token')||'';document.getElementById('token').value=token;}if(!token){alert('Falta token');return;}setStatus('Cargando...');const res=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,{headers:headers()});if(!res.ok){setStatus('Error');alert(await res.text());return;}const file=await res.json();sha=file.sha;data=JSON.parse(decodeURIComponent(escape(atob(file.content.replace(/\n/g,'')))));setStatus('Menú cargado');renderEditor();}
-function renderEditor(){const root=document.getElementById('editor');root.innerHTML='';data.categories.forEach((cat,ci)=>{const section=document.createElement('section');section.className='admin-card';section.innerHTML=`<div class="topbar"><h2>${cat.emoji||''} ${cat.name?.es||'Categoría'}</h2><button class="danger" onclick="deleteCategory(${ci})">Eliminar categoría</button></div><div class="admin-grid"><div><label>Nombre ES</label><input value="${esc(cat.name?.es)}" oninput="data.categories[${ci}].name.es=this.value"></div><div><label>Name EN</label><input value="${esc(cat.name?.en)}" oninput="data.categories[${ci}].name.en=this.value"></div><div><label>Emoji</label><input value="${esc(cat.emoji)}" oninput="data.categories[${ci}].emoji=this.value"></div></div><div class="admin-actions"><button onclick="addItem(${ci})">＋ Item en esta categoría</button></div><div id="cat-${ci}"></div>`;root.appendChild(section);const items=section.querySelector('#cat-'+ci);cat.items.forEach((item,ii)=>items.appendChild(itemEditor(item,ci,ii)));});}
-function itemEditor(item,ci,ii){const div=document.createElement('div');div.className='item-editor';div.innerHTML=`<div class="topbar"><strong>${item.name?.es||'Nuevo item'}</strong><button class="danger" onclick="deleteItem(${ci},${ii})">Eliminar</button></div><div class="admin-grid"><div><label>Nombre ES</label><input value="${esc(item.name?.es)}" oninput="data.categories[${ci}].items[${ii}].name.es=this.value"></div><div><label>Name EN</label><input value="${esc(item.name?.en)}" oninput="data.categories[${ci}].items[${ii}].name.en=this.value"></div><div><label>Precio</label><input value="${esc(item.price)}" oninput="data.categories[${ci}].items[${ii}].price=this.value.replace(/[^0-9]/g,'')"></div><div><label>ID</label><input value="${esc(item.id)}" oninput="data.categories[${ci}].items[${ii}].id=this.value"></div></div><div class="admin-grid"><div><label>Descripción ES</label><textarea oninput="data.categories[${ci}].items[${ii}].description.es=this.value">${esc(item.description?.es)}</textarea></div><div><label>Description EN</label><textarea oninput="data.categories[${ci}].items[${ii}].description.en=this.value">${esc(item.description?.en)}</textarea></div></div><label>Imagen URL</label><input value="${esc(item.image)}" oninput="data.categories[${ci}].items[${ii}].image=this.value;this.nextElementSibling.src=this.value"><img class="preview-img" src="${esc(item.image)}" onerror="this.style.display='none'"><div class="admin-actions"><label><input type="checkbox" ${item.featured?'checked':''} onchange="data.categories[${ci}].items[${ii}].featured=this.checked" style="width:auto"> Featured</label><label><input type="checkbox" ${item.popular?'checked':''} onchange="data.categories[${ci}].items[${ii}].popular=this.checked" style="width:auto"> Popular</label></div>`;return div;}
-function esc(v){return String(v||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;')}
-function slug(s){return String(s||'item').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')||'item'}
-function addCategory(){data.categories.push({id:'categoria-'+(data.categories.length+1),emoji:'🍴',name:{es:'Nueva categoría',en:'New Category'},items:[]});renderEditor();}
-function deleteCategory(i){if(confirm('Eliminar categoría?')){data.categories.splice(i,1);renderEditor();}}
-function addItem(ci=0){if(!data.categories.length)addCategory();const cat=data.categories[ci]||data.categories[0];cat.items.push({id:'nuevo-'+Date.now(),name:{es:'Nuevo item',en:'New item'},description:{es:'',en:''},price:'0',image:'',featured:false,popular:false});renderEditor();}
-function deleteItem(ci,ii){if(confirm('Eliminar item?')){data.categories[ci].items.splice(ii,1);renderEditor();}}
-async function saveMenu(){if(!token){alert('Falta token');return;}setStatus('Guardando...');data.categories.forEach(c=>c.items.forEach(i=>{if(!i.id)i.id=slug(i.name.es)}));const content=btoa(unescape(encodeURIComponent(JSON.stringify(data,null,2)+'\n')));const res=await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`,{method:'PUT',headers:{...headers(),'Content-Type':'application/json'},body:JSON.stringify({message:'Update menu from admin panel',content,sha,branch})});if(!res.ok){setStatus('Error');alert(await res.text());return;}const out=await res.json();sha=out.content.sha;setStatus('Guardado');alert('Menú guardado. El sitio puede tardar unos minutos en actualizarse.');}
-function downloadJson(){const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='menu.json';a.click();}
-window.addEventListener('load',()=>{const saved=localStorage.getItem('lv-admin-token');if(saved){document.getElementById('token').value=saved;document.getElementById('remember').checked=true;}});
+'use strict';
+
+/* ── State ── */
+let menuData = { categories: [] };
+let specialsData = [];
+let configData = {};
+let dirty = { menu:false, specials:false, settings:false };
+
+const ALLERGENS = ['Gluten','Lácteos','Huevo','Mariscos','Nueces','Soya','Maní','Sésamo'];
+const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
+function getToken() { return document.getElementById('token').value.trim() || localStorage.getItem('lv-admin-token') || ''; }
+function markDirty(tab) {
+  dirty[tab] = true;
+  const btn = document.getElementById('tab-'+tab);
+  if (btn) btn.classList.add('dirty');
+  document.getElementById('publish-btn').disabled = false;
+}
+function clearDirty(tab) {
+  dirty[tab] = false;
+  const btn = document.getElementById('tab-'+tab);
+  if (btn) btn.classList.remove('dirty');
+}
+
+/* ── Connection ── */
+async function connect() {
+  const token = getToken();
+  if (!token) { alert('Ingresa el GitHub Token.'); return; }
+  const status = document.getElementById('status');
+  status.textContent = 'Conectando…';
+  status.className = 'status-badge';
+  try {
+    const res = await fetch('https://api.github.com/user', { headers:{ Authorization:'token '+token, Accept:'application/vnd.github.v3+json' } });
+    if (!res.ok) throw new Error('Token inválido');
+    const user = await res.json();
+    status.textContent = '✓ ' + user.login;
+    status.className = 'status-badge connected';
+    if (document.getElementById('remember').checked) localStorage.setItem('lv-admin-token', token);
+    document.getElementById('publish-btn').disabled = false;
+    await loadAll();
+  } catch(e) {
+    status.textContent = '✗ Error: ' + e.message;
+    status.className = 'status-badge error';
+  }
+}
+
+/* ── Load data ── */
+async function loadAll() {
+  await Promise.all([loadMenu(), loadConfig(), loadSpecialsData()]);
+  updateStats();
+}
+
+async function loadMenu() {
+  try {
+    const res = await fetch('data/menu.json', { cache:'no-store' });
+    if (res.ok) menuData = await res.json();
+    renderCategories();
+  } catch(e) {}
+}
+
+async function loadConfig() {
+  try {
+    const res = await fetch('data/config.json', { cache:'no-store' });
+    if (res.ok) configData = await res.json();
+    populateSettings();
+  } catch(e) {}
+}
+
+async function loadSpecialsData() {
+  try {
+    const res = await fetch('data/specials.json', { cache:'no-store' });
+    if (res.ok) { const d = await res.json(); specialsData = Array.isArray(d) ? d : []; }
+    renderSpecials();
+  } catch(e) {}
+}
+
+function updateStats() {
+  const items = (menuData.categories||[]).flatMap(c=>c.items||[]);
+  document.getElementById('stat-items').textContent = items.length;
+  const now = new Date();
+  const active = specialsData.filter(s => !s.validUntil || new Date(s.validUntil) >= now);
+  const events = specialsData.filter(s => s.isEvent && s.eventDate && new Date(s.eventDate) >= now);
+  document.getElementById('stat-specials').textContent = active.length;
+  document.getElementById('stat-events').textContent = events.length;
+  const saved = localStorage.getItem('lv-last-saved');
+  document.getElementById('stat-saved').textContent = saved ? new Date(saved).toLocaleDateString('es-CR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
+}
+
+/* ── Tabs ── */
+function showTab(name) {
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('tab-'+name)?.classList.add('active');
+  document.getElementById('panel-'+name)?.classList.add('active');
+}
+
+/* ── Settings ── */
+function populateSettings() {
+  const s = configData;
+  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v||''; };
+  set('cfg-name', s.restaurantName);
+  set('cfg-tagline', s.tagline);
+  set('cfg-tagline-en', s.taglineEn);
+  set('cfg-address', s.address);
+  set('cfg-phone', s.phone);
+  set('cfg-wa', s.whatsappNumber);
+  set('cfg-hero', s.heroImage);
+  set('cfg-fb', s.socialLinks?.facebook);
+  set('cfg-ig', s.socialLinks?.instagram);
+  set('cfg-tt', s.socialLinks?.tiktok);
+  updateHeroPreview();
+  // Hours
+  const ha = document.getElementById('hours-admin');
+  if (ha) {
+    ha.innerHTML = DAYS.map(day => `
+      <div>
+        <label class="admin-label">${day}</label>
+        <input id="hr-${day}" class="admin-input" value="${(s.hours||{})[day]||''}" placeholder="11:00–21:00" oninput="markDirty('settings')">
+      </div>`).join('');
+  }
+}
+
+function safeImgUrl(url) {
+  // Only allow http/https URLs for image preview (prevents javascript: XSS)
+  try {
+    const u = new URL(url);
+    return (u.protocol === 'https:' || u.protocol === 'http:') ? url : '';
+  } catch(e) { return ''; }
+}
+
+function updateHeroPreview() {
+  const url = document.getElementById('cfg-hero')?.value;
+  const img = document.getElementById('cfg-hero-preview');
+  if (!img) return;
+  const safe = safeImgUrl(url || '');
+  if (safe) { img.src = safe; img.style.display = 'block'; } else img.style.display = 'none';
+}
+
+function readSettings() {
+  const g = id => document.getElementById(id)?.value.trim() || '';
+  const hours = {};
+  DAYS.forEach(day => { const v = document.getElementById('hr-'+day)?.value.trim(); if (v) hours[day] = v; });
+  return {
+    restaurantName: g('cfg-name'),
+    tagline: g('cfg-tagline'),
+    taglineEn: g('cfg-tagline-en'),
+    address: g('cfg-address'),
+    phone: g('cfg-phone'),
+    whatsappNumber: g('cfg-wa'),
+    heroImage: g('cfg-hero'),
+    hours,
+    socialLinks: { facebook:g('cfg-fb'), instagram:g('cfg-ig'), tiktok:g('cfg-tt') }
+  };
+}
+
+/* ── Menu Categories ── */
+function renderCategories() {
+  const root = document.getElementById('categories-container');
+  if (!root) return;
+  root.innerHTML = (menuData.categories||[]).map((cat,ci) => `
+    <div class="category-block" id="cat-block-${ci}">
+      <div class="cat-header" onclick="toggleCat(${ci})">
+        <span style="font-size:1.3rem">${esc(cat.emoji||'🍴')}</span>
+        <span class="cat-name">${esc(cat.name?.es||'Categoría')}</span>
+        <span class="muted small">${(cat.items||[]).length} platos</span>
+        <button class="cat-toggle" id="cat-toggle-${ci}">▼</button>
+        <button class="btn-danger" onclick="event.stopPropagation();removeCategory(${ci})">✕</button>
+      </div>
+      <div class="cat-body" id="cat-body-${ci}">
+        <div class="item-row-2" style="margin-bottom:1rem">
+          <div>
+            <label class="admin-label" style="margin-top:0">Nombre ES</label>
+            <input class="admin-input" value="${esc(cat.name?.es||'')}" oninput="menuData.categories[${ci}].name.es=this.value;markDirty('menu')">
+          </div>
+          <div>
+            <label class="admin-label" style="margin-top:0">Nombre EN</label>
+            <input class="admin-input" value="${esc(cat.name?.en||'')}" oninput="menuData.categories[${ci}].name.en=this.value;markDirty('menu')">
+          </div>
+        </div>
+        <label class="admin-label" style="margin-top:0">Emoji</label>
+        <input class="admin-input" value="${esc(cat.emoji||'')}" style="width:80px" oninput="menuData.categories[${ci}].emoji=this.value;markDirty('menu')">
+        <div style="margin:1rem 0">${(cat.items||[]).map((_,ii) => itemEditor(ci,ii)).join('')}</div>
+        <button class="btn-admin-primary" onclick="addItem(${ci})">＋ Agregar plato</button>
+      </div>
+    </div>`).join('');
+  // After DOM renders, safely set image srcs
+  (menuData.categories||[]).forEach((cat,ci) => {
+    (cat.items||[]).forEach((item,ii) => {
+      if (item.image) updateItemImg(ci, ii, item.image);
+    });
+  });
+}
+
+function toggleCat(ci) {
+  const body = document.getElementById('cat-body-'+ci);
+  const btn = document.getElementById('cat-toggle-'+ci);
+  if (!body) return;
+  const open = body.classList.toggle('open');
+  if (btn) btn.textContent = open ? '▲' : '▼';
+}
+
+function itemEditor(ci, ii) {
+  const item = menuData.categories[ci]?.items?.[ii];
+  if (!item) return '';
+  const allergenChips = ALLERGENS.map(a => {
+    const sel = (item.allergens||[]).includes(a);
+    return `<span class="allergen-chip${sel?' selected':''}" onclick="toggleAllergen(${ci},${ii},'${a}',this)">${a}</span>`;
+  }).join('');
+  return `<div class="item-block" id="item-block-${ci}-${ii}">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
+      <strong style="color:var(--gold)">${esc(item.name?.es||'Plato')}</strong>
+      <button class="btn-danger" onclick="removeItem(${ci},${ii})">✕ Eliminar</button>
+    </div>
+    <div class="item-row-2">
+      <div>
+        <label class="admin-label" style="margin-top:0">Nombre ES</label>
+        <input class="admin-input" value="${esc(item.name?.es||'')}" oninput="setItemField(${ci},${ii},'name.es',this.value)">
+      </div>
+      <div>
+        <label class="admin-label" style="margin-top:0">Nombre EN</label>
+        <input class="admin-input" value="${esc(item.name?.en||'')}" oninput="setItemField(${ci},${ii},'name.en',this.value)">
+      </div>
+    </div>
+    <div class="item-row-2">
+      <div>
+        <label class="admin-label">Descripción ES</label>
+        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.es',this.value)">${esc(item.description?.es||'')}</textarea>
+      </div>
+      <div>
+        <label class="admin-label">Descripción EN</label>
+        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.en',this.value)">${esc(item.description?.en||'')}</textarea>
+      </div>
+    </div>
+    <div class="item-row-3">
+      <div>
+        <label class="admin-label">Precio (₡)</label>
+        <input class="admin-input" type="number" value="${esc(item.price||'')}" oninput="setItemField(${ci},${ii},'price',this.value)">
+      </div>
+      <div>
+        <label class="admin-label">Badge texto</label>
+        <input class="admin-input" value="${esc(item.badgeText||'')}" placeholder="Nuevo, Temporada…" oninput="setItemField(${ci},${ii},'badgeText',this.value)">
+      </div>
+      <div>
+        <label class="admin-label">ID</label>
+        <input class="admin-input" value="${esc(item.id||'')}" oninput="setItemField(${ci},${ii},'id',this.value)">
+      </div>
+    </div>
+    <label class="admin-label">Imagen URL</label>
+    <input class="admin-input" value="${esc(item.image||'')}" placeholder="https://..." oninput="setItemField(${ci},${ii},'image',this.value);updateItemImg(${ci},${ii},this.value)">
+    <img id="img-${ci}-${ii}" class="img-preview" src="" alt="" style="${item.image?'':'display:none'}">
+    <div class="checkbox-row">
+      <input type="checkbox" id="feat-${ci}-${ii}" ${item.featured?'checked':''} onchange="setItemField(${ci},${ii},'featured',this.checked)">
+      <label for="feat-${ci}-${ii}">⭐ Recomendado (featured)</label>
+      <input type="checkbox" id="pop-${ci}-${ii}" ${item.popular?'checked':''} onchange="setItemField(${ci},${ii},'popular',this.checked)" style="margin-left:.75rem">
+      <label for="pop-${ci}-${ii}">🔥 Popular</label>
+    </div>
+    <label class="admin-label">Alérgenos</label>
+    <div class="allergen-grid">${allergenChips}</div>
+  </div>`;
+}
+
+function setItemField(ci, ii, path, value) {
+  const item = menuData.categories[ci]?.items?.[ii];
+  if (!item) return;
+  const parts = path.split('.');
+  if (parts.length === 1) { item[parts[0]] = value; }
+  else if (parts.length === 2) { if (!item[parts[0]]) item[parts[0]] = {}; item[parts[0]][parts[1]] = value; }
+  markDirty('menu');
+}
+
+function updateItemImg(ci, ii, url) {
+  const img = document.getElementById(`img-${ci}-${ii}`);
+  if (!img) return;
+  const safe = safeImgUrl(url || '');
+  if (safe) { img.src = safe; img.style.display = 'block'; } else img.style.display = 'none';
+}
+
+function toggleAllergen(ci, ii, allergen, el) {
+  const item = menuData.categories[ci]?.items?.[ii];
+  if (!item) return;
+  if (!item.allergens) item.allergens = [];
+  const idx = item.allergens.indexOf(allergen);
+  if (idx === -1) { item.allergens.push(allergen); el.classList.add('selected'); }
+  else { item.allergens.splice(idx, 1); el.classList.remove('selected'); }
+  markDirty('menu');
+}
+
+function addCategory() {
+  if (!menuData.categories) menuData.categories = [];
+  menuData.categories.push({ id:'nueva-cat-'+Date.now(), emoji:'🍽️', name:{es:'Nueva Categoría',en:'New Category'}, items:[] });
+  markDirty('menu');
+  renderCategories();
+  // Open newly added
+  const last = menuData.categories.length - 1;
+  setTimeout(() => toggleCat(last), 50);
+}
+
+function removeCategory(ci) {
+  if (!confirm('¿Eliminar esta categoría y todos sus platos?')) return;
+  menuData.categories.splice(ci, 1);
+  markDirty('menu');
+  renderCategories();
+}
+
+function addItem(ci) {
+  if (!menuData.categories[ci].items) menuData.categories[ci].items = [];
+  menuData.categories[ci].items.push({ id:'nuevo-'+Date.now(), name:{es:'Nuevo plato',en:'New dish'}, description:{es:'',en:''}, price:'0', image:'', featured:false, popular:false, badgeText:'', allergens:[] });
+  markDirty('menu');
+  renderCategories();
+  // Re-open category
+  const body = document.getElementById('cat-body-'+ci);
+  if (body && !body.classList.contains('open')) toggleCat(ci);
+}
+
+function removeItem(ci, ii) {
+  if (!confirm('¿Eliminar este plato?')) return;
+  menuData.categories[ci].items.splice(ii, 1);
+  markDirty('menu');
+  renderCategories();
+}
+
+/* ── Specials ── */
+function renderSpecials() {
+  const root = document.getElementById('specials-container');
+  if (!root) return;
+  root.innerHTML = specialsData.map((s,i) => `
+    <div class="special-block">
+      <div class="special-header">
+        <strong>${esc(s.title||'Especial '+(i+1))}</strong>
+        <button class="btn-danger" onclick="removeSpecial(${i})">✕ Eliminar</button>
+      </div>
+      <div class="item-row-2">
+        <div>
+          <label class="admin-label" style="margin-top:0">Título ES</label>
+          <input class="admin-input" value="${esc(s.title||'')}" oninput="specialsData[${i}].title=this.value;markDirty('specials')">
+        </div>
+        <div>
+          <label class="admin-label" style="margin-top:0">Título EN</label>
+          <input class="admin-input" value="${esc(s.titleEn||'')}" oninput="specialsData[${i}].titleEn=this.value;markDirty('specials')">
+        </div>
+      </div>
+      <div class="item-row-2">
+        <div>
+          <label class="admin-label">Descripción ES</label>
+          <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].description=this.value;markDirty('specials')">${esc(s.description||'')}</textarea>
+        </div>
+        <div>
+          <label class="admin-label">Descripción EN</label>
+          <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].descriptionEn=this.value;markDirty('specials')">${esc(s.descriptionEn||'')}</textarea>
+        </div>
+      </div>
+      <div class="item-row-3">
+        <div>
+          <label class="admin-label">Precio (₡, opcional)</label>
+          <input class="admin-input" type="number" value="${esc(s.price||'')}" oninput="specialsData[${i}].price=this.value;markDirty('specials')">
+        </div>
+        <div>
+          <label class="admin-label">Válido hasta</label>
+          <input class="admin-input" type="date" value="${esc(s.validUntil||'')}" oninput="specialsData[${i}].validUntil=this.value;markDirty('specials')">
+        </div>
+        <div>
+          <label class="admin-label">ID</label>
+          <input class="admin-input" value="${esc(s.id||'')}" oninput="specialsData[${i}].id=this.value;markDirty('specials')">
+        </div>
+      </div>
+      <label class="admin-label">Imagen URL</label>
+      <input class="admin-input" value="${esc(s.image||'')}" placeholder="https://..." oninput="specialsData[${i}].image=this.value;markDirty('specials')">
+      <div class="checkbox-row">
+        <input type="checkbox" id="ev-${i}" ${s.isEvent?'checked':''} onchange="specialsData[${i}].isEvent=this.checked;markDirty('specials');renderSpecials()">
+        <label for="ev-${i}">📅 Es un evento</label>
+      </div>
+      ${s.isEvent ? `
+        <label class="admin-label">Fecha y hora del evento</label>
+        <input class="admin-input" type="datetime-local" value="${esc(s.eventDate||'')}" oninput="specialsData[${i}].eventDate=this.value;markDirty('specials')">
+      ` : ''}
+    </div>`).join('') || '<p class="muted">No hay especiales. Haz clic en "+ Especial" para agregar.</p>';
+}
+
+function addSpecial() {
+  specialsData.push({ id:'special-'+Date.now(), title:'', titleEn:'', description:'', descriptionEn:'', price:'', image:'', validUntil:'', isEvent:false, eventDate:'' });
+  markDirty('specials');
+  renderSpecials();
+}
+
+function removeSpecial(i) {
+  if (!confirm('¿Eliminar este especial?')) return;
+  specialsData.splice(i, 1);
+  markDirty('specials');
+  renderSpecials();
+}
+
+/* ── GitHub file helpers ── */
+async function getFileSHA(path) {
+  const token = getToken();
+  const [owner, repo] = getOwnerRepo();
+  try {
+    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+      headers: { Authorization:'token '+token, Accept:'application/vnd.github.v3+json' }
+    });
+    if (res.ok) { const d = await res.json(); return d.sha; }
+  } catch(e) {}
+  return null;
+}
+
+async function putFile(path, content, message) {
+  const token = getToken();
+  const [owner, repo] = getOwnerRepo();
+  const sha = await getFileSHA(path);
+  const body = { message, content: btoa(unescape(encodeURIComponent(content))) };
+  if (sha) body.sha = sha;
+  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+    method:'PUT',
+    headers: { Authorization:'token '+token, Accept:'application/vnd.github.v3+json', 'Content-Type':'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.message||'Error guardando '+path); }
+  return res.json();
+}
+
+function getOwnerRepo() {
+  // GitHub Pages: username.github.io/reponame/...
+  const m = location.hostname.match(/^([^.]+)\.github\.io$/);
+  if (m) {
+    const owner = m[1];
+    const repo = location.pathname.split('/').filter(Boolean)[0] || 'las-veraneras-menu';
+    return [owner, repo];
+  }
+  // Fallback for local dev or custom domains
+  return ['sandgraal', 'las-veraneras-menu'];
+}
+
+/* ── Publish All ── */
+async function publishAll() {
+  const btn = document.getElementById('publish-btn');
+  const status = document.getElementById('status');
+  if (!getToken()) { alert('Conecta primero con tu GitHub Token.'); return; }
+  btn.disabled = true;
+  btn.textContent = '⏳ Publicando…';
+  status.textContent = 'Guardando…';
+  status.className = 'status-badge';
+  try {
+    const cfgToSave = readSettings();
+    const ts = new Date().toISOString().slice(0,16).replace('T',' ');
+    await putFile('data/menu.json', JSON.stringify(menuData, null, 2), `✏️ Admin: actualizar menú [${ts}]`);
+    await putFile('data/specials.json', JSON.stringify(specialsData, null, 2), `✏️ Admin: actualizar especiales [${ts}]`);
+    await putFile('data/config.json', JSON.stringify(cfgToSave, null, 2), `✏️ Admin: actualizar configuración [${ts}]`);
+    localStorage.setItem('lv-last-saved', new Date().toISOString());
+    status.textContent = '✓ Publicado';
+    status.className = 'status-badge connected';
+    btn.textContent = '✓ Publicado';
+    ['menu','specials','settings'].forEach(clearDirty);
+    updateStats();
+    setTimeout(() => { btn.textContent = '🚀 Publicar Todo'; btn.disabled = false; }, 3000);
+  } catch(e) {
+    status.textContent = '✗ ' + e.message;
+    status.className = 'status-badge error';
+    btn.textContent = '🚀 Publicar Todo';
+    btn.disabled = false;
+    alert('Error al publicar: ' + e.message);
+  }
+}
+
+/* ── Backup ── */
+function downloadBackup() {
+  const data = { menu: menuData, specials: specialsData, config: configData, exportedAt: new Date().toISOString() };
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `las-veraneras-backup-${new Date().toISOString().slice(0,10)}.json`;
+  a.click();
+}
+
+/* ── Init ── */
+(async function init() {
+  const saved = localStorage.getItem('lv-admin-token');
+  if (saved) document.getElementById('token').value = saved;
+  // Build hours grid
+  const ha = document.getElementById('hours-admin');
+  if (ha) {
+    ha.innerHTML = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'].map(d =>
+      `<div><label class="admin-label" style="margin-top:0">${d}</label>
+       <input id="hr-${d}" class="admin-input" placeholder="11:00–21:00" oninput="markDirty('settings')"></div>`).join('');
+  }
+  await loadAll();
+})();
 </script>
 </body>
 </html>

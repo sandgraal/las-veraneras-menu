@@ -8,36 +8,351 @@
     {
       "id": "snacks",
       "emoji": "🍟",
-      "name": { "es": "Snacks y Postres", "en": "Snacks & Desserts" },
+      "name": {
+        "es": "Snacks y Postres",
+        "en": "Snacks & Desserts"
+      },
       "items": [
-        { "id": "papas", "featured": true, "name": { "es": "Papas a la francesa", "en": "French Fries" }, "description": { "es": "Papas fritas, mayonesa y salsa de tomate.", "en": "French fries with mayonnaise and ketchup." }, "price": "2000", "image": "https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "salchipapas", "popular": true, "name": { "es": "Salchipapas", "en": "Sausage Fries" }, "description": { "es": "Papas, salchichas, mayonesa y salsa.", "en": "Fries, sausage, mayonnaise and sauce." }, "price": "2500", "image": "https://images.pexels.com/photos/4109234/pexels-photo-4109234.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "nachos", "featured": true, "popular": true, "name": { "es": "Nachos", "en": "Nachos" }, "description": { "es": "Nachos, frijoles molidos, carne arreglada y chimichurri.", "en": "Nachos with refried beans, seasoned meat and chimichurri." }, "price": "3000", "image": "https://images.pexels.com/photos/6941010/pexels-photo-6941010.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "papanachos", "name": { "es": "Papanachos", "en": "Loaded Nacho Fries" }, "description": { "es": "Papas a la francesa, frijoles molidos, carne en salsa y chimichurri.", "en": "French fries, refried beans, meat in sauce and chimichurri." }, "price": "3500", "image": "https://images.pexels.com/photos/4109272/pexels-photo-4109272.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "burger", "featured": true, "popular": true, "name": { "es": "Hamburguesa con papas", "en": "Burger & Fries" }, "description": { "es": "Torta de carne molida 100% res, jamón, lechuga, tomate y salsa.", "en": "100% beef patty, ham, lettuce, tomato and sauce." }, "price": "2800", "image": "https://images.pexels.com/photos/15362092/pexels-photo-15362092.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "tacos-sencillos", "name": { "es": "3x1 Tacos sencillos", "en": "3-for-1 Simple Tacos" }, "description": { "es": "Tres tacos sencillos.", "en": "Three simple tacos." }, "price": "1200", "image": "https://images.pexels.com/photos/4958641/pexels-photo-4958641.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "tacos-arreglados", "popular": true, "name": { "es": "3x1 Tacos arreglados", "en": "3-for-1 Loaded Tacos" }, "description": { "es": "Tres tacos arreglados.", "en": "Three loaded tacos." }, "price": "1700", "image": "https://images.pexels.com/photos/4958792/pexels-photo-4958792.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "mayo", "name": { "es": "Mayonesa de la casa", "en": "House Mayonnaise" }, "description": { "es": "Aderezo tipo mayonesa francesa, hecho al momento.", "en": "French-style mayonnaise dressing, made fresh." }, "price": "500", "image": "https://images.pexels.com/photos/821365/pexels-photo-821365.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "crepas", "name": { "es": "Crepas", "en": "Crepes" }, "description": { "es": "Crepas con helado, chocolate líquido y leche condensada.", "en": "Crepes with ice cream, chocolate sauce and condensed milk." }, "price": "2000", "image": "https://images.pexels.com/photos/1352278/pexels-photo-1352278.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "helado", "name": { "es": "Helado", "en": "Ice Cream" }, "description": { "es": "Dos bolas de helado con chocolate líquido.", "en": "Two scoops of ice cream with chocolate sauce." }, "price": "1500", "image": "https://images.pexels.com/photos/1362534/pexels-photo-1362534.jpeg?auto=compress&cs=tinysrgb&w=900" }
+        {
+          "id": "papas",
+          "featured": true,
+          "name": {
+            "es": "Papas a la francesa",
+            "en": "French Fries"
+          },
+          "description": {
+            "es": "Papas fritas, mayonesa y salsa de tomate.",
+            "en": "French fries with mayonnaise and ketchup."
+          },
+          "price": "2000",
+          "image": "https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "salchipapas",
+          "popular": true,
+          "name": {
+            "es": "Salchipapas",
+            "en": "Sausage Fries"
+          },
+          "description": {
+            "es": "Papas, salchichas, mayonesa y salsa.",
+            "en": "Fries, sausage, mayonnaise and sauce."
+          },
+          "price": "2500",
+          "image": "https://images.pexels.com/photos/4109234/pexels-photo-4109234.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "nachos",
+          "featured": true,
+          "popular": true,
+          "name": {
+            "es": "Nachos",
+            "en": "Nachos"
+          },
+          "description": {
+            "es": "Nachos, frijoles molidos, carne arreglada y chimichurri.",
+            "en": "Nachos with refried beans, seasoned meat and chimichurri."
+          },
+          "price": "3000",
+          "image": "https://images.pexels.com/photos/6941010/pexels-photo-6941010.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "papanachos",
+          "name": {
+            "es": "Papanachos",
+            "en": "Loaded Nacho Fries"
+          },
+          "description": {
+            "es": "Papas a la francesa, frijoles molidos, carne en salsa y chimichurri.",
+            "en": "French fries, refried beans, meat in sauce and chimichurri."
+          },
+          "price": "3500",
+          "image": "https://images.pexels.com/photos/4109272/pexels-photo-4109272.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "burger",
+          "featured": true,
+          "popular": true,
+          "name": {
+            "es": "Hamburguesa con papas",
+            "en": "Burger & Fries"
+          },
+          "description": {
+            "es": "Torta de carne molida 100% res, jamón, lechuga, tomate y salsa.",
+            "en": "100% beef patty, ham, lettuce, tomato and sauce."
+          },
+          "price": "2800",
+          "image": "https://images.pexels.com/photos/15362092/pexels-photo-15362092.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "tacos-sencillos",
+          "name": {
+            "es": "3x1 Tacos sencillos",
+            "en": "3-for-1 Simple Tacos"
+          },
+          "description": {
+            "es": "Tres tacos sencillos.",
+            "en": "Three simple tacos."
+          },
+          "price": "1200",
+          "image": "https://images.pexels.com/photos/4958641/pexels-photo-4958641.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "tacos-arreglados",
+          "popular": true,
+          "name": {
+            "es": "3x1 Tacos arreglados",
+            "en": "3-for-1 Loaded Tacos"
+          },
+          "description": {
+            "es": "Tres tacos arreglados.",
+            "en": "Three loaded tacos."
+          },
+          "price": "1700",
+          "image": "https://images.pexels.com/photos/4958792/pexels-photo-4958792.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "mayo",
+          "name": {
+            "es": "Mayonesa de la casa",
+            "en": "House Mayonnaise"
+          },
+          "description": {
+            "es": "Aderezo tipo mayonesa francesa, hecho al momento.",
+            "en": "French-style mayonnaise dressing, made fresh."
+          },
+          "price": "500",
+          "image": "https://images.pexels.com/photos/821365/pexels-photo-821365.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "crepas",
+          "name": {
+            "es": "Crepas",
+            "en": "Crepes"
+          },
+          "description": {
+            "es": "Crepas con helado, chocolate líquido y leche condensada.",
+            "en": "Crepes with ice cream, chocolate sauce and condensed milk."
+          },
+          "price": "2000",
+          "image": "https://images.pexels.com/photos/1352278/pexels-photo-1352278.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "helado",
+          "name": {
+            "es": "Helado",
+            "en": "Ice Cream"
+          },
+          "description": {
+            "es": "Dos bolas de helado con chocolate líquido.",
+            "en": "Two scoops of ice cream with chocolate sauce."
+          },
+          "price": "1500",
+          "image": "https://images.pexels.com/photos/1362534/pexels-photo-1362534.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        }
       ]
     },
     {
       "id": "main",
       "emoji": "🍽️",
-      "name": { "es": "Menú Principal", "en": "Main Menu" },
+      "name": {
+        "es": "Menú Principal",
+        "en": "Main Menu"
+      },
       "items": [
-        { "id": "arroz-pollo", "name": { "es": "Arroz con pollo", "en": "Chicken Rice" }, "description": { "es": "Arroz con pollo, ensalada y piquitos.", "en": "Chicken rice with salad and piquitos." }, "price": "3000", "image": "https://images.pexels.com/photos/5835353/pexels-photo-5835353.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "arroz-carne", "name": { "es": "Arroz con carne", "en": "Pork Rice" }, "description": { "es": "Arroz con carne de cerdo, ensalada y piquitos.", "en": "Rice with pork, salad and piquitos." }, "price": "3000", "image": "https://images.pexels.com/photos/5710170/pexels-photo-5710170.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "arroz-carne-salsa", "name": { "es": "Arroz con carne en salsa", "en": "Beef in Sauce with Rice" }, "description": { "es": "Arroz blanco, carne de res en salsa, ensalada y piquitos.", "en": "White rice, beef in sauce, salad and piquitos." }, "price": "3000", "image": "https://images.pexels.com/photos/6419726/pexels-photo-6419726.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "chuleta", "featured": true, "name": { "es": "Chuleta en salsa francesa", "en": "Pork Chop in French Sauce" }, "description": { "es": "Chuleta de cerdo con crema dulce, hongos, cebolla, ensalada y arroz blanco.", "en": "Pork chop with cream, mushrooms, onion, salad and white rice." }, "price": "4300", "image": "https://images.pexels.com/photos/675951/pexels-photo-675951.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "pollo-francesa", "featured": true, "popular": true, "name": { "es": "Pollo en salsa francesa", "en": "Chicken in French Sauce" }, "description": { "es": "Fajitas de pollo, crema dulce, hongos, cebolla, ensalada y arroz blanco.", "en": "Chicken strips, cream, mushrooms, onion, salad and white rice." }, "price": "3800", "image": "https://images.pexels.com/photos/2338407/pexels-photo-2338407.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "daube", "featured": true, "name": { "es": "Daube Nicoise", "en": "Daube Nicoise" }, "description": { "es": "Lomo de paleta de res cocinada en vino tinto con cebolla y zanahoria; servido con ensalada y arroz.", "en": "Beef shoulder cooked in red wine with onion and carrot; served with salad and rice." }, "price": "7000", "image": "https://images.pexels.com/photos/533325/pexels-photo-533325.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "chifrijo", "featured": true, "popular": true, "name": { "es": "Chifrijo", "en": "Chifrijo" }, "description": { "es": "Frijol tierno, arroz blanco, chicharrón, chimichurri y piquitos.", "en": "Tender beans, white rice, pork cracklings, chimichurri and piquitos." }, "price": "4000", "image": "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "fajitas", "name": { "es": "Fajitas de pollo", "en": "Chicken Fajitas" }, "description": { "es": "Pechuga de pollo, cebolla, chile dulce, papas fritas o arroz y ensalada.", "en": "Chicken breast, onion, sweet pepper, fries or rice and salad." }, "price": "3300", "image": "https://images.pexels.com/photos/2092507/pexels-photo-2092507.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "arroz-camarones", "featured": true, "name": { "es": "Arroz con camarones", "en": "Shrimp Rice" }, "description": { "es": "Arroz con camarón, ensalada y piquitos.", "en": "Shrimp rice with salad and piquitos." }, "price": "3800", "image": "https://images.pexels.com/photos/20095296/pexels-photo-20095296.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "tilapia", "name": { "es": "Filet de tilapia", "en": "Tilapia Fillet" }, "description": { "es": "Filet de tilapia empanizado o al ajillo, con papas fritas o arroz blanco.", "en": "Breaded or garlic tilapia fillet with fries or white rice." }, "price": "4000", "image": "https://images.pexels.com/photos/3296279/pexels-photo-3296279.jpeg?auto=compress&cs=tinysrgb&w=900" },
-        { "id": "camarones", "featured": true, "name": { "es": "Camarones empanizados", "en": "Breaded Shrimp" }, "description": { "es": "Camarones empanizados con papas fritas y ensalada.", "en": "Breaded shrimp with fries and salad." }, "price": "4000", "image": "https://images.pexels.com/photos/7636383/pexels-photo-7636383.jpeg?auto=compress&cs=tinysrgb&w=900" }
+        {
+          "id": "arroz-pollo",
+          "name": {
+            "es": "Arroz con pollo",
+            "en": "Chicken Rice"
+          },
+          "description": {
+            "es": "Arroz con pollo, ensalada y piquitos.",
+            "en": "Chicken rice with salad and piquitos."
+          },
+          "price": "3000",
+          "image": "https://images.pexels.com/photos/5835353/pexels-photo-5835353.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "arroz-carne",
+          "name": {
+            "es": "Arroz con carne",
+            "en": "Pork Rice"
+          },
+          "description": {
+            "es": "Arroz con carne de cerdo, ensalada y piquitos.",
+            "en": "Rice with pork, salad and piquitos."
+          },
+          "price": "3000",
+          "image": "https://images.pexels.com/photos/5710170/pexels-photo-5710170.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "arroz-carne-salsa",
+          "name": {
+            "es": "Arroz con carne en salsa",
+            "en": "Beef in Sauce with Rice"
+          },
+          "description": {
+            "es": "Arroz blanco, carne de res en salsa, ensalada y piquitos.",
+            "en": "White rice, beef in sauce, salad and piquitos."
+          },
+          "price": "3000",
+          "image": "https://images.pexels.com/photos/6419726/pexels-photo-6419726.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "chuleta",
+          "featured": true,
+          "name": {
+            "es": "Chuleta en salsa francesa",
+            "en": "Pork Chop in French Sauce"
+          },
+          "description": {
+            "es": "Chuleta de cerdo con crema dulce, hongos, cebolla, ensalada y arroz blanco.",
+            "en": "Pork chop with cream, mushrooms, onion, salad and white rice."
+          },
+          "price": "4300",
+          "image": "https://images.pexels.com/photos/675951/pexels-photo-675951.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "pollo-francesa",
+          "featured": true,
+          "popular": true,
+          "name": {
+            "es": "Pollo en salsa francesa",
+            "en": "Chicken in French Sauce"
+          },
+          "description": {
+            "es": "Fajitas de pollo, crema dulce, hongos, cebolla, ensalada y arroz blanco.",
+            "en": "Chicken strips, cream, mushrooms, onion, salad and white rice."
+          },
+          "price": "3800",
+          "image": "https://images.pexels.com/photos/2338407/pexels-photo-2338407.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "daube",
+          "featured": true,
+          "name": {
+            "es": "Daube Nicoise",
+            "en": "Daube Nicoise"
+          },
+          "description": {
+            "es": "Lomo de paleta de res cocinada en vino tinto con cebolla y zanahoria; servido con ensalada y arroz.",
+            "en": "Beef shoulder cooked in red wine with onion and carrot; served with salad and rice."
+          },
+          "price": "7000",
+          "image": "https://images.pexels.com/photos/533325/pexels-photo-533325.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "chifrijo",
+          "featured": true,
+          "popular": true,
+          "name": {
+            "es": "Chifrijo",
+            "en": "Chifrijo"
+          },
+          "description": {
+            "es": "Frijol tierno, arroz blanco, chicharrón, chimichurri y piquitos.",
+            "en": "Tender beans, white rice, pork cracklings, chimichurri and piquitos."
+          },
+          "price": "4000",
+          "image": "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "fajitas",
+          "name": {
+            "es": "Fajitas de pollo",
+            "en": "Chicken Fajitas"
+          },
+          "description": {
+            "es": "Pechuga de pollo, cebolla, chile dulce, papas fritas o arroz y ensalada.",
+            "en": "Chicken breast, onion, sweet pepper, fries or rice and salad."
+          },
+          "price": "3300",
+          "image": "https://images.pexels.com/photos/2092507/pexels-photo-2092507.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "arroz-camarones",
+          "featured": true,
+          "name": {
+            "es": "Arroz con camarones",
+            "en": "Shrimp Rice"
+          },
+          "description": {
+            "es": "Arroz con camarón, ensalada y piquitos.",
+            "en": "Shrimp rice with salad and piquitos."
+          },
+          "price": "3800",
+          "image": "https://images.pexels.com/photos/20095296/pexels-photo-20095296.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "tilapia",
+          "name": {
+            "es": "Filet de tilapia",
+            "en": "Tilapia Fillet"
+          },
+          "description": {
+            "es": "Filet de tilapia empanizado o al ajillo, con papas fritas o arroz blanco.",
+            "en": "Breaded or garlic tilapia fillet with fries or white rice."
+          },
+          "price": "4000",
+          "image": "https://images.pexels.com/photos/3296279/pexels-photo-3296279.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        },
+        {
+          "id": "camarones",
+          "featured": true,
+          "name": {
+            "es": "Camarones empanizados",
+            "en": "Breaded Shrimp"
+          },
+          "description": {
+            "es": "Camarones empanizados con papas fritas y ensalada.",
+            "en": "Breaded shrimp with fries and salad."
+          },
+          "price": "4000",
+          "image": "https://images.pexels.com/photos/7636383/pexels-photo-7636383.jpeg?auto=compress&cs=tinysrgb&w=900",
+          "badgeText": "",
+          "allergens": []
+        }
       ]
     }
   ]
