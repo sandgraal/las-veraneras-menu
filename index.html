@@ -1,2 +1,47 @@
 <!DOCTYPE html>
-<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Las Veraneras</title></head><body><h1>Las Veraneras</h1><div id="menu"></div><script>fetch('data/menu.json').then(r=>r.json()).then(d=>{let h='';d.categories.forEach(c=>{h+=`<h2>${c.name.es}</h2>`;c.items.forEach(i=>{h+=`<div>${i.name.es} ₡${i.price}</div>`})});document.getElementById('menu').innerHTML=h});</script></body></html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Las Veraneras</title>
+<style>
+body{margin:0;background:#0a0a0a;color:#fff;font-family:Arial}
+header{text-align:center;padding:1rem;border-bottom:2px solid gold}
+h1{color:gold}
+.controls{text-align:center;margin:1rem}
+button{margin:.3rem;padding:.5rem 1rem;background:purple;color:white;border:none;border-radius:5px}
+.category{max-width:900px;margin:1rem auto}
+.item{display:flex;justify-content:space-between;border-bottom:1px solid #333;padding:.5rem 0}
+.price{color:gold}
+</style>
+</head>
+<body>
+<header>
+<h1>Las Veraneras</h1>
+<p>Las Vueltas de Tucurrique</p>
+</header>
+<div class="controls">
+<button onclick="setLang('es')">ES</button>
+<button onclick="setLang('en')">EN</button>
+</div>
+<div id="menu"></div>
+<script>
+let lang='es';
+function setLang(l){lang=l;load();}
+async function load(){
+const d=await fetch('data/menu.json').then(r=>r.json());
+const root=document.getElementById('menu');
+root.innerHTML='';
+d.categories.forEach(c=>{
+let html=`<div class='category'><h2>${c.name[lang]}</h2>`;
+c.items.forEach(i=>{
+html+=`<div class='item'><span>${i.name[lang]}</span><span class='price'>₡${i.price}</span></div>`;
+});
+html+='</div>';
+root.innerHTML+=html;
+});
+}
+load();
+</script>
+</body>
+</html>
