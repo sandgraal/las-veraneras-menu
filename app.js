@@ -1,196 +1,512 @@
-let lang = 'es';
+/* ===================================================================
+   Las Veraneras — app.js  (Bougainvillea Nights)
+   =================================================================== */
+'use strict';
+
+/* ── State ─────────────────────────────────────────────────────────── */
+let lang = localStorage.getItem('lv-lang') || 'es';
 let selected = 'all';
 let menuData = { categories: [] };
+let specials = [];
+let siteConfig = {
+  restaurantName: 'Las Veraneras',
+  tagline: 'Sabores del corazón de Tucurrique',
+  taglineEn: 'Flavors from the heart of Tucurrique',
+  whatsappNumber: '',
+  heroImage: 'https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=1600',
+  address: 'Las Vueltas de Tucurrique, Cartago, Costa Rica',
+  phone: '',
+  hours: {},
+  socialLinks: {}
+};
 let cart = JSON.parse(localStorage.getItem('lv-cart') || '{}');
 
-const whatsappNumber = '';
-
-const labels = {
+/* ── i18n ───────────────────────────────────────────────────────────── */
+const T = {
   es: {
-    all: 'Todo', featured: 'Recomendados', combos: 'Combos fáciles', most: 'Más pedidos',
-    popular: 'Muy pedido', add: 'Agregar', order: 'Enviar pedido', noResults: 'No hay resultados',
-    ready: '🚀 Pedido listo para enviar', empty: 'Sin items', copied: 'Pedido copiado. Agrega el número de WhatsApp para enviar directo.'
+    eyebrow: 'Restaurante · Las Vueltas de Tucurrique',
+    seeMenu: 'Ver Menú',
+    order: 'Pedir',
+    orderWhatsapp: 'Pedir por WhatsApp',
+    surprise: 'Sorpréndeme',
+    aboutEyebrow: 'Nuestra historia',
+    aboutHeading: 'El sabor de las montañas de Tucurrique',
+    aboutBody: 'Nacimos en Las Vueltas de Tucurrique para llevar al plato los sabores auténticos de Costa Rica con un toque artesanal. Cada plato cuenta una historia de ingredientes frescos, recetas de familia y el calor de nuestra comunidad.',
+    aboutBody2: 'Desde chifrijos tradicionales hasta platos gourmet — en Las Veraneras cada visita es una celebración.',
+    specialsHeading: 'Especiales & Eventos',
+    hoursTitle: 'Horario',
+    followUs: 'Síguenos',
+    total: 'Total',
+    sendOrder: 'Enviar por WhatsApp',
+    successTitle: '¡Pedido enviado!',
+    successMsg: 'Tu pedido fue enviado a WhatsApp. Pronto te confirmamos.',
+    newOrder: 'Nuevo pedido',
+    home: 'Inicio',
+    menu: 'Menú',
+    specials: 'Especiales',
+    all: 'Todo',
+    featured: 'Recomendados',
+    combos: 'Combos especiales',
+    most: 'Más pedidos',
+    popular: '🔥 Muy pedido',
+    add: 'Agregar',
+    noResults: 'No hay resultados',
+    ready: '🚀 Pedido listo para enviar',
+    empty: 'Sin items en el pedido',
+    upsell: '¿Agregar algo más?',
+    noWa: 'Configura el número de WhatsApp en el panel de admin (admin.html).',
+    copied: 'Pedido copiado al portapapeles.',
+    linkCopied: 'Enlace copiado',
+    validUntil: 'Válido hasta',
+    event: 'Evento',
+    notes: 'Notas especiales...'
   },
   en: {
-    all: 'All', featured: 'Top Picks', combos: 'Easy Combos', most: 'Most ordered',
-    popular: 'Most ordered', add: 'Add', order: 'Send order', noResults: 'No results',
-    ready: '🚀 Order ready to send', empty: 'No items', copied: 'Order copied. Add the WhatsApp number to send directly.'
+    eyebrow: 'Restaurant · Las Vueltas de Tucurrique',
+    seeMenu: 'See Menu',
+    order: 'Order',
+    orderWhatsapp: 'Order via WhatsApp',
+    surprise: 'Surprise me',
+    aboutEyebrow: 'Our story',
+    aboutHeading: 'The flavors of the Tucurrique mountains',
+    aboutBody: 'We were born in Las Vueltas de Tucurrique to bring authentic Costa Rican flavors to the plate with an artisan touch. Every dish tells a story of fresh ingredients, family recipes and the warmth of our community.',
+    aboutBody2: 'From traditional chifrijos to gourmet dishes — at Las Veraneras every visit is a celebration.',
+    specialsHeading: 'Specials & Events',
+    hoursTitle: 'Hours',
+    followUs: 'Follow us',
+    total: 'Total',
+    sendOrder: 'Send via WhatsApp',
+    successTitle: 'Order sent!',
+    successMsg: 'Your order was sent to WhatsApp. We\'ll confirm shortly.',
+    newOrder: 'New order',
+    home: 'Home',
+    menu: 'Menu',
+    specials: 'Specials',
+    all: 'All',
+    featured: 'Top Picks',
+    combos: 'Special Combos',
+    most: 'Most ordered',
+    popular: '🔥 Most ordered',
+    add: 'Add',
+    noResults: 'No results',
+    ready: '🚀 Order ready to send',
+    empty: 'No items in order',
+    upsell: 'Add something else?',
+    noWa: 'Configure the WhatsApp number in the admin panel (admin.html).',
+    copied: 'Order copied to clipboard.',
+    linkCopied: 'Link copied',
+    validUntil: 'Valid until',
+    event: 'Event',
+    notes: 'Special notes...'
   }
 };
 
+/* ── Combos & Upsells data ──────────────────────────────────────────── */
 const combos = [
-  { id: 'combo-snack', emoji: '🍔', name: { es: 'Combo Antojo', en: 'Craving Combo' }, description: { es: 'Hamburguesa con papas + helado', en: 'Burger & fries + ice cream' }, items: ['burger', 'helado'], price: '4300', tag: { es: 'Rápido y popular', en: 'Fast and popular' } },
-  { id: 'combo-amigos', emoji: '🔥', name: { es: 'Combo Amigos', en: 'Friends Combo' }, description: { es: 'Nachos + 3x1 tacos arreglados + salchipapas', en: 'Nachos + loaded tacos + sausage fries' }, items: ['nachos', 'tacos-arreglados', 'salchipapas'], price: '7200', tag: { es: 'Para compartir', en: 'Shareable' } },
-  { id: 'combo-casero', emoji: '🍽️', name: { es: 'Combo Casero', en: 'House Combo' }, description: { es: 'Chifrijo + papas a la francesa', en: 'Chifrijo + french fries' }, items: ['chifrijo', 'papas'], price: '6000', tag: { es: 'Recomendado', en: 'Recommended' } }
+  { id:'combo-snack', emoji:'🍔', name:{es:'Combo Antojo',en:'Craving Combo'}, description:{es:'Hamburguesa con papas + helado',en:'Burger & fries + ice cream'}, items:['burger','helado'], price:'4300', tag:{es:'Rápido y popular',en:'Fast & popular'} },
+  { id:'combo-amigos', emoji:'🔥', name:{es:'Combo Amigos',en:'Friends Combo'}, description:{es:'Nachos + 3x1 tacos + salchipapas',en:'Nachos + loaded tacos + sausage fries'}, items:['nachos','tacos-arreglados','salchipapas'], price:'7200', tag:{es:'Para compartir',en:'Shareable'} },
+  { id:'combo-casero', emoji:'🍽️', name:{es:'Combo Casero',en:'House Combo'}, description:{es:'Chifrijo + papas a la francesa',en:'Chifrijo + french fries'}, items:['chifrijo','papas'], price:'6000', tag:{es:'Recomendado',en:'Recommended'} }
 ];
-
 const upsells = {
-  burger: ['helado', 'papas'], nachos: ['mayo', 'tacos-arreglados'], chifrijo: ['papas'],
-  salchipapas: ['mayo'], 'pollo-francesa': ['papas'], 'arroz-camarones': ['papas'], camarones: ['papas'], tilapia: ['papas']
+  burger:['helado','papas'], nachos:['mayo','tacos-arreglados'], chifrijo:['papas'],
+  salchipapas:['mayo'], 'pollo-francesa':['papas'], 'arroz-camarones':['papas'],
+  camarones:['papas'], tilapia:['papas']
 };
 
-function $(id) { return document.getElementById(id); }
-function allItems() { return menuData.categories.flatMap((c, ci) => c.items.map(i => ({ ...i, category: c, categoryIndex: ci }))); }
-function findItem(id) { return allItems().find(i => i.id === id); }
-function formatPrice(value) { return '₡' + String(value || 0).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); }
-function saveCart() { localStorage.setItem('lv-cart', JSON.stringify(cart)); renderAll(); }
+/* ── Helpers ────────────────────────────────────────────────────────── */
+const $ = id => document.getElementById(id);
+const allItems = () => menuData.categories.flatMap((c,ci) => c.items.map(i => ({...i, category:c, categoryIndex:ci})));
+const findItem = id => allItems().find(i => i.id === id);
+const fmt = v => '₡' + String(v||0).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
+const t = key => (T[lang]||T.es)[key] || key;
+const waIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>`;
 
-function setLang(nextLang) {
-  lang = nextLang;
-  document.documentElement.lang = lang;
-  $('btn-es')?.classList.toggle('active', lang === 'es');
-  $('btn-en')?.classList.toggle('active', lang === 'en');
-  if ($('cart-title')) $('cart-title').textContent = lang === 'es' ? 'Pedido' : 'Order';
-  if ($('cart-nudge')) $('cart-nudge').textContent = labels[lang].ready;
-  const checkout = document.querySelector('.checkout');
-  if (checkout) checkout.textContent = labels[lang].order;
+function saveCart() { localStorage.setItem('lv-cart',JSON.stringify(cart)); renderAll(); }
+function saveCartOnly() { localStorage.setItem('lv-cart',JSON.stringify(cart)); }
+
+/* ── Config application ─────────────────────────────────────────────── */
+function applyConfig(cfg) {
+  siteConfig = { ...siteConfig, ...cfg };
+  const num = cfg.whatsappNumber || '';
+  const waHref = num ? `https://wa.me/${num.replace(/\D/g,'')}` : '#';
+  // Wire all WhatsApp links
+  ['navbar-wa','hero-wa','mobile-wa','wa-fab','footer-wa','bn-wa'].forEach(id => {
+    const el = $(id);
+    if (el) el.href = waHref;
+  });
+  // Hero image parallax bg
+  const heroBg = $('hero-bg');
+  if (heroBg && cfg.heroImage) heroBg.style.backgroundImage = `url('${cfg.heroImage}')`;
+  // Tagline
+  const ht = $('hero-tagline');
+  if (ht) ht.textContent = lang === 'es' ? (cfg.tagline || '') : (cfg.taglineEn || cfg.tagline || '');
+  // Footer
+  const ft = $('footer-tagline');
+  if (ft) ft.textContent = cfg.tagline || '';
+  const fa = $('footer-address');
+  if (fa && cfg.address) fa.textContent = '📍 ' + cfg.address;
+  // Hours
+  const hl = $('hours-list');
+  if (hl && cfg.hours) {
+    hl.innerHTML = Object.entries(cfg.hours).map(([day,hrs]) =>
+      `<li><span>${day}</span><span>${hrs}</span></li>`
+    ).join('');
+  }
+  // Social links
+  const sl = $('social-links');
+  if (sl && cfg.socialLinks) {
+    const links = [];
+    if (cfg.socialLinks.facebook) links.push(`<a href="${cfg.socialLinks.facebook}" class="social-link" target="_blank" rel="noopener">📘 Facebook</a>`);
+    if (cfg.socialLinks.instagram) links.push(`<a href="${cfg.socialLinks.instagram}" class="social-link" target="_blank" rel="noopener">📸 Instagram</a>`);
+    if (cfg.socialLinks.tiktok) links.push(`<a href="${cfg.socialLinks.tiktok}" class="social-link" target="_blank" rel="noopener">🎵 TikTok</a>`);
+    sl.innerHTML = links.join('');
+  }
+  // OG image
+  const ogImg = document.getElementById('og-image');
+  if (ogImg && cfg.heroImage) ogImg.setAttribute('content', cfg.heroImage);
+  // JSON-LD
+  const ld = {
+    '@context':'https://schema.org',
+    '@type':'Restaurant',
+    name: cfg.restaurantName || 'Las Veraneras',
+    description: cfg.tagline || '',
+    address: { '@type':'PostalAddress', addressLocality:'Las Vueltas de Tucurrique', addressRegion:'Cartago', addressCountry:'CR', streetAddress: cfg.address || '' },
+    telephone: cfg.phone || '',
+    servesCuisine: ['Costa Rican','French'],
+    hasMenu: location.href,
+    url: location.href
+  };
+  const ldEl = $('structured-data');
+  if (ldEl) ldEl.textContent = JSON.stringify(ld);
+}
+
+/* ── WhatsApp click handler ─────────────────────────────────────────── */
+function handleWaClick(e) {
+  if (!siteConfig.whatsappNumber) {
+    e.preventDefault();
+    alert(t('noWa'));
+  }
+}
+
+/* ── Language ───────────────────────────────────────────────────────── */
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('lv-lang', l);
+  document.documentElement.lang = l;
+  // Update button states
+  ['btn-es','btn-en','mob-btn-es','mob-btn-en'].forEach(id => {
+    const btn = $(id);
+    if (btn) btn.classList.toggle('active', btn.id.includes(l === 'es' ? 'es' : 'en'));
+  });
+  // Update tagline
+  const ht = $('hero-tagline');
+  if (ht) ht.textContent = l === 'es' ? (siteConfig.tagline||'') : (siteConfig.taglineEn || siteConfig.tagline || '');
+  // Update all data-i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const k = el.getAttribute('data-i18n');
+    if (T[l] && T[l][k]) el.textContent = T[l][k];
+  });
+  // Update order-notes placeholder
+  const on = $('order-notes');
+  if (on) on.placeholder = t('notes');
+  // Re-render dynamic content
   renderAll();
 }
 
+/* ── Filters ─────────────────────────────────────────────────────────── */
 function setCategory(id) { selected = id; renderAll(); }
 
 function renderFilters() {
   const root = $('filters');
   if (!root) return;
   root.innerHTML = [
-    `<button class="${selected === 'all' ? 'active' : ''}" onclick="setCategory('all')">${labels[lang].all}</button>`,
-    ...menuData.categories.map((c, idx) => `<button class="${selected === String(idx) ? 'active' : ''}" onclick="setCategory('${idx}')">${c.emoji || ''} ${c.name[lang]}</button>`)
+    `<button class="filter-btn ${selected==='all'?'active':''}" onclick="setCategory('all')">${t('all')}</button>`,
+    ...menuData.categories.map((c,i) =>
+      `<button class="filter-btn ${selected===String(i)?'active':''}" onclick="setCategory('${i}')">${c.emoji||''} ${c.name[lang]}</button>`)
   ].join('');
 }
 
+/* ── Specials ────────────────────────────────────────────────────────── */
+function renderSpecials() {
+  const section = $('specials-section');
+  const row = $('specials-row');
+  if (!section || !row) return;
+  if (!specials.length) { section.classList.remove('has-items'); return; }
+  section.classList.add('has-items');
+  row.innerHTML = specials.map(s => {
+    const imgHtml = s.image ? `<img src="${s.image}" alt="${s.title||''}" width="300" height="160" loading="lazy">` : '';
+    const priceHtml = s.price ? `<div class="special-price">${fmt(s.price)}</div>` : '';
+    const untilHtml = s.validUntil ? `<span class="special-until">📅 ${t('validUntil')}: ${s.validUntil}</span>` : '';
+    const eventBadge = s.isEvent ? `<span class="badge badge-featured" style="margin-left:.4rem">${t('event')}</span>` : '';
+    return `<article class="special-card">
+      ${imgHtml}
+      <div class="special-body">
+        <h3>${s.title||''} ${eventBadge}</h3>
+        <p>${s.description||''}</p>
+        ${priceHtml}
+        ${untilHtml}
+      </div>
+    </article>`;
+  }).join('');
+}
+
+/* ── qty controls ────────────────────────────────────────────────────── */
 function qtyControls(id) {
-  const qty = cart[id] || 0;
-  if (!qty) return `<button class="add-btn" onclick="addToCart('${id}', true)">＋ ${labels[lang].add}</button>`;
-  return `<div class="stepper"><button onclick="changeQty('${id}', -1)">−</button><span>${qty}</span><button onclick="addToCart('${id}', false)">+</button></div>`;
+  const qty = cart[id]||0;
+  if (!qty) return `<button class="add-btn" onclick="addToCart('${id}',true)">＋ ${t('add')}</button>`;
+  return `<div class="stepper"><button onclick="changeQty('${id}',-1)">−</button><span>${qty}</span><button onclick="addToCart('${id}',false)">+</button></div>`;
 }
 
-function itemCard(item, compact = false) {
-  const badge = item.popular ? `<span class="badge">🔥 ${labels[lang].popular}</span>` : '';
-  const img = item.image ? `<img loading="lazy" src="${item.image}" alt="${item.name[lang]}" onerror="this.closest('.dish').classList.add('no-image')">` : '';
-  return `<article class="dish ${compact ? 'compact' : ''}" id="item-${item.id}">${img}<div class="dish-body">${badge}<h3>${item.name[lang]}</h3><p>${item.description?.[lang] || ''}</p><div class="dish-bottom"><strong>${formatPrice(item.price)}</strong><div class="actions">${qtyControls(item.id)}<button onclick="shareItem('${item.id}')">↗</button></div></div></div></article>`;
+/* ── Item card ───────────────────────────────────────────────────────── */
+function itemCard(item, compact=false) {
+  const badges = [];
+  if (item.popular) badges.push(`<span class="badge badge-popular">${t('popular')}</span>`);
+  if (item.featured && !compact) badges.push(`<span class="badge badge-featured">⭐ ${t('featured')}</span>`);
+  if (item.badgeText) badges.push(`<span class="badge badge-custom">${item.badgeText}</span>`);
+  const badgeHtml = badges.join(' ');
+  const img = item.image
+    ? `<img loading="lazy" src="${item.image}" alt="${item.name[lang]}" width="300" height="185" onerror="this.closest('.dish').classList.add('no-image')">`
+    : '';
+  const desc = item.description?.[lang] || '';
+  return `<article class="dish${compact?' compact':''}" id="item-${item.id}">
+    ${img}
+    <div class="dish-body">
+      ${badgeHtml}
+      <h3>${item.name[lang]}</h3>
+      <p>${desc}</p>
+      <div class="dish-bottom">
+        <span class="dish-price">${fmt(item.price)}</span>
+        <div class="dish-actions">
+          ${qtyControls(item.id)}
+          <button class="share-btn" onclick="shareItem('${item.id}')" aria-label="Compartir">↗</button>
+        </div>
+      </div>
+    </div>
+  </article>`;
 }
 
-function comboCard(combo) {
-  return `<article class="combo-card"><div class="combo-top"><span>${combo.emoji}</span><b>${combo.tag[lang]}</b></div><h3>${combo.name[lang]}</h3><p>${combo.description[lang]}</p><div class="dish-bottom"><strong>${formatPrice(combo.price)}</strong><button onclick="addCombo('${combo.id}')">＋ ${labels[lang].add}</button></div></article>`;
+/* ── Combo card ──────────────────────────────────────────────────────── */
+function comboCard(c) {
+  return `<article class="combo-card">
+    <div class="combo-card-inner">
+      <div class="combo-top">
+        <span style="font-size:1.6rem">${c.emoji}</span>
+        <span class="combo-tag">${c.tag[lang]}</span>
+      </div>
+      <h3>${c.name[lang]}</h3>
+      <p>${c.description[lang]}</p>
+      <div class="combo-bottom">
+        <span class="combo-price">${fmt(c.price)}</span>
+        <button class="combo-add-btn" onclick="addCombo('${c.id}')">＋ ${t('add')}</button>
+      </div>
+    </div>
+  </article>`;
 }
 
+/* ── Render sections ─────────────────────────────────────────────────── */
 function renderConversion() {
   const root = $('conversion');
   if (!root) return;
-  const popular = allItems().filter(i => i.popular).slice(0, 5);
-  root.innerHTML = `<div class="section-title"><span>💸</span><h2>${labels[lang].combos}</h2></div><div class="combo-row">${combos.map(comboCard).join('')}</div><div class="section-title"><span>🔥</span><h2>${labels[lang].most}</h2></div><div class="popular-row">${popular.map(i => `<button onclick="focusItem('${i.id}')">${i.name[lang]} <b>${formatPrice(i.price)}</b></button>`).join('')}</div>`;
+  const popular = allItems().filter(i => i.popular).slice(0,6);
+  root.innerHTML = `
+    <div class="sec-title"><span>💸</span><h2>${t('combos')}</h2></div>
+    <div class="combo-row">${combos.map(comboCard).join('')}</div>
+    ${popular.length ? `
+      <div class="sec-title"><span>🔥</span><h2>${t('most')}</h2></div>
+      <div class="popular-row">${popular.map(i =>
+        `<button onclick="focusItem('${i.id}')">${i.name[lang]} <b>${fmt(i.price)}</b></button>`
+      ).join('')}</div>` : ''}`;
 }
 
 function renderFeatured() {
   const root = $('featured');
   if (!root) return;
-  const featured = allItems().filter(i => i.featured).slice(0, 8);
-  root.innerHTML = featured.length ? `<div class="section-title"><span>⭐</span><h2>${labels[lang].featured}</h2></div><div class="featured-row">${featured.map(i => itemCard(i, true)).join('')}</div>` : '';
+  const featured = allItems().filter(i => i.featured).slice(0,8);
+  root.innerHTML = featured.length
+    ? `<div class="sec-title"><span>⭐</span><h2>${t('featured')}</h2></div>
+       <div class="featured-row">${featured.map(i => itemCard(i,true)).join('')}</div>`
+    : '';
 }
 
 function renderMenu() {
   const root = $('menu');
   if (!root) return;
-  const search = ($('search')?.value || '').trim().toLowerCase();
+  const search = ($('search')?.value||'').trim().toLowerCase();
   let html = '';
-  menuData.categories.forEach((category, idx) => {
+  menuData.categories.forEach((cat,idx) => {
     if (selected !== 'all' && selected !== String(idx)) return;
-    const matched = category.items.filter(item => !search || [item.name.es, item.name.en, item.description?.es || '', item.description?.en || ''].join(' ').toLowerCase().includes(search));
+    const matched = cat.items.filter(item => {
+      if (!search) return true;
+      return [item.name.es||'', item.name.en||'', item.description?.es||'', item.description?.en||''].join(' ').toLowerCase().includes(search);
+    });
     if (!matched.length) return;
-    html += `<article class="category"><div class="section-title"><span>${category.emoji || '🍴'}</span><h2>${category.name[lang]}</h2></div><div class="grid">${matched.map(item => itemCard(item)).join('')}</div></article>`;
+    html += `<div class="category-block">
+      <div class="sec-title"><span>${cat.emoji||'🍴'}</span><h2>${cat.name[lang]}</h2></div>
+      <div class="grid">${matched.map(item => itemCard(item)).join('')}</div>
+    </div>`;
   });
-  root.innerHTML = html || `<p class="empty">${labels[lang].noResults}</p>`;
+  root.innerHTML = html || `<p class="empty-msg">${t('noResults')}</p>`;
 }
 
 function renderCart() {
   const items = allItems();
-  const rows = Object.entries(cart).map(([id, qty]) => {
+  const entries = Object.entries(cart).filter(([,q]) => q > 0);
+  const cartItemsEl = $('cart-items');
+  if (cartItemsEl) {
+    if (!entries.length) {
+      cartItemsEl.innerHTML = `<p class="cart-empty">${t('empty')}</p>`;
+    } else {
+      cartItemsEl.innerHTML = entries.map(([id,qty]) => {
+        const item = items.find(i => i.id === id);
+        if (!item) return '';
+        const thumb = item.image
+          ? `<img class="cart-thumb" src="${item.image}" alt="${item.name[lang]}" width="44" height="44" loading="lazy">`
+          : `<div class="cart-thumb"></div>`;
+        return `<div class="cart-row">
+          ${thumb}
+          <div class="cart-row-info">
+            <div class="cart-row-name">${item.name[lang]}</div>
+            <div class="cart-row-price">${fmt(Number(item.price)*qty)}</div>
+          </div>
+          <div class="cart-stepper">
+            <button onclick="changeQty('${id}',-1)" aria-label="Quitar uno">−</button>
+            <span>${qty}</span>
+            <button onclick="changeQty('${id}',1)" aria-label="Agregar uno">+</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+  const total = entries.reduce((sum,[id,qty]) => {
     const item = items.find(i => i.id === id);
-    if (!item) return '';
-    return `<div class="cart-row"><span>${qty}× ${item.name[lang]}</span><strong>${formatPrice(Number(item.price) * qty)}</strong><div><button onclick="changeQty('${id}', -1)">−</button><button onclick="changeQty('${id}', 1)">+</button></div></div>`;
-  }).join('');
-  if ($('cart-items')) $('cart-items').innerHTML = rows || `<p class="empty">${labels[lang].empty}</p>`;
-  const total = Object.entries(cart).reduce((sum, [id, qty]) => {
-    const item = items.find(i => i.id === id);
-    return sum + (item ? Number(item.price) * qty : 0);
+    return sum + (item ? Number(item.price)*qty : 0);
   }, 0);
-  if ($('cart-total')) $('cart-total').textContent = formatPrice(total);
-  if ($('cart-count')) $('cart-count').textContent = Object.values(cart).reduce((a, b) => a + b, 0);
+  const ct = $('cart-total'); if (ct) ct.textContent = fmt(total);
+  const count = entries.reduce((s,[,q]) => s+q, 0);
+  const cc = $('cart-count'); if (cc) cc.textContent = count;
+  const cfc = $('cart-fab-count'); if (cfc) cfc.textContent = count;
+  // Pulsing ring on cart fab when items
+  const fab = $('cart-fab');
+  if (fab) fab.classList.toggle('pulsing', count > 0);
 }
 
 function renderAll() { renderFilters(); renderConversion(); renderFeatured(); renderMenu(); renderCart(); }
 
-function addToCart(id, show = true) {
-  cart[id] = (cart[id] || 0) + 1;
+/* ── Cart mutations ──────────────────────────────────────────────────── */
+function addToCart(id, showUpsell=true) {
+  cart[id] = (cart[id]||0) + 1;
   saveCart();
-  $('cart-fab')?.classList.add('bounce');
-  setTimeout(() => $('cart-fab')?.classList.remove('bounce'), 400);
-  if (show) showUpsell(id);
+  const fab = $('cart-fab');
+  if (fab) { fab.classList.add('bounce'); setTimeout(()=>fab.classList.remove('bounce'),400); }
+  if (showUpsell) showUpsellPanel(id);
 }
 
 function addCombo(id) {
   const combo = combos.find(c => c.id === id);
   if (!combo) return;
-  combo.items.forEach(itemId => cart[itemId] = (cart[itemId] || 0) + 1);
+  combo.items.forEach(itemId => { cart[itemId] = (cart[itemId]||0)+1; });
   saveCart();
-  toggleCartOpen();
+  $('cart')?.classList.add('open');
+  $('cart-backdrop')?.classList.add('show');
 }
 
 function changeQty(id, delta) {
-  cart[id] = (cart[id] || 0) + delta;
+  cart[id] = (cart[id]||0) + delta;
   if (cart[id] <= 0) delete cart[id];
   saveCart();
 }
 
-function showUpsell(id) {
-  const picks = (upsells[id] || []).map(findItem).filter(Boolean).slice(0, 2);
-  if (!picks.length || !$('upsell')) return;
-  $('upsell').innerHTML = `<div class="upsell-card"><button class="upsell-close" onclick="hideUpsell()">×</button><h3>${labels[lang].upsell}</h3>${picks.map(i => `<button onclick="addToCart('${i.id}', false); hideUpsell()">＋ ${i.name[lang]} <b>${formatPrice(i.price)}</b></button>`).join('')}</div>`;
-  $('upsell').classList.add('open');
-  setTimeout(() => $('upsell')?.classList.remove('open'), 6500);
+/* ── Cart panel ──────────────────────────────────────────────────────── */
+function toggleCart() {
+  const c = $('cart'), b = $('cart-backdrop');
+  if (!c) return;
+  const open = c.classList.toggle('open');
+  b?.classList.toggle('show', open);
+}
+
+/* ── Upsell ──────────────────────────────────────────────────────────── */
+function showUpsellPanel(id) {
+  const picks = (upsells[id]||[]).map(findItem).filter(Boolean).slice(0,3);
+  const panel = $('upsell');
+  if (!picks.length || !panel) return;
+  panel.innerHTML = `
+    <div class="upsell-handle"></div>
+    <button class="upsell-close" onclick="hideUpsell()">✕</button>
+    <h3>${t('upsell')}</h3>
+    <div class="upsell-items">
+      ${picks.map(i => `<button class="upsell-item-btn" onclick="addToCart('${i.id}',false);hideUpsell()">
+        <span>${i.name[lang]}</span>
+        <strong>${fmt(i.price)}</strong>
+      </button>`).join('')}
+    </div>`;
+  panel.classList.add('open');
+  clearTimeout(panel._timer);
+  panel._timer = setTimeout(() => panel.classList.remove('open'), 7000);
 }
 
 function hideUpsell() { $('upsell')?.classList.remove('open'); }
-function toggleCart() { $('cart')?.classList.toggle('open'); }
-function toggleCartOpen() { $('cart')?.classList.add('open'); }
 
+/* ── Checkout ────────────────────────────────────────────────────────── */
+function orderText() {
+  const items = allItems();
+  const lines = Object.entries(cart).filter(([,q])=>q>0).map(([id,qty]) => {
+    const item = items.find(i => i.id === id);
+    return item ? `${qty}x ${item.name.es} — ${fmt(Number(item.price)*qty)}` : '';
+  }).filter(Boolean);
+  const total = Object.entries(cart).reduce((s,[id,q]) => {
+    const it = items.find(i => i.id === id);
+    return s + (it ? Number(it.price)*q : 0);
+  }, 0);
+  const notes = $('order-notes')?.value.trim();
+  return `Hola Las Veraneras! 🌺\n\n*Pedido:*\n${lines.join('\n')}\n\n*Total: ${fmt(total)}*${notes?'\n\n_Notas: '+notes+'_':''}`;
+}
+
+async function checkout() {
+  if (!Object.keys(cart).some(k => (cart[k]||0)>0)) return;
+  const text = orderText();
+  const num = siteConfig.whatsappNumber;
+  if (num) {
+    const clean = num.replace(/\D/g,'');
+    location.href = `https://wa.me/${clean}?text=${encodeURIComponent(text)}`;
+    setTimeout(showSuccess, 1500);
+  } else {
+    try { await navigator.clipboard.writeText(text); } catch(e) {}
+    alert(t('copied'));
+  }
+}
+
+function showSuccess() {
+  const el = $('order-success');
+  if (el) el.classList.add('show');
+  // Clear cart
+  cart = {};
+  saveCartOnly();
+  renderCart();
+}
+
+function closeSuccess() {
+  const el = $('order-success');
+  if (el) el.classList.remove('show');
+  cart = {};
+  saveCartOnly();
+  renderAll();
+  $('cart')?.classList.remove('open');
+  $('cart-backdrop')?.classList.remove('show');
+}
+
+/* ── Focus / share ───────────────────────────────────────────────────── */
 function focusItem(id) {
-  const el = $('item-' + id);
-  if (!el) { selected = 'all'; renderAll(); setTimeout(() => focusItem(id), 100); return; }
-  el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  const el = $('item-'+id);
+  if (!el) { selected='all'; renderAll(); setTimeout(()=>focusItem(id),100); return; }
+  el.scrollIntoView({behavior:'smooth',block:'center'});
   el.classList.add('spotlight');
-  setTimeout(() => el.classList.remove('spotlight'), 2500);
+  setTimeout(()=>el.classList.remove('spotlight'),2500);
 }
 
 function surpriseMe() {
   const items = allItems();
   if (!items.length) return;
-  focusItem(items[Math.floor(Math.random() * items.length)].id);
-}
-
-function orderText() {
-  const items = allItems();
-  const lines = Object.entries(cart).map(([id, qty]) => {
-    const item = items.find(i => i.id === id);
-    return item ? `${qty} x ${item.name.es} / ${item.name.en} - ${formatPrice(Number(item.price) * qty)}` : '';
-  }).filter(Boolean);
-  const total = Object.entries(cart).reduce((sum, [id, qty]) => {
-    const item = items.find(i => i.id === id);
-    return sum + (item ? Number(item.price) * qty : 0);
-  }, 0);
-  const notes = $('order-notes')?.value.trim();
-  return `Hola Las Veraneras, quiero pedir:\n${lines.join('\n')}\nTotal: ${formatPrice(total)}${notes ? '\nNotas: ' + notes : ''}`;
-}
-
-async function checkout() {
-  if (!Object.keys(cart).length) return;
-  const text = orderText();
-  if (whatsappNumber) {
-    location.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(text)}`;
-  } else {
-    await navigator.clipboard.writeText(text).catch(() => {});
-    alert(labels[lang].copied);
-  }
+  focusItem(items[Math.floor(Math.random()*items.length)].id);
 }
 
 async function shareItem(id) {
@@ -198,29 +514,92 @@ async function shareItem(id) {
   if (!item) return;
   const url = new URL(location.href);
   url.searchParams.set('item', id);
-  const text = `${item.name[lang]} · ${formatPrice(item.price)} · Las Veraneras`;
-  if (navigator.share) await navigator.share({ title: item.name[lang], text, url: url.toString() }).catch(() => {});
-  else {
-    await navigator.clipboard.writeText(`${text} ${url}`).catch(() => {});
-    alert(lang === 'es' ? 'Enlace copiado' : 'Link copied');
+  const text = `${item.name[lang]} · ${fmt(item.price)} · Las Veraneras`;
+  if (navigator.share) {
+    await navigator.share({title:item.name[lang], text, url:url.toString()}).catch(()=>{});
+  } else {
+    await navigator.clipboard.writeText(`${text} ${url}`).catch(()=>{});
+    alert(t('linkCopied'));
   }
 }
 
+/* ── Mobile menu ─────────────────────────────────────────────────────── */
+function toggleMobileMenu() {
+  const m = $('mobile-menu'), h = $('hamburger');
+  if (!m) return;
+  const open = m.classList.toggle('open');
+  h?.classList.toggle('open', open);
+}
+
+/* ── Scroll observers ────────────────────────────────────────────────── */
+function initScrollObservers() {
+  // Navbar scrolled class
+  window.addEventListener('scroll', () => {
+    $('navbar')?.classList.toggle('scrolled', window.scrollY > 10);
+  }, {passive:true});
+
+  // Reveal on scroll
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); io.unobserve(e.target); } });
+  }, {threshold:0.15});
+  document.querySelectorAll('.reveal').forEach(el => io.observe(el));
+}
+
+/* ── Pull-to-refresh ─────────────────────────────────────────────────── */
+function initPullToRefresh() {
+  let startY = 0;
+  document.addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, {passive:true});
+  document.addEventListener('touchend', e => {
+    const dy = e.changedTouches[0].clientY - startY;
+    if (dy > 80 && window.scrollY < 5) loadData();
+  }, {passive:true});
+}
+
+/* ── Data loading ────────────────────────────────────────────────────── */
+async function loadData() {
+  try {
+    const [menuRes, configRes, specialsRes] = await Promise.all([
+      fetch('data/menu.json?v='+Date.now(), {cache:'no-store'}),
+      fetch('data/config.json?v='+Date.now(), {cache:'no-store'}),
+      fetch('data/specials.json?v='+Date.now(), {cache:'no-store'})
+    ]);
+    if (menuRes.ok) { const d = await menuRes.json(); if (d?.categories) menuData = d; }
+    if (configRes.ok) { const d = await configRes.json(); if (d) applyConfig(d); }
+    if (specialsRes.ok) { const d = await specialsRes.json(); if (Array.isArray(d)) specials = d; }
+  } catch(e) {
+    console.warn('Las Veraneras: failed to load data', e);
+  }
+}
+
+/* ── Init ────────────────────────────────────────────────────────────── */
 async function init() {
+  // Unregister old service workers
   try {
     if ('serviceWorker' in navigator) {
       const regs = await navigator.serviceWorker.getRegistrations();
       await Promise.all(regs.map(r => r.unregister()));
+      navigator.serviceWorker.register('service-worker.js').catch(()=>{});
     }
-  } catch (e) {}
-  try {
-    const fresh = await fetch('data/menu.json?v=20260501-3', { cache: 'no-store' }).then(r => r.ok ? r.json() : null);
-    if (fresh?.categories) menuData = fresh;
-  } catch (e) {}
+  } catch(e) {}
+
+  await loadData();
+  setLang(lang); // apply initial language
+  renderSpecials();
   renderAll();
+
+  // Deep link to item
   const item = new URLSearchParams(location.search).get('item');
-  if (item) setTimeout(() => focusItem(item), 500);
+  if (item) setTimeout(()=>focusItem(item), 600);
+
+  initScrollObservers();
+  initPullToRefresh();
 }
 
-Object.assign(window, { setLang, setCategory, render: renderMenu, addToCart, addCombo, changeQty, hideUpsell, toggleCart, toggleCartOpen, focusItem, surpriseMe, checkout, shareItem });
+/* ── Exports ─────────────────────────────────────────────────────────── */
+Object.assign(window, {
+  setLang, setCategory, renderMenu, addToCart, addCombo, changeQty,
+  hideUpsell, toggleCart, focusItem, surpriseMe, checkout, shareItem,
+  handleWaClick, toggleMobileMenu, closeSuccess, loadData
+});
+
 document.addEventListener('DOMContentLoaded', init);

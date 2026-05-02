@@ -1,0 +1,23 @@
+{
+  "restaurantName": "Las Veraneras",
+  "tagline": "Sabores del corazón de Tucurrique",
+  "taglineEn": "Flavors from the heart of Tucurrique",
+  "whatsappNumber": "",
+  "heroImage": "https://images.pexels.com/photos/958545/pexels-photo-958545.jpeg?auto=compress&cs=tinysrgb&w=1600",
+  "address": "Las Vueltas de Tucurrique, Cartago, Costa Rica",
+  "phone": "",
+  "hours": {
+    "Lunes": "11:00–21:00",
+    "Martes": "11:00–21:00",
+    "Miércoles": "11:00–21:00",
+    "Jueves": "11:00–21:00",
+    "Viernes": "11:00–22:00",
+    "Sábado": "10:00–22:00",
+    "Domingo": "10:00–20:00"
+  },
+  "socialLinks": {
+    "facebook": "",
+    "instagram": "",
+    "tiktok": ""
+  }
+}
