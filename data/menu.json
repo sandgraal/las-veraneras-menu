@@ -1,10 +1,124 @@
 {
   "categories": [
     {
-      "name": {"es": "Entradas", "en": "Starters"},
+      "name": {
+        "es": "Snacks y Postres",
+        "en": "Snacks & Desserts"
+      },
       "items": [
-        {"name": {"es": "Patacones", "en": "Fried Plantains"}, "price": "2500"},
-        {"name": {"es": "Yuca frita", "en": "Fried Cassava"}, "price": "2800"}
+        {
+          "name": { "es": "Papas a la francesa", "en": "French Fries" },
+          "description": { "es": "Papas fritas, mayonesa, salsa de tomate", "en": "French fries with mayonnaise and ketchup" },
+          "price": "2000"
+        },
+        {
+          "name": { "es": "Salchipapas", "en": "Sausage Fries" },
+          "description": { "es": "Papas, salchichas, mayonesa, salsa", "en": "Fries, sausage, mayonnaise, and sauce" },
+          "price": "2500"
+        },
+        {
+          "name": { "es": "Nachos", "en": "Nachos" },
+          "description": { "es": "Nachos, frijoles, carne, chimichurri", "en": "Nachos, beans, meat, and chimichurri" },
+          "price": "3000"
+        },
+        {
+          "name": { "es": "Papanachos", "en": "Loaded Nacho Fries" },
+          "description": { "es": "Papas, frijoles, carne en salsa", "en": "Fries, beans, and meat in sauce" },
+          "price": "3500"
+        },
+        {
+          "name": { "es": "Hamburguesa con papas", "en": "Burger & Fries" },
+          "description": { "es": "Carne, jamón, lechuga, tomate", "en": "Beef patty, ham, lettuce, and tomato" },
+          "price": "2800"
+        },
+        {
+          "name": { "es": "Tacos sencillos (3x1)", "en": "Simple Tacos (3x1)" },
+          "description": { "es": "Tres tacos sencillos", "en": "Three simple tacos" },
+          "price": "1200"
+        },
+        {
+          "name": { "es": "Tacos arreglados (3x1)", "en": "Loaded Tacos (3x1)" },
+          "description": { "es": "Tres tacos arreglados", "en": "Three loaded tacos" },
+          "price": "1700"
+        },
+        {
+          "name": { "es": "Mayonesa de la casa", "en": "House Mayonnaise" },
+          "description": { "es": "Salsa de la casa", "en": "House sauce" },
+          "price": "500"
+        },
+        {
+          "name": { "es": "Crepas", "en": "Crepes" },
+          "description": { "es": "Postre dulce", "en": "Sweet dessert" },
+          "price": "2000"
+        },
+        {
+          "name": { "es": "Helado", "en": "Ice Cream" },
+          "description": { "es": "Postre frío", "en": "Frozen dessert" },
+          "price": "1500"
+        }
+      ]
+    },
+    {
+      "name": {
+        "es": "Menú Principal",
+        "en": "Main Menu"
+      },
+      "items": [
+        {
+          "name": { "es": "Arroz con pollo", "en": "Chicken Rice" },
+          "description": { "es": "Plato principal con arroz y pollo", "en": "Main dish with rice and chicken" },
+          "price": "3000"
+        },
+        {
+          "name": { "es": "Arroz con carne", "en": "Pork Rice" },
+          "description": { "es": "Plato principal con arroz y carne", "en": "Main dish with rice and pork" },
+          "price": "3000"
+        },
+        {
+          "name": { "es": "Arroz con carne en salsa", "en": "Beef in Sauce Rice" },
+          "description": { "es": "Arroz con carne en salsa", "en": "Rice with beef in sauce" },
+          "price": "3000"
+        },
+        {
+          "name": { "es": "Chuleta en salsa francesa", "en": "Pork Chop in French Sauce" },
+          "description": { "es": "Chuleta servida con salsa francesa", "en": "Pork chop served with French sauce" },
+          "price": "4300"
+        },
+        {
+          "name": { "es": "Pollo en salsa francesa", "en": "Chicken in French Sauce" },
+          "description": { "es": "Pollo servido con salsa francesa", "en": "Chicken served with French sauce" },
+          "price": "3800"
+        },
+        {
+          "name": { "es": "Daube Nicoise", "en": "Daube Nicoise" },
+          "description": { "es": "Especialidad de la casa", "en": "House specialty" },
+          "price": "7000"
+        },
+        {
+          "name": { "es": "Chifrijo", "en": "Chifrijo" },
+          "description": { "es": "Clásico costarricense", "en": "Costa Rican classic" },
+          "price": "4000"
+        },
+        {
+          "name": { "es": "Fajitas de pollo", "en": "Chicken Fajitas" },
+          "description": { "es": "Fajitas preparadas con pollo", "en": "Fajitas prepared with chicken" },
+          "price": "3300"
+        },
+        {
+          "name": { "es": "Arroz con camarones", "en": "Shrimp Rice" },
+          "description": { "es": "Arroz preparado con camarones", "en": "Rice prepared with shrimp" },
+          "price": "3800"
+        },
+        {
+          "name": { "es": "Filet de tilapia", "en": "Tilapia Fillet" },
+          "description": { "es": "Filet de tilapia servido como plato principal", "en": "Tilapia fillet served as a main dish" },
+          "price": "4000"
+        },
+        {
+          "name": { "es": "Camarones empanizados", "en": "Breaded Shrimp" },
+          "description": { "es": "Camarones empanizados", "en": "Breaded shrimp" },
+          "price": "4000"
+        }
       ]
     }
   ]
