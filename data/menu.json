@@ -1,0 +1,11 @@
+{
+  "categories": [
+    {
+      "name": {"es": "Entradas", "en": "Starters"},
+      "items": [
+        {"name": {"es": "Patacones", "en": "Fried Plantains"}, "price": "2500"},
+        {"name": {"es": "Yuca frita", "en": "Fried Cassava"}, "price": "2800"}
+      ]
+    }
+  ]
+}
