@@ -119,7 +119,6 @@ const allItems = () => menuData.categories.flatMap((c,ci) => c.items.map(i => ({
 const findItem = id => allItems().find(i => i.id === id);
 const fmt = v => '₡' + String(v||0).replace(/\B(?=(\d{3})+(?!\d))/g,'.');
 const t = key => (T[lang]||T.es)[key] || key;
-const waIcon = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>`;
 
 function saveCart() { localStorage.setItem('lv-cart',JSON.stringify(cart)); renderAll(); }
 function saveCartOnly() { localStorage.setItem('lv-cart',JSON.stringify(cart)); }
@@ -152,14 +151,30 @@ function applyConfig(cfg) {
       `<li><span>${day}</span><span>${hrs}</span></li>`
     ).join('');
   }
-  // Social links
+  // Social links — use DOM APIs and validate http/https to prevent XSS
   const sl = $('social-links');
   if (sl && cfg.socialLinks) {
-    const links = [];
-    if (cfg.socialLinks.facebook) links.push(`<a href="${cfg.socialLinks.facebook}" class="social-link" target="_blank" rel="noopener">📘 Facebook</a>`);
-    if (cfg.socialLinks.instagram) links.push(`<a href="${cfg.socialLinks.instagram}" class="social-link" target="_blank" rel="noopener">📸 Instagram</a>`);
-    if (cfg.socialLinks.tiktok) links.push(`<a href="${cfg.socialLinks.tiktok}" class="social-link" target="_blank" rel="noopener">🎵 TikTok</a>`);
-    sl.innerHTML = links.join('');
+    const allowedSchemes = ['http:', 'https:'];
+    const makeLink = (url, label) => {
+      if (!url) return null;
+      try {
+        const u = new URL(url);
+        if (!allowedSchemes.includes(u.protocol)) return null;
+      } catch { return null; }
+      const a = document.createElement('a');
+      a.href = url;
+      a.className = 'social-link';
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = label;
+      return a;
+    };
+    sl.textContent = '';
+    [
+      makeLink(cfg.socialLinks.facebook, '📘 Facebook'),
+      makeLink(cfg.socialLinks.instagram, '📸 Instagram'),
+      makeLink(cfg.socialLinks.tiktok, '🎵 TikTok')
+    ].forEach(a => { if (a) sl.appendChild(a); });
   }
   // OG image
   const ogImg = document.getElementById('og-image');
@@ -234,15 +249,17 @@ function renderSpecials() {
   if (!specials.length) { section.classList.remove('has-items'); return; }
   section.classList.add('has-items');
   row.innerHTML = specials.map(s => {
-    const imgHtml = s.image ? `<img src="${s.image}" alt="${s.title||''}" width="300" height="160" loading="lazy">` : '';
+    const title = (lang === 'en' ? s.titleEn || s.title : s.title) || '';
+    const desc = (lang === 'en' ? s.descriptionEn || s.description : s.description) || '';
+    const imgHtml = s.image ? `<img src="${s.image}" alt="${title||''}" width="300" height="160" loading="lazy">` : '';
     const priceHtml = s.price ? `<div class="special-price">${fmt(s.price)}</div>` : '';
     const untilHtml = s.validUntil ? `<span class="special-until">📅 ${t('validUntil')}: ${s.validUntil}</span>` : '';
     const eventBadge = s.isEvent ? `<span class="badge badge-featured" style="margin-left:.4rem">${t('event')}</span>` : '';
     return `<article class="special-card">
       ${imgHtml}
       <div class="special-body">
-        <h3>${s.title||''} ${eventBadge}</h3>
-        <p>${s.description||''}</p>
+        <h3>${title} ${eventBadge}</h3>
+        <p>${desc}</p>
         ${priceHtml}
         ${untilHtml}
       </div>
@@ -573,14 +590,9 @@ async function loadData() {
 
 /* ── Init ────────────────────────────────────────────────────────────── */
 async function init() {
-  // Unregister old service workers
-  try {
-    if ('serviceWorker' in navigator) {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(regs.map(r => r.unregister()));
-      navigator.serviceWorker.register('service-worker.js').catch(()=>{});
-    }
-  } catch(e) {}
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('service-worker.js').catch(() => {});
+  }
 
   await loadData();
   setLang(lang); // apply initial language

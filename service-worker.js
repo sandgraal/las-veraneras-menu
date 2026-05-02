@@ -27,7 +27,10 @@ self.addEventListener('fetch', e => {
           const fetchPromise = fetch(e.request).then(res => {
             cache.put(e.request, res.clone());
             return res;
-          }).catch(() => cached);
+          }).catch(() => cached || new Response('{"error":"offline"}', {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' }
+          }));
           return cached || fetchPromise;
         })
       )

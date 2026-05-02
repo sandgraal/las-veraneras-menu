@@ -140,6 +140,10 @@ let dirty = { menu:false, specials:false, settings:false };
 const ALLERGENS = ['Gluten','Lácteos','Huevo','Mariscos','Nueces','Soya','Maní','Sésamo'];
 const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
 
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 function getToken() { return document.getElementById('token').value.trim() || localStorage.getItem('lv-admin-token') || ''; }
 function markDirty(tab) {
   dirty[tab] = true;
@@ -291,8 +295,8 @@ function renderCategories() {
   root.innerHTML = (menuData.categories||[]).map((cat,ci) => `
     <div class="category-block" id="cat-block-${ci}">
       <div class="cat-header" onclick="toggleCat(${ci})">
-        <span style="font-size:1.3rem">${cat.emoji||'🍴'}</span>
-        <span class="cat-name">${cat.name?.es||'Categoría'}</span>
+        <span style="font-size:1.3rem">${esc(cat.emoji||'🍴')}</span>
+        <span class="cat-name">${esc(cat.name?.es||'Categoría')}</span>
         <span class="muted small">${(cat.items||[]).length} platos</span>
         <button class="cat-toggle" id="cat-toggle-${ci}">▼</button>
         <button class="btn-danger" onclick="event.stopPropagation();removeCategory(${ci})">✕</button>
@@ -301,15 +305,15 @@ function renderCategories() {
         <div class="item-row-2" style="margin-bottom:1rem">
           <div>
             <label class="admin-label" style="margin-top:0">Nombre ES</label>
-            <input class="admin-input" value="${cat.name?.es||''}" oninput="menuData.categories[${ci}].name.es=this.value;markDirty('menu')">
+            <input class="admin-input" value="${esc(cat.name?.es||'')}" oninput="menuData.categories[${ci}].name.es=this.value;markDirty('menu')">
           </div>
           <div>
             <label class="admin-label" style="margin-top:0">Nombre EN</label>
-            <input class="admin-input" value="${cat.name?.en||''}" oninput="menuData.categories[${ci}].name.en=this.value;markDirty('menu')">
+            <input class="admin-input" value="${esc(cat.name?.en||'')}" oninput="menuData.categories[${ci}].name.en=this.value;markDirty('menu')">
           </div>
         </div>
         <label class="admin-label" style="margin-top:0">Emoji</label>
-        <input class="admin-input" value="${cat.emoji||''}" style="width:80px" oninput="menuData.categories[${ci}].emoji=this.value;markDirty('menu')">
+        <input class="admin-input" value="${esc(cat.emoji||'')}" style="width:80px" oninput="menuData.categories[${ci}].emoji=this.value;markDirty('menu')">
         <div style="margin:1rem 0">${(cat.items||[]).map((_,ii) => itemEditor(ci,ii)).join('')}</div>
         <button class="btn-admin-primary" onclick="addItem(${ci})">＋ Agregar plato</button>
       </div>
@@ -339,45 +343,45 @@ function itemEditor(ci, ii) {
   }).join('');
   return `<div class="item-block" id="item-block-${ci}-${ii}">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
-      <strong style="color:var(--gold)">${item.name?.es||'Plato'}</strong>
+      <strong style="color:var(--gold)">${esc(item.name?.es||'Plato')}</strong>
       <button class="btn-danger" onclick="removeItem(${ci},${ii})">✕ Eliminar</button>
     </div>
     <div class="item-row-2">
       <div>
         <label class="admin-label" style="margin-top:0">Nombre ES</label>
-        <input class="admin-input" value="${item.name?.es||''}" oninput="setItemField(${ci},${ii},'name.es',this.value)">
+        <input class="admin-input" value="${esc(item.name?.es||'')}" oninput="setItemField(${ci},${ii},'name.es',this.value)">
       </div>
       <div>
         <label class="admin-label" style="margin-top:0">Nombre EN</label>
-        <input class="admin-input" value="${item.name?.en||''}" oninput="setItemField(${ci},${ii},'name.en',this.value)">
+        <input class="admin-input" value="${esc(item.name?.en||'')}" oninput="setItemField(${ci},${ii},'name.en',this.value)">
       </div>
     </div>
     <div class="item-row-2">
       <div>
         <label class="admin-label">Descripción ES</label>
-        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.es',this.value)">${item.description?.es||''}</textarea>
+        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.es',this.value)">${esc(item.description?.es||'')}</textarea>
       </div>
       <div>
         <label class="admin-label">Descripción EN</label>
-        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.en',this.value)">${item.description?.en||''}</textarea>
+        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.en',this.value)">${esc(item.description?.en||'')}</textarea>
       </div>
     </div>
     <div class="item-row-3">
       <div>
         <label class="admin-label">Precio (₡)</label>
-        <input class="admin-input" type="number" value="${item.price||''}" oninput="setItemField(${ci},${ii},'price',this.value)">
+        <input class="admin-input" type="number" value="${esc(item.price||'')}" oninput="setItemField(${ci},${ii},'price',this.value)">
       </div>
       <div>
         <label class="admin-label">Badge texto</label>
-        <input class="admin-input" value="${item.badgeText||''}" placeholder="Nuevo, Temporada…" oninput="setItemField(${ci},${ii},'badgeText',this.value)">
+        <input class="admin-input" value="${esc(item.badgeText||'')}" placeholder="Nuevo, Temporada…" oninput="setItemField(${ci},${ii},'badgeText',this.value)">
       </div>
       <div>
         <label class="admin-label">ID</label>
-        <input class="admin-input" value="${item.id||''}" oninput="setItemField(${ci},${ii},'id',this.value)">
+        <input class="admin-input" value="${esc(item.id||'')}" oninput="setItemField(${ci},${ii},'id',this.value)">
       </div>
     </div>
     <label class="admin-label">Imagen URL</label>
-    <input class="admin-input" value="${item.image||''}" placeholder="https://..." oninput="setItemField(${ci},${ii},'image',this.value);updateItemImg(${ci},${ii},this.value)">
+    <input class="admin-input" value="${esc(item.image||'')}" placeholder="https://..." oninput="setItemField(${ci},${ii},'image',this.value);updateItemImg(${ci},${ii},this.value)">
     <img id="img-${ci}-${ii}" class="img-preview" src="" alt="" style="${item.image?'':'display:none'}">
     <div class="checkbox-row">
       <input type="checkbox" id="feat-${ci}-${ii}" ${item.featured?'checked':''} onchange="setItemField(${ci},${ii},'featured',this.checked)">
@@ -457,52 +461,52 @@ function renderSpecials() {
   root.innerHTML = specialsData.map((s,i) => `
     <div class="special-block">
       <div class="special-header">
-        <strong>${s.title||'Especial '+(i+1)}</strong>
+        <strong>${esc(s.title||'Especial '+(i+1))}</strong>
         <button class="btn-danger" onclick="removeSpecial(${i})">✕ Eliminar</button>
       </div>
       <div class="item-row-2">
         <div>
           <label class="admin-label" style="margin-top:0">Título ES</label>
-          <input class="admin-input" value="${s.title||''}" oninput="specialsData[${i}].title=this.value;markDirty('specials')">
+          <input class="admin-input" value="${esc(s.title||'')}" oninput="specialsData[${i}].title=this.value;markDirty('specials')">
         </div>
         <div>
           <label class="admin-label" style="margin-top:0">Título EN</label>
-          <input class="admin-input" value="${s.titleEn||''}" oninput="specialsData[${i}].titleEn=this.value;markDirty('specials')">
+          <input class="admin-input" value="${esc(s.titleEn||'')}" oninput="specialsData[${i}].titleEn=this.value;markDirty('specials')">
         </div>
       </div>
       <div class="item-row-2">
         <div>
           <label class="admin-label">Descripción ES</label>
-          <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].description=this.value;markDirty('specials')">${s.description||''}</textarea>
+          <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].description=this.value;markDirty('specials')">${esc(s.description||'')}</textarea>
         </div>
         <div>
           <label class="admin-label">Descripción EN</label>
-          <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].descriptionEn=this.value;markDirty('specials')">${s.descriptionEn||''}</textarea>
+          <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].descriptionEn=this.value;markDirty('specials')">${esc(s.descriptionEn||'')}</textarea>
         </div>
       </div>
       <div class="item-row-3">
         <div>
           <label class="admin-label">Precio (₡, opcional)</label>
-          <input class="admin-input" type="number" value="${s.price||''}" oninput="specialsData[${i}].price=this.value;markDirty('specials')">
+          <input class="admin-input" type="number" value="${esc(s.price||'')}" oninput="specialsData[${i}].price=this.value;markDirty('specials')">
         </div>
         <div>
           <label class="admin-label">Válido hasta</label>
-          <input class="admin-input" type="date" value="${s.validUntil||''}" oninput="specialsData[${i}].validUntil=this.value;markDirty('specials')">
+          <input class="admin-input" type="date" value="${esc(s.validUntil||'')}" oninput="specialsData[${i}].validUntil=this.value;markDirty('specials')">
         </div>
         <div>
           <label class="admin-label">ID</label>
-          <input class="admin-input" value="${s.id||''}" oninput="specialsData[${i}].id=this.value;markDirty('specials')">
+          <input class="admin-input" value="${esc(s.id||'')}" oninput="specialsData[${i}].id=this.value;markDirty('specials')">
         </div>
       </div>
       <label class="admin-label">Imagen URL</label>
-      <input class="admin-input" value="${s.image||''}" placeholder="https://..." oninput="specialsData[${i}].image=this.value;markDirty('specials')">
+      <input class="admin-input" value="${esc(s.image||'')}" placeholder="https://..." oninput="specialsData[${i}].image=this.value;markDirty('specials')">
       <div class="checkbox-row">
         <input type="checkbox" id="ev-${i}" ${s.isEvent?'checked':''} onchange="specialsData[${i}].isEvent=this.checked;markDirty('specials');renderSpecials()">
         <label for="ev-${i}">📅 Es un evento</label>
       </div>
       ${s.isEvent ? `
         <label class="admin-label">Fecha y hora del evento</label>
-        <input class="admin-input" type="datetime-local" value="${s.eventDate||''}" oninput="specialsData[${i}].eventDate=this.value;markDirty('specials')">
+        <input class="admin-input" type="datetime-local" value="${esc(s.eventDate||'')}" oninput="specialsData[${i}].eventDate=this.value;markDirty('specials')">
       ` : ''}
     </div>`).join('') || '<p class="muted">No hay especiales. Haz clic en "+ Especial" para agregar.</p>';
 }
@@ -549,10 +553,14 @@ async function putFile(path, content, message) {
 }
 
 function getOwnerRepo() {
-  // Try to extract from current URL (GitHub Pages: username.github.io/reponame)
-  const m = location.pathname.match(/\/([^/]+)\/([^/]+)/);
-  if (m) return [m[1], m[2]];
-  // Fallback: update these values if you fork or rename the repository
+  // GitHub Pages: username.github.io/reponame/...
+  const m = location.hostname.match(/^([^.]+)\.github\.io$/);
+  if (m) {
+    const owner = m[1];
+    const repo = location.pathname.split('/').filter(Boolean)[0] || 'las-veraneras-menu';
+    return [owner, repo];
+  }
+  // Fallback for local dev or custom domains
   return ['sandgraal', 'las-veraneras-menu'];
 }
 
