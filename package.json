@@ -1,0 +1,1 @@
+{"name":"las-veraneras-menu","version":"1.0.0","type":"commonjs","scripts":{"build":"node tools/sync-menu.js","sync":"node tools/sync-menu.js","check:all":"node tools/validate-menu.js"},"license":"MIT"}
