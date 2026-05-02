@@ -183,7 +183,7 @@ async function loadAll() {
 
 async function loadMenu() {
   try {
-    const res = await fetch('data/menu.json?v='+Date.now(), { cache:'no-store' });
+    const res = await fetch('data/menu.json', { cache:'no-store' });
     if (res.ok) menuData = await res.json();
     renderCategories();
   } catch(e) {}
@@ -191,7 +191,7 @@ async function loadMenu() {
 
 async function loadConfig() {
   try {
-    const res = await fetch('data/config.json?v='+Date.now(), { cache:'no-store' });
+    const res = await fetch('data/config.json', { cache:'no-store' });
     if (res.ok) configData = await res.json();
     populateSettings();
   } catch(e) {}
@@ -199,7 +199,7 @@ async function loadConfig() {
 
 async function loadSpecialsData() {
   try {
-    const res = await fetch('data/specials.json?v='+Date.now(), { cache:'no-store' });
+    const res = await fetch('data/specials.json', { cache:'no-store' });
     if (res.ok) { const d = await res.json(); specialsData = Array.isArray(d) ? d : []; }
     renderSpecials();
   } catch(e) {}
@@ -251,11 +251,20 @@ function populateSettings() {
   }
 }
 
+function safeImgUrl(url) {
+  // Only allow http/https URLs for image preview (prevents javascript: XSS)
+  try {
+    const u = new URL(url);
+    return (u.protocol === 'https:' || u.protocol === 'http:') ? url : '';
+  } catch(e) { return ''; }
+}
+
 function updateHeroPreview() {
   const url = document.getElementById('cfg-hero')?.value;
   const img = document.getElementById('cfg-hero-preview');
   if (!img) return;
-  if (url) { img.src = url; img.style.display = 'block'; } else img.style.display = 'none';
+  const safe = safeImgUrl(url || '');
+  if (safe) { img.src = safe; img.style.display = 'block'; } else img.style.display = 'none';
 }
 
 function readSettings() {
@@ -305,6 +314,12 @@ function renderCategories() {
         <button class="btn-admin-primary" onclick="addItem(${ci})">＋ Agregar plato</button>
       </div>
     </div>`).join('');
+  // After DOM renders, safely set image srcs
+  (menuData.categories||[]).forEach((cat,ci) => {
+    (cat.items||[]).forEach((item,ii) => {
+      if (item.image) updateItemImg(ci, ii, item.image);
+    });
+  });
 }
 
 function toggleCat(ci) {
@@ -363,7 +378,7 @@ function itemEditor(ci, ii) {
     </div>
     <label class="admin-label">Imagen URL</label>
     <input class="admin-input" value="${item.image||''}" placeholder="https://..." oninput="setItemField(${ci},${ii},'image',this.value);updateItemImg(${ci},${ii},this.value)">
-    ${item.image ? `<img id="img-${ci}-${ii}" class="img-preview" src="${item.image}" alt="">` : `<img id="img-${ci}-${ii}" class="img-preview" src="" alt="" style="display:none">`}
+    <img id="img-${ci}-${ii}" class="img-preview" src="" alt="" style="${item.image?'':'display:none'}">
     <div class="checkbox-row">
       <input type="checkbox" id="feat-${ci}-${ii}" ${item.featured?'checked':''} onchange="setItemField(${ci},${ii},'featured',this.checked)">
       <label for="feat-${ci}-${ii}">⭐ Recomendado (featured)</label>
@@ -387,7 +402,8 @@ function setItemField(ci, ii, path, value) {
 function updateItemImg(ci, ii, url) {
   const img = document.getElementById(`img-${ci}-${ii}`);
   if (!img) return;
-  if (url) { img.src = url; img.style.display = 'block'; } else img.style.display = 'none';
+  const safe = safeImgUrl(url || '');
+  if (safe) { img.src = safe; img.style.display = 'block'; } else img.style.display = 'none';
 }
 
 function toggleAllergen(ci, ii, allergen, el) {
@@ -533,10 +549,10 @@ async function putFile(path, content, message) {
 }
 
 function getOwnerRepo() {
+  // Try to extract from current URL (GitHub Pages: username.github.io/reponame)
   const m = location.pathname.match(/\/([^/]+)\/([^/]+)/);
-  // Try to extract from current URL (GitHub Pages)
   if (m) return [m[1], m[2]];
-  // Fallback from git remote (hardcoded for this repo)
+  // Fallback: update these values if you fork or rename the repository
   return ['sandgraal', 'las-veraneras-menu'];
 }
 

@@ -559,9 +559,9 @@ function initPullToRefresh() {
 async function loadData() {
   try {
     const [menuRes, configRes, specialsRes] = await Promise.all([
-      fetch('data/menu.json?v='+Date.now(), {cache:'no-store'}),
-      fetch('data/config.json?v='+Date.now(), {cache:'no-store'}),
-      fetch('data/specials.json?v='+Date.now(), {cache:'no-store'})
+      fetch('data/menu.json', {cache:'no-store'}),
+      fetch('data/config.json', {cache:'no-store'}),
+      fetch('data/specials.json', {cache:'no-store'})
     ]);
     if (menuRes.ok) { const d = await menuRes.json(); if (d?.categories) menuData = d; }
     if (configRes.ok) { const d = await configRes.json(); if (d) applyConfig(d); }
