@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Las Veraneras | Menú</title>
+<title>Las Veraneras | Bistro Franco-Tico en Tucurrique</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<meta name="description" content="Las Veraneras — Restaurante en Las Vueltas de Tucurrique. Menú completo y pedidos por WhatsApp.">
+<meta name="description" content="Las Veraneras — bistro tropical franco-tico en Las Vueltas de Tucurrique. Menú trilingüe, platos con toque francés y pedidos por WhatsApp.">
 <meta property="og:type" content="restaurant">
-<meta property="og:title" content="Las Veraneras | Menú">
-<meta property="og:description" content="Sabores del corazón de Tucurrique. Pide por WhatsApp.">
+<meta property="og:title" content="Las Veraneras | Bistro Franco-Tico en Tucurrique">
+<meta property="og:description" content="Cocina tica con oficio francés, veraneras en flor y pedidos por WhatsApp.">
 <meta property="og:image" id="og-image" content="">
 <meta property="og:url" content="https://sandgraal.github.io/las-veraneras-menu/">
 <meta name="theme-color" content="#2D1B4E">
@@ -18,6 +18,9 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Cg transform='translate(18,18)'%3E%3Cellipse rx='6' ry='11' fill='%23F72585' transform='rotate(0) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%23F72585' transform='rotate(72) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%237209B7' transform='rotate(144) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%237209B7' transform='rotate(216) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%23F72585' transform='rotate(288) translate(0,-6)'/%3E%3Ccircle r='3.5' fill='%23FFD700'/%3E%3C/g%3E%3C/svg%3E" type="image/svg+xml">
 <link rel="stylesheet" href="styles.css?v=20260502">
 <script type="application/ld+json" id="structured-data">{}</script>
+<script type="speculationrules">
+{"prefetch":[{"source":"list","urls":["./admin.html"]}]}
+</script>
 </head>
 <body>
 
@@ -41,6 +44,7 @@
       <div class="lang-toggle">
         <button id="btn-es" class="lang-btn active" onclick="setLang('es')">ES</button>
         <button id="btn-en" class="lang-btn" onclick="setLang('en')">EN</button>
+        <button id="btn-fr" class="lang-btn" onclick="setLang('fr')">FR</button>
       </div>
     </div>
     <div class="nav-right">
@@ -49,7 +53,7 @@
         <span class="wa-nav-text hide-mobile" data-i18n="order">Pedir</span>
       </a>
       <button class="cart-nav-btn" onclick="toggleCart()" aria-label="Ver pedido">
-        🛒 <span id="cart-count" class="cart-badge">0</span>
+        <span aria-hidden="true">Cart</span> <span id="cart-count" class="cart-badge">0</span>
       </button>
       <button class="hamburger" id="hamburger" aria-label="Abrir menú" onclick="toggleMobileMenu()">
         <span></span><span></span><span></span>
@@ -60,6 +64,7 @@
     <div class="lang-toggle mobile-lang">
       <button id="mob-btn-es" class="lang-btn active" onclick="setLang('es');toggleMobileMenu()">ES</button>
       <button id="mob-btn-en" class="lang-btn" onclick="setLang('en');toggleMobileMenu()">EN</button>
+      <button id="mob-btn-fr" class="lang-btn" onclick="setLang('fr');toggleMobileMenu()">FR</button>
     </div>
     <a id="mobile-wa" href="#" class="btn-wa-mobile" onclick="handleWaClick(event);toggleMobileMenu()">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
@@ -73,21 +78,11 @@
   <div class="hero-bg" id="hero-bg"></div>
   <div class="hero-overlay"></div>
   <div class="hero-content">
-    <div aria-hidden="true" style="margin-bottom:1rem">
-      <svg width="80" height="80" viewBox="0 0 36 36" fill="none">
-        <g transform="translate(18,18)">
-          <ellipse rx="6" ry="11" fill="#F72585" opacity="0.95" transform="rotate(0) translate(0,-6)"/>
-          <ellipse rx="6" ry="11" fill="#F72585" opacity="0.9" transform="rotate(72) translate(0,-6)"/>
-          <ellipse rx="6" ry="11" fill="#7209B7" opacity="0.9" transform="rotate(144) translate(0,-6)"/>
-          <ellipse rx="6" ry="11" fill="#7209B7" opacity="0.85" transform="rotate(216) translate(0,-6)"/>
-          <ellipse rx="6" ry="11" fill="#F72585" opacity="0.85" transform="rotate(288) translate(0,-6)"/>
-          <circle r="4" fill="#FFD700"/>
-        </g>
-      </svg>
-    </div>
+    <p class="hero-status" id="hero-status"><span class="status-dot"></span>Las Vueltas de Tucurrique</p>
     <p class="hero-eyebrow" data-i18n="eyebrow">Restaurante · Las Vueltas de Tucurrique</p>
     <h1 class="hero-title">Las Veraneras</h1>
     <p class="hero-tagline" id="hero-tagline">Sabores del corazón de Tucurrique</p>
+    <p class="hero-note" id="hero-note" data-i18n="heroNote">Cocina tica con oficio francés, veraneras en flor y pedido directo por WhatsApp.</p>
     <div class="hero-ctas">
       <button class="btn-primary" onclick="document.getElementById('menu-section').scrollIntoView({behavior:'smooth'})">
         <span data-i18n="seeMenu">Ver Menú</span>
@@ -97,7 +92,12 @@
         <span data-i18n="orderWhatsapp">Pedir por WhatsApp</span>
       </a>
     </div>
-    <button class="btn-ghost" onclick="surpriseMe()" style="margin-top:.75rem">🎲 <span data-i18n="surprise">Sorpréndeme</span></button>
+    <div class="hero-traits" aria-label="Identidad de Las Veraneras">
+      <span data-i18n="frenchTouch">Toque francés</span>
+      <span data-i18n="localRoots">Raíz tica</span>
+      <span data-i18n="quickOrder">Pedido rápido</span>
+    </div>
+    <button class="btn-ghost" onclick="surpriseMe()" style="margin-top:.75rem"><span data-i18n="surprise">Plato sorpresa</span></button>
     <div class="scroll-indicator" aria-hidden="true"><div class="scroll-arrow"></div></div>
   </div>
 </section>
@@ -108,11 +108,12 @@
     <div class="about-text">
       <p class="section-eyebrow" data-i18n="aboutEyebrow">Nuestra historia</p>
       <h2 class="about-heading" data-i18n="aboutHeading">El sabor de las montañas de Tucurrique</h2>
-      <p class="about-body" data-i18n="aboutBody">Nacimos en Las Vueltas de Tucurrique para llevar al plato los sabores auténticos de Costa Rica con un toque artesanal. Cada plato cuenta una historia de ingredientes frescos, recetas de familia y el calor de nuestra comunidad.</p>
+      <p class="about-owner" id="owner-name">Las Veraneras</p>
+      <p class="about-body" id="about-body" data-i18n="aboutBody">Nacimos en Las Vueltas de Tucurrique para llevar al plato los sabores auténticos de Costa Rica con un toque artesanal. Cada plato cuenta una historia de ingredientes frescos, recetas de familia y el calor de nuestra comunidad.</p>
       <p class="about-body" data-i18n="aboutBody2">Desde chifrijos tradicionales hasta platos gourmet — en Las Veraneras cada visita es una celebración.</p>
     </div>
     <div class="about-image">
-      <img src="https://images.pexels.com/photos/262978/pexels-photo-262978.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Interior de Las Veraneras" width="600" height="420" loading="lazy">
+      <img id="story-image" src="https://images.pexels.com/photos/19938719/pexels-photo-19938719.jpeg?auto=compress&cs=tinysrgb&w=900" alt="Montañas verdes alrededor de Tucurrique" width="600" height="420" loading="lazy">
     </div>
   </div>
 </section>
@@ -128,7 +129,8 @@
 
 <!-- TOOLBAR -->
 <div class="toolbar" id="toolbar">
-  <input id="search" class="search-input" placeholder="🔍 Buscar plato..." oninput="renderMenu()" aria-label="Buscar plato">
+  <input id="search" class="search-input" placeholder="Buscar plato..." oninput="renderAll()" aria-label="Buscar plato">
+  <div id="smart-filters" class="smart-filters" aria-label="Filtros del menú"></div>
 </div>
 
 <!-- CATEGORY FILTERS -->
@@ -152,6 +154,10 @@
   <div class="upsell-handle"></div>
 </div>
 
+<!-- DISH DETAIL -->
+<div class="dish-detail-backdrop" id="dish-detail-backdrop" onclick="closeDishDetail()"></div>
+<section id="dish-detail" class="dish-detail" role="dialog" aria-modal="true" aria-label="Detalle del plato"></section>
+
 <!-- CART DRAWER -->
 <aside id="cart" class="cart" role="dialog" aria-modal="true" aria-label="Tu pedido">
   <div class="cart-header">
@@ -161,7 +167,7 @@
     </div>
     <button class="cart-close" onclick="toggleCart()" aria-label="Cerrar">✕</button>
   </div>
-  <p id="cart-nudge" class="cart-nudge">🚀 Pedido listo para enviar</p>
+  <p id="cart-nudge" class="cart-nudge" data-i18n="ready">Pedido listo para enviar</p>
   <div id="cart-items" class="cart-items"></div>
   <div class="cart-footer">
     <div class="cart-total-row">
@@ -184,7 +190,7 @@
 
 <!-- CART FAB -->
 <button id="cart-fab" class="cart-fab" onclick="toggleCart()" aria-label="Ver pedido">
-  🛒 <span class="cart-fab-count" id="cart-fab-count">0</span>
+  <span>Cart</span> <span class="cart-fab-count" id="cart-fab-count">0</span>
 </button>
 
 <!-- ORDER SUCCESS -->
@@ -215,7 +221,7 @@
         <span>Las Veraneras</span>
       </div>
       <p id="footer-tagline" class="footer-tagline">Sabores del corazón de Tucurrique</p>
-      <p id="footer-address" class="footer-address">📍 Las Vueltas de Tucurrique, Cartago</p>
+      <p id="footer-address" class="footer-address">Las Vueltas de Tucurrique, Cartago</p>
       <a id="footer-wa" href="#" class="footer-wa-link" onclick="handleWaClick(event)">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>
         WhatsApp

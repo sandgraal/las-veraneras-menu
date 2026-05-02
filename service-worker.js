@@ -1,6 +1,6 @@
-const CACHE = 'las-veraneras-v8';
-const STATIC = ['./','index.html','styles.css','app.js','manifest.json','data/menu.json'];
-const FRESH = ['data/config.json','data/specials.json'];
+const CACHE = 'las-veraneras-v9';
+const STATIC = ['./','index.html','styles.css','app.js','manifest.json','data/menu.json','data/combos.json'];
+const FRESH = ['data/config.json','data/specials.json','data/combos.json'];
 
 self.addEventListener('install', e => {
   self.skipWaiting();

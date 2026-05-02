@@ -1,0 +1,65 @@
+[
+  {
+    "id": "combo-antojo",
+    "name": {
+      "es": "Combo Antojo",
+      "en": "Craving Combo",
+      "fr": "Combo gourmand"
+    },
+    "description": {
+      "es": "Hamburguesa con papas + helado para cerrar dulce.",
+      "en": "Burger and fries + ice cream for a sweet finish.",
+      "fr": "Burger avec frites + glace pour finir en douceur."
+    },
+    "items": ["burger", "helado"],
+    "price": "4300",
+    "tag": {
+      "es": "Rápido y popular",
+      "en": "Fast and popular",
+      "fr": "Rapide et populaire"
+    },
+    "bestFor": "quick-lunch"
+  },
+  {
+    "id": "combo-amigos",
+    "name": {
+      "es": "Combo Amigos",
+      "en": "Friends Combo",
+      "fr": "Combo amis"
+    },
+    "description": {
+      "es": "Nachos + 3x1 tacos arreglados + salchipapas para compartir.",
+      "en": "Nachos + loaded 3-for-1 tacos + sausage fries to share.",
+      "fr": "Nachos + tacos garnis 3x1 + salchipapas a partager."
+    },
+    "items": ["nachos", "tacos-arreglados", "salchipapas"],
+    "price": "7200",
+    "tag": {
+      "es": "Para compartir",
+      "en": "Shareable",
+      "fr": "A partager"
+    },
+    "bestFor": "sharing"
+  },
+  {
+    "id": "combo-franco-tico",
+    "name": {
+      "es": "Combo Franco-Tico",
+      "en": "French-Tico Combo",
+      "fr": "Combo franco-tico"
+    },
+    "description": {
+      "es": "Pollo en salsa francesa + mayonesa de la casa + crepas.",
+      "en": "Chicken in French sauce + house mayonnaise + crepes.",
+      "fr": "Poulet sauce francaise + mayonnaise maison + crepes."
+    },
+    "items": ["pollo-francesa", "mayo", "crepas"],
+    "price": "6200",
+    "tag": {
+      "es": "Toque francés",
+      "en": "French touch",
+      "fr": "Touche francaise"
+    },
+    "bestFor": "french-specialty"
+  }
+]
