@@ -253,7 +253,7 @@ function esc(value) {
 }
 
 function jsArg(value) {
-  return esc(JSON.stringify(String(value)));
+  return esc(JSON.stringify(value ?? null));
 }
 
 function localized(value, fallback='') {

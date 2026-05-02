@@ -335,6 +335,7 @@ function readSettings() {
   const hours = {};
   DAYS.forEach(day => { const v = document.getElementById('hr-'+day)?.value.trim(); if (v) hours[day] = v; });
   return {
+    ...configData,
     restaurantName: g('cfg-name'),
     tagline: g('cfg-tagline'),
     taglineEn: g('cfg-tagline-en'),

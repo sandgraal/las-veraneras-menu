@@ -45,7 +45,7 @@ self.addEventListener('fetch', e => {
     e.respondWith(
       fetch(e.request)
         .then(res => { caches.open(CACHE).then(c => c.put(e.request, res.clone())); return res; })
-        .catch(() => caches.match(e.request).then(c => c || caches.match('./')))
+        .catch(() => caches.match(e.request, {ignoreSearch: true}).then(c => c || caches.match('./', {ignoreSearch: true})))
     );
     return;
   }
