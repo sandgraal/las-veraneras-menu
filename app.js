@@ -433,7 +433,7 @@ function setLang(l) {
   // Update all data-i18n elements
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const k = el.getAttribute('data-i18n');
-    if (el.id === 'about-body') return;
+    if (el.hasAttribute('data-skip-i18n')) return;
     if (T[l] && T[l][k]) el.textContent = T[l][k];
   });
   // Update order-notes placeholder
