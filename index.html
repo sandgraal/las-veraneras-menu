@@ -3,43 +3,79 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Las Veraneras</title>
-<style>
-body{margin:0;background:#0a0a0a;color:#fff;font-family:Arial}
-header{text-align:center;padding:1rem;border-bottom:2px solid gold}
-h1{color:gold}
-.controls{text-align:center;margin:1rem}
-button{margin:.3rem;padding:.5rem 1rem;background:purple;color:white;border:none;border-radius:5px}
-.category{max-width:900px;margin:1rem auto}
-.item{display:flex;justify-content:space-between;border-bottom:1px solid #333;padding:.5rem 0}
-.price{color:gold}
-</style>
+<title>Las Veraneras | Menú</title>
+<meta name="description" content="Menú bilingüe de Las Veraneras en Las Vueltas de Tucurrique.">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="styles.css">
 </head>
 <body>
-<header>
-<h1>Las Veraneras</h1>
-<p>Las Vueltas de Tucurrique</p>
+<header class="hero">
+  <div class="flower-strip"></div>
+  <div class="brand-card">
+    <p class="eyebrow">Snacks · Postres · Comidas</p>
+    <h1>Las Veraneras</h1>
+    <p class="location">Las Vueltas de Tucurrique</p>
+  </div>
 </header>
-<div class="controls">
-<button onclick="setLang('es')">ES</button>
-<button onclick="setLang('en')">EN</button>
-</div>
-<div id="menu"></div>
+<main>
+  <section class="toolbar" aria-label="Menu controls">
+    <div class="language" role="group" aria-label="Language selector">
+      <button class="active" id="btn-es" onclick="setLang('es')">ES</button>
+      <button id="btn-en" onclick="setLang('en')">EN</button>
+    </div>
+    <input id="search" type="search" placeholder="Buscar / Search" oninput="render()" aria-label="Search menu">
+  </section>
+  <nav id="filters" class="filters" aria-label="Categories"></nav>
+  <section id="menu" class="menu" aria-live="polite"></section>
+</main>
+<footer>
+  <p>Las Veraneras · Las Vueltas de Tucurrique</p>
+</footer>
 <script>
 let lang='es';
-function setLang(l){lang=l;load();}
+let selected='all';
+let menuData={categories:[]};
+const labels={es:{all:'Todo',noResults:'No hay resultados'},en:{all:'All',noResults:'No results'}};
+function setLang(l){
+  lang=l;
+  document.documentElement.lang=l;
+  document.getElementById('btn-es').classList.toggle('active',l==='es');
+  document.getElementById('btn-en').classList.toggle('active',l==='en');
+  renderFilters();
+  render();
+}
+function setCategory(id){selected=id;renderFilters();render();}
+function formatPrice(value){return '₡'+String(value).replace(/\B(?=(\d{3})+(?!\d))/g,'.');}
 async function load(){
-const d=await fetch('data/menu.json').then(r=>r.json());
-const root=document.getElementById('menu');
-root.innerHTML='';
-d.categories.forEach(c=>{
-let html=`<div class='category'><h2>${c.name[lang]}</h2>`;
-c.items.forEach(i=>{
-html+=`<div class='item'><span>${i.name[lang]}</span><span class='price'>₡${i.price}</span></div>`;
-});
-html+='</div>';
-root.innerHTML+=html;
-});
+  menuData=await fetch('data/menu.json').then(r=>r.json());
+  renderFilters();
+  render();
+  if('serviceWorker' in navigator){navigator.serviceWorker.register('service-worker.js').catch(()=>{});}
+}
+function renderFilters(){
+  const root=document.getElementById('filters');
+  const items=[`<button class="${selected==='all'?'active':''}" onclick="setCategory('all')">${labels[lang].all}</button>`];
+  menuData.categories.forEach((c,idx)=>items.push(`<button class="${selected===String(idx)?'active':''}" onclick="setCategory('${idx}')">${c.name[lang]}</button>`));
+  root.innerHTML=items.join('');
+}
+function render(){
+  const q=document.getElementById('search').value.trim().toLowerCase();
+  const root=document.getElementById('menu');
+  let html='';
+  menuData.categories.forEach((c,idx)=>{
+    if(selected!=='all'&&selected!==String(idx))return;
+    const matched=c.items.filter(i=>{
+      const hay=[i.name.es,i.name.en,i.description?.es||'',i.description?.en||''].join(' ').toLowerCase();
+      return !q||hay.includes(q);
+    });
+    if(!matched.length)return;
+    html+=`<article class="category"><h2>${c.name[lang]}</h2>`;
+    matched.forEach(i=>{
+      html+=`<div class="item"><div><h3>${i.name[lang]}</h3>${i.description?.[lang]?`<p>${i.description[lang]}</p>`:''}</div><strong>${formatPrice(i.price)}</strong></div>`;
+    });
+    html+='</article>';
+  });
+  root.innerHTML=html||`<p class="empty">${labels[lang].noResults}</p>`;
 }
 load();
 </script>
