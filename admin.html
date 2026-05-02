@@ -27,25 +27,7 @@
 <div class="admin-wrap">
 
   <!-- Auth -->
-  <section class="admin-card">
-    <div class="topbar">
-      <div>
-        <h2>Conexión GitHub</h2>
-        <p class="muted">Usa un Fine-grained PAT con permiso de Contents en este repo.</p>
-      </div>
-    </div>
-    <label class="admin-label">GitHub Token</label>
-    <input id="token" type="password" class="admin-input" placeholder="github_pat_...">
-    <label class="admin-label" style="margin-top:.75rem;display:flex;align-items:center;gap:.5rem;cursor:pointer">
-      <input id="remember" type="checkbox" style="width:auto"> Recordar token (solo en este navegador)
-    </label>
-    <div class="admin-actions">
-      <button class="btn-admin-primary" onclick="connect()">Conectar</button>
-      <button class="btn-admin" onclick="loadAll()">Recargar datos</button>
-      <button class="btn-admin" onclick="downloadBackup()">⬇ Respaldo JSON</button>
-    </div>
-    <p class="muted small" style="margin-top:.5rem">El token nunca se guarda en el repositorio.</p>
-  </section>
+  <section class="admin-card" id="auth-card"></section>
 
   <!-- Dashboard stats -->
   <div class="stat-grid" id="stat-grid">
@@ -178,6 +160,137 @@ let specialsData = [];
 let combosData = [];
 let configData = {};
 let dirty = { menu:false, specials:false, combos:false, settings:false };
+let _tok = ''; // decrypted GitHub token, kept only in memory
+
+/* ── Crypto helpers ── */
+const STORAGE_KEY = 'lv-admin-encrypted';
+async function _deriveKey(password, salt) {
+  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
+  return crypto.subtle.deriveKey({ name:'PBKDF2', salt, iterations:100000, hash:'SHA-256' }, km, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
+}
+async function encryptToken(token, password) {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv   = crypto.getRandomValues(new Uint8Array(12));
+  const key  = await _deriveKey(password, salt);
+  const ct   = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, new TextEncoder().encode(token));
+  const buf  = new Uint8Array(16 + 12 + ct.byteLength);
+  buf.set(salt, 0); buf.set(iv, 16); buf.set(new Uint8Array(ct), 28);
+  return btoa(String.fromCharCode(...buf));
+}
+async function decryptToken(encrypted, password) {
+  const buf  = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0));
+  const key  = await _deriveKey(password, buf.slice(0,16));
+  const pt   = await crypto.subtle.decrypt({ name:'AES-GCM', iv: buf.slice(16,28) }, key, buf.slice(28));
+  return new TextDecoder().decode(pt);
+}
+
+/* ── Auth UI ── */
+function renderAuthCard() {
+  const card = document.getElementById('auth-card');
+  if (localStorage.getItem(STORAGE_KEY)) {
+    card.innerHTML = `
+      <div class="topbar"><div>
+        <h2>Administrador</h2>
+        <p class="muted">Ingresa tu contraseña para publicar cambios.</p>
+      </div></div>
+      <label class="admin-label">Contraseña</label>
+      <input id="admin-pw" type="password" class="admin-input" placeholder="••••••••" autocomplete="current-password">
+      <div class="admin-actions">
+        <button class="btn-admin-primary" onclick="loginAdmin()">Entrar</button>
+        <button class="btn-admin" onclick="downloadBackup()">⬇ Respaldo JSON</button>
+        <button class="btn-admin" style="color:#e55;margin-left:auto" onclick="resetSetup()">Restablecer</button>
+      </div>`;
+    setTimeout(() => {
+      const pw = document.getElementById('admin-pw');
+      if (pw) { pw.focus(); pw.addEventListener('keydown', e => { if (e.key==='Enter') loginAdmin(); }); }
+    }, 50);
+  } else {
+    card.innerHTML = `
+      <div class="topbar"><div>
+        <h2>Configuración inicial</h2>
+        <p class="muted">Configura el panel una sola vez. Después solo necesitarás la contraseña.</p>
+      </div></div>
+      <label class="admin-label">Contraseña de administrador</label>
+      <input id="setup-pw1" type="password" class="admin-input" placeholder="Elige una contraseña">
+      <label class="admin-label" style="margin-top:.75rem">Confirmar contraseña</label>
+      <input id="setup-pw2" type="password" class="admin-input" placeholder="Repite la contraseña">
+      <label class="admin-label" style="margin-top:.75rem">GitHub Token <span class="muted">(solo esta vez)</span></label>
+      <input id="setup-tok" type="password" class="admin-input" placeholder="github_pat_...">
+      <p class="muted small" style="margin-top:.25rem">El token se guarda cifrado en este navegador. No se almacena en el repositorio.</p>
+      <div class="admin-actions">
+        <button class="btn-admin-primary" onclick="setupAdmin()">Configurar</button>
+      </div>`;
+  }
+}
+
+async function setupAdmin() {
+  const pw1 = document.getElementById('setup-pw1')?.value;
+  const pw2 = document.getElementById('setup-pw2')?.value;
+  const tok = document.getElementById('setup-tok')?.value.trim();
+  if (!pw1 || pw1.length < 4) { alert('La contraseña debe tener al menos 4 caracteres.'); return; }
+  if (pw1 !== pw2) { alert('Las contraseñas no coinciden.'); return; }
+  if (!tok) { alert('Ingresa el GitHub Token.'); return; }
+  try {
+    localStorage.setItem(STORAGE_KEY, await encryptToken(tok, pw1));
+    await onLoggedIn(tok);
+  } catch(e) { alert('Error al configurar: ' + e.message); }
+}
+
+async function loginAdmin() {
+  const pw = document.getElementById('admin-pw')?.value;
+  if (!pw) return;
+  const encrypted = localStorage.getItem(STORAGE_KEY);
+  if (!encrypted) { renderAuthCard(); return; }
+  document.getElementById('status').textContent = 'Verificando…';
+  try {
+    await onLoggedIn(await decryptToken(encrypted, pw));
+  } catch(e) {
+    document.getElementById('status').textContent = '✗ Contraseña incorrecta';
+    document.getElementById('status').className = 'status-badge error';
+    alert('Contraseña incorrecta.');
+  }
+}
+
+async function onLoggedIn(tok) {
+  const status = document.getElementById('status');
+  try {
+    const res = await fetch('https://api.github.com/user', { headers:{ Authorization:'token '+tok, Accept:'application/vnd.github.v3+json' } });
+    if (!res.ok) throw new Error('Token inválido');
+    const user = await res.json();
+    _tok = tok;
+    status.textContent = '✓ ' + user.login;
+    status.className = 'status-badge connected';
+    document.getElementById('publish-btn').disabled = false;
+    document.getElementById('auth-card').innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;padding:.25rem 0">
+        <p class="muted" style="margin:0">✅ Sesión activa — <strong>${esc(user.login)}</strong></p>
+        <div class="admin-actions" style="margin:0">
+          <button class="btn-admin" onclick="downloadBackup()">⬇ Respaldo JSON</button>
+          <button class="btn-admin" onclick="logout()">Cerrar sesión</button>
+        </div>
+      </div>`;
+    await loadAll();
+  } catch(e) {
+    status.textContent = '✗ ' + e.message;
+    status.className = 'status-badge error';
+    _tok = '';
+  }
+}
+
+function logout() {
+  _tok = '';
+  document.getElementById('status').textContent = 'Sin conectar';
+  document.getElementById('status').className = 'status-badge';
+  document.getElementById('publish-btn').disabled = true;
+  renderAuthCard();
+}
+
+function resetSetup() {
+  if (!confirm('¿Eliminar la configuración guardada? Necesitarás ingresar el GitHub Token de nuevo.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  _tok = '';
+  renderAuthCard();
+}
 
 const ALLERGENS = ['Gluten','Lácteos','Huevo','Mariscos','Nueces','Soya','Maní','Sésamo'];
 const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
@@ -186,7 +299,7 @@ function esc(s) {
   return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-function getToken() { return document.getElementById('token').value.trim() || localStorage.getItem('lv-admin-token') || ''; }
+function getToken() { return _tok; }
 function markDirty(tab) {
   dirty[tab] = true;
   const btn = document.getElementById('tab-'+tab);
@@ -199,27 +312,6 @@ function clearDirty(tab) {
   if (btn) btn.classList.remove('dirty');
 }
 
-/* ── Connection ── */
-async function connect() {
-  const token = getToken();
-  if (!token) { alert('Ingresa el GitHub Token.'); return; }
-  const status = document.getElementById('status');
-  status.textContent = 'Conectando…';
-  status.className = 'status-badge';
-  try {
-    const res = await fetch('https://api.github.com/user', { headers:{ Authorization:'token '+token, Accept:'application/vnd.github.v3+json' } });
-    if (!res.ok) throw new Error('Token inválido');
-    const user = await res.json();
-    status.textContent = '✓ ' + user.login;
-    status.className = 'status-badge connected';
-    if (document.getElementById('remember').checked) localStorage.setItem('lv-admin-token', token);
-    document.getElementById('publish-btn').disabled = false;
-    await loadAll();
-  } catch(e) {
-    status.textContent = '✗ Error: ' + e.message;
-    status.className = 'status-badge error';
-  }
-}
 
 /* ── Load data ── */
 async function loadAll() {
@@ -733,7 +825,7 @@ function getOwnerRepo() {
 async function publishAll() {
   const btn = document.getElementById('publish-btn');
   const status = document.getElementById('status');
-  if (!getToken()) { alert('Conecta primero con tu GitHub Token.'); return; }
+  if (!getToken()) { alert('Inicia sesión primero.'); return; }
   btn.disabled = true;
   btn.textContent = '⏳ Publicando…';
   status.textContent = 'Guardando…';
@@ -774,16 +866,8 @@ function downloadBackup() {
 
 /* ── Init ── */
 (async function init() {
-  const saved = localStorage.getItem('lv-admin-token');
-  if (saved) document.getElementById('token').value = saved;
-  // Build hours grid
-  const ha = document.getElementById('hours-admin');
-  if (ha) {
-    ha.innerHTML = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'].map(d =>
-      `<div><label class="admin-label" style="margin-top:0">${d}</label>
-       <input id="hr-${d}" class="admin-input" placeholder="11:00–21:00" oninput="markDirty('settings')"></div>`).join('');
-  }
-  await loadAll();
+  renderAuthCard();
+  await loadAll(); // read-only pre-load so data shows in preview tab
 })();
 </script>
 </body>
