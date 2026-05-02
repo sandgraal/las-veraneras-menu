@@ -10,7 +10,8 @@
       "emoji": "🍟",
       "name": {
         "es": "Snacks y Postres",
-        "en": "Snacks & Desserts"
+        "en": "Snacks & Desserts",
+        "fr": "Snacks et desserts"
       },
       "items": [
         {
@@ -18,32 +19,91 @@
           "featured": true,
           "name": {
             "es": "Papas a la francesa",
-            "en": "French Fries"
+            "en": "French Fries",
+            "fr": "Frites a la francaise"
           },
           "description": {
             "es": "Papas fritas, mayonesa y salsa de tomate.",
-            "en": "French fries with mayonnaise and ketchup."
+            "en": "French fries with mayonnaise and ketchup.",
+            "fr": "Frites avec mayonnaise et ketchup."
           },
           "price": "2000",
           "image": "https://images.pexels.com/photos/1583884/pexels-photo-1583884.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [
+            "Huevo"
+          ],
+          "story": {
+            "es": "Un clasico simple que aqui funciona como puente entre la mesa tica y el nombre frances del plato.",
+            "en": "A simple classic that bridges the Costa Rican table with the French name behind the dish.",
+            "fr": "Un classique simple entre la table costaricienne et le nom francais du plat."
+          },
+          "frenchInfluence": {
+            "es": "Corte crujiente tipo bistro y mayonesa de la casa como extra.",
+            "en": "Bistro-style crisp cut with house mayonnaise as an add-on.",
+            "fr": "Coupe croustillante de bistrot avec mayonnaise maison en extra."
+          },
+          "bestFor": [
+            "quick-lunch",
+            "sharing"
+          ],
+          "dietaryTags": [
+            "vegetarian"
+          ],
+          "addons": [
+            "mayo"
+          ],
+          "pairings": [
+            "burger",
+            "pollo-francesa"
+          ],
+          "photoAlt": {
+            "es": "Papas fritas doradas servidas estilo bistro.",
+            "en": "Papas fritas doradas servidas estilo bistro.",
+            "fr": "Papas fritas doradas servidas estilo bistro."
+          }
         },
         {
           "id": "salchipapas",
           "popular": true,
           "name": {
             "es": "Salchipapas",
-            "en": "Sausage Fries"
+            "en": "Sausage Fries",
+            "fr": "Salchipapas"
           },
           "description": {
             "es": "Papas, salchichas, mayonesa y salsa.",
-            "en": "Fries, sausage, mayonnaise and sauce."
+            "en": "Fries, sausage, mayonnaise and sauce.",
+            "fr": "Frites, saucisse, mayonnaise et sauce."
           },
           "price": "2500",
           "image": "https://images.pexels.com/photos/4109234/pexels-photo-4109234.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [
+            "Huevo"
+          ],
+          "story": {
+            "es": "Antojo directo y popular para comer rapido despues de la ruta por Tucurrique.",
+            "en": "A direct, popular craving after the road into Tucurrique.",
+            "fr": "Une envie simple et populaire apres la route vers Tucurrique."
+          },
+          "frenchInfluence": null,
+          "bestFor": [
+            "quick-lunch",
+            "local-favorite"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "mayo"
+          ],
+          "pairings": [
+            "nachos"
+          ],
+          "photoAlt": {
+            "es": "Salchipapas abundantes con papas y salchicha.",
+            "en": "Salchipapas abundantes con papas y salchicha.",
+            "fr": "Salchipapas abundantes con papas y salchicha."
+          }
         },
         {
           "id": "nachos",
@@ -51,31 +111,80 @@
           "popular": true,
           "name": {
             "es": "Nachos",
-            "en": "Nachos"
+            "en": "Nachos",
+            "fr": "Nachos"
           },
           "description": {
             "es": "Nachos, frijoles molidos, carne arreglada y chimichurri.",
-            "en": "Nachos with refried beans, seasoned meat and chimichurri."
+            "en": "Nachos with refried beans, seasoned meat and chimichurri.",
+            "fr": "Nachos avec haricots moulus, viande assaisonnee et chimichurri."
           },
           "price": "3000",
           "image": "https://images.pexels.com/photos/6941010/pexels-photo-6941010.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [],
+          "story": {
+            "es": "Hecho para compartir: capas de frijol, carne y chimichurri con energia de cantina de pueblo.",
+            "en": "Built for sharing: beans, meat, and chimichurri with small-town cantina energy.",
+            "fr": "Fait pour partager: haricots, viande et chimichurri avec l esprit d une cantine de village."
+          },
+          "frenchInfluence": null,
+          "bestFor": [
+            "sharing",
+            "local-favorite"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "mayo",
+            "tacos-arreglados"
+          ],
+          "pairings": [
+            "salchipapas"
+          ],
+          "photoAlt": {
+            "es": "Nachos con frijoles, carne y chimichurri.",
+            "en": "Nachos con frijoles, carne y chimichurri.",
+            "fr": "Nachos con frijoles, carne y chimichurri."
+          }
         },
         {
           "id": "papanachos",
           "name": {
             "es": "Papanachos",
-            "en": "Loaded Nacho Fries"
+            "en": "Loaded Nacho Fries",
+            "fr": "Papanachos"
           },
           "description": {
             "es": "Papas a la francesa, frijoles molidos, carne en salsa y chimichurri.",
-            "en": "French fries, refried beans, meat in sauce and chimichurri."
+            "en": "French fries, refried beans, meat in sauce and chimichurri.",
+            "fr": "Frites, haricots moulus, viande en sauce et chimichurri."
           },
           "price": "3500",
           "image": "https://images.pexels.com/photos/4109272/pexels-photo-4109272.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [],
+          "story": {
+            "es": "La version mas generosa de las papas: tica, abundante y pensada para el centro de la mesa.",
+            "en": "The more generous version of fries: Costa Rican, abundant, and made for the center of the table.",
+            "fr": "La version genereuse des frites: costaricienne, abondante et faite pour le centre de la table."
+          },
+          "frenchInfluence": null,
+          "bestFor": [
+            "sharing",
+            "local-favorite"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "mayo"
+          ],
+          "pairings": [
+            "tacos-arreglados"
+          ],
+          "photoAlt": {
+            "es": "Papanachos con papas, frijoles, carne y chimichurri.",
+            "en": "Papanachos con papas, frijoles, carne y chimichurri.",
+            "fr": "Papanachos con papas, frijoles, carne y chimichurri."
+          }
         },
         {
           "id": "burger",
@@ -83,92 +192,263 @@
           "popular": true,
           "name": {
             "es": "Hamburguesa con papas",
-            "en": "Burger & Fries"
+            "en": "Burger & Fries",
+            "fr": "Burger et frites"
           },
           "description": {
             "es": "Torta de carne molida 100% res, jamón, lechuga, tomate y salsa.",
-            "en": "100% beef patty, ham, lettuce, tomato and sauce."
+            "en": "100% beef patty, ham, lettuce, tomato and sauce.",
+            "fr": "Steak hache 100% boeuf, jambon, laitue, tomate et sauce."
           },
           "price": "2800",
           "image": "https://images.pexels.com/photos/15362092/pexels-photo-15362092.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [
+            "Gluten",
+            "Huevo",
+            "Lácteos"
+          ],
+          "story": {
+            "es": "La hamburguesa de carretera que un bistro tropical debe ejecutar bien: directa, jugosa y facil de pedir.",
+            "en": "The roadside burger a tropical bistro has to get right: direct, juicy, and easy to order.",
+            "fr": "Le burger de route qu un bistrot tropical doit reussir: direct, juteux et facile a commander."
+          },
+          "frenchInfluence": null,
+          "bestFor": [
+            "quick-lunch",
+            "local-favorite"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "papas",
+            "mayo"
+          ],
+          "pairings": [
+            "helado"
+          ],
+          "photoAlt": {
+            "es": "Hamburguesa con papas servida para almuerzo rapido.",
+            "en": "Hamburguesa con papas servida para almuerzo rapido.",
+            "fr": "Hamburguesa con papas servida para almuerzo rapido."
+          }
         },
         {
           "id": "tacos-sencillos",
           "name": {
             "es": "3x1 Tacos sencillos",
-            "en": "3-for-1 Simple Tacos"
+            "en": "3-for-1 Simple Tacos",
+            "fr": "Tacos simples 3x1"
           },
           "description": {
             "es": "Tres tacos sencillos.",
-            "en": "Three simple tacos."
+            "en": "Three simple tacos.",
+            "fr": "Trois tacos simples."
           },
           "price": "1200",
           "image": "https://images.pexels.com/photos/4958641/pexels-photo-4958641.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [
+            "Gluten"
+          ],
+          "story": {
+            "es": "Un plato pensado para la mesa de Las Veraneras: directo, generoso y con el detalle artesanal de la casa.",
+            "en": "A dish made for the Las Veraneras table: direct, generous, and finished with the house handmade touch.",
+            "fr": "Un plat pour la table de Las Veraneras: direct, genereux et termine avec la touche artisanale de la maison."
+          },
+          "frenchInfluence": null,
+          "bestFor": [
+            "quick-lunch"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "mayo"
+          ],
+          "pairings": [
+            "nachos"
+          ],
+          "photoAlt": {
+            "es": "Tres tacos sencillos listos para compartir.",
+            "en": "Tres tacos sencillos listos para compartir.",
+            "fr": "Tres tacos sencillos listos para compartir."
+          }
         },
         {
           "id": "tacos-arreglados",
           "popular": true,
           "name": {
             "es": "3x1 Tacos arreglados",
-            "en": "3-for-1 Loaded Tacos"
+            "en": "3-for-1 Loaded Tacos",
+            "fr": "Tacos garnis 3x1"
           },
           "description": {
             "es": "Tres tacos arreglados.",
-            "en": "Three loaded tacos."
+            "en": "Three loaded tacos.",
+            "fr": "Trois tacos garnis."
           },
           "price": "1700",
           "image": "https://images.pexels.com/photos/4958792/pexels-photo-4958792.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [
+            "Gluten"
+          ],
+          "story": {
+            "es": "Un plato pensado para la mesa de Las Veraneras: directo, generoso y con el detalle artesanal de la casa.",
+            "en": "A dish made for the Las Veraneras table: direct, generous, and finished with the house handmade touch.",
+            "fr": "Un plat pour la table de Las Veraneras: direct, genereux et termine avec la touche artisanale de la maison."
+          },
+          "frenchInfluence": null,
+          "bestFor": [
+            "sharing",
+            "local-favorite"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "mayo"
+          ],
+          "pairings": [
+            "nachos"
+          ],
+          "photoAlt": {
+            "es": "Tres tacos arreglados con estilo local.",
+            "en": "Tres tacos arreglados con estilo local.",
+            "fr": "Tres tacos arreglados con estilo local."
+          }
         },
         {
           "id": "mayo",
           "name": {
             "es": "Mayonesa de la casa",
-            "en": "House Mayonnaise"
+            "en": "House Mayonnaise",
+            "fr": "Mayonnaise maison"
           },
           "description": {
             "es": "Aderezo tipo mayonesa francesa, hecho al momento.",
-            "en": "French-style mayonnaise dressing, made fresh."
+            "en": "French-style mayonnaise dressing, made fresh.",
+            "fr": "Sauce type mayonnaise francaise, preparee au moment."
           },
           "price": "500",
           "image": "https://images.pexels.com/photos/821365/pexels-photo-821365.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [
+            "Huevo"
+          ],
+          "story": {
+            "es": "Un pequeno gesto frances que cambia el pedido: salsa hecha al momento para elevar papas, tacos y carnes.",
+            "en": "A small French gesture that changes the order: a fresh sauce that lifts fries, tacos, and meats.",
+            "fr": "Un petit geste francais qui change la commande: une sauce fraiche pour relever frites, tacos et viandes."
+          },
+          "frenchInfluence": {
+            "es": "Inspirada en la mayonesa clasica francesa, hecha fresca para la mesa.",
+            "en": "Inspired by classic French mayonnaise, made fresh for the table.",
+            "fr": "Inspiree de la mayonnaise francaise classique, preparee fraiche pour la table."
+          },
+          "bestFor": [
+            "french-specialty"
+          ],
+          "dietaryTags": [
+            "vegetarian"
+          ],
+          "addons": [],
+          "pairings": [
+            "papas",
+            "burger",
+            "pollo-francesa"
+          ],
+          "photoAlt": {
+            "es": "Mayonesa de la casa preparada al momento.",
+            "en": "Mayonesa de la casa preparada al momento.",
+            "fr": "Mayonesa de la casa preparada al momento."
+          }
         },
         {
           "id": "crepas",
           "name": {
             "es": "Crepas",
-            "en": "Crepes"
+            "en": "Crepes",
+            "fr": "Crepes"
           },
           "description": {
             "es": "Crepas con helado, chocolate líquido y leche condensada.",
-            "en": "Crepes with ice cream, chocolate sauce and condensed milk."
+            "en": "Crepes with ice cream, chocolate sauce and condensed milk.",
+            "fr": "Crepes avec glace, sauce chocolat et lait concentre."
           },
           "price": "2000",
           "image": "https://images.pexels.com/photos/1352278/pexels-photo-1352278.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [
+            "Gluten",
+            "Huevo",
+            "Lácteos"
+          ],
+          "story": {
+            "es": "El cierre frances de la casa: simple, dulce y facil de compartir despues de un plato fuerte.",
+            "en": "The house French finish: simple, sweet, and easy to share after a main dish.",
+            "fr": "La finition francaise de la maison: simple, douce et facile a partager apres un plat."
+          },
+          "frenchInfluence": {
+            "es": "Crepa de inspiracion francesa servida con dulzura tica.",
+            "en": "French-inspired crepe served with Costa Rican sweetness.",
+            "fr": "Crepe d inspiration francaise servie avec une douceur tica."
+          },
+          "bestFor": [
+            "dessert",
+            "french-specialty"
+          ],
+          "dietaryTags": [
+            "vegetarian"
+          ],
+          "addons": [
+            "helado"
+          ],
+          "pairings": [
+            "daube"
+          ],
+          "photoAlt": {
+            "es": "Crepas dulces con helado y chocolate.",
+            "en": "Crepas dulces con helado y chocolate.",
+            "fr": "Crepas dulces con helado y chocolate."
+          }
         },
         {
           "id": "helado",
           "name": {
             "es": "Helado",
-            "en": "Ice Cream"
+            "en": "Ice Cream",
+            "fr": "Glace"
           },
           "description": {
             "es": "Dos bolas de helado con chocolate líquido.",
-            "en": "Two scoops of ice cream with chocolate sauce."
+            "en": "Two scoops of ice cream with chocolate sauce.",
+            "fr": "Deux boules de glace avec sauce chocolat."
           },
           "price": "1500",
           "image": "https://images.pexels.com/photos/1362534/pexels-photo-1362534.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [
+            "Lácteos"
+          ],
+          "story": {
+            "es": "Un plato pensado para la mesa de Las Veraneras: directo, generoso y con el detalle artesanal de la casa.",
+            "en": "A dish made for the Las Veraneras table: direct, generous, and finished with the house handmade touch.",
+            "fr": "Un plat pour la table de Las Veraneras: direct, genereux et termine avec la touche artisanale de la maison."
+          },
+          "frenchInfluence": null,
+          "bestFor": [
+            "dessert"
+          ],
+          "dietaryTags": [
+            "vegetarian"
+          ],
+          "addons": [],
+          "pairings": [
+            "burger",
+            "crepas"
+          ],
+          "photoAlt": {
+            "es": "Dos bolas de helado con chocolate.",
+            "en": "Dos bolas de helado con chocolate.",
+            "fr": "Dos bolas de helado con chocolate."
+          }
         }
       ]
     },
@@ -177,69 +457,170 @@
       "emoji": "🍽️",
       "name": {
         "es": "Menú Principal",
-        "en": "Main Menu"
+        "en": "Main Menu",
+        "fr": "Menu principal"
       },
       "items": [
         {
           "id": "arroz-pollo",
           "name": {
             "es": "Arroz con pollo",
-            "en": "Chicken Rice"
+            "en": "Chicken Rice",
+            "fr": "Riz au poulet"
           },
           "description": {
             "es": "Arroz con pollo, ensalada y piquitos.",
-            "en": "Chicken rice with salad and piquitos."
+            "en": "Chicken rice with salad and piquitos.",
+            "fr": "Riz au poulet avec salade et piquitos."
           },
           "price": "3000",
           "image": "https://images.pexels.com/photos/5835353/pexels-photo-5835353.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [],
+          "story": {
+            "es": "Un plato pensado para la mesa de Las Veraneras: directo, generoso y con el detalle artesanal de la casa.",
+            "en": "A dish made for the Las Veraneras table: direct, generous, and finished with the house handmade touch.",
+            "fr": "Un plat pour la table de Las Veraneras: direct, genereux et termine avec la touche artisanale de la maison."
+          },
+          "frenchInfluence": null,
+          "bestFor": [
+            "quick-lunch",
+            "local-favorite"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "mayo"
+          ],
+          "pairings": [
+            "crepas"
+          ],
+          "photoAlt": {
+            "es": "Arroz con pollo con ensalada y piquitos.",
+            "en": "Arroz con pollo con ensalada y piquitos.",
+            "fr": "Arroz con pollo con ensalada y piquitos."
+          }
         },
         {
           "id": "arroz-carne",
           "name": {
             "es": "Arroz con carne",
-            "en": "Pork Rice"
+            "en": "Pork Rice",
+            "fr": "Riz au porc"
           },
           "description": {
             "es": "Arroz con carne de cerdo, ensalada y piquitos.",
-            "en": "Rice with pork, salad and piquitos."
+            "en": "Rice with pork, salad and piquitos.",
+            "fr": "Riz avec porc, salade et piquitos."
           },
           "price": "3000",
           "image": "https://images.pexels.com/photos/5710170/pexels-photo-5710170.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [],
+          "story": {
+            "es": "Un plato pensado para la mesa de Las Veraneras: directo, generoso y con el detalle artesanal de la casa.",
+            "en": "A dish made for the Las Veraneras table: direct, generous, and finished with the house handmade touch.",
+            "fr": "Un plat pour la table de Las Veraneras: direct, genereux et termine avec la touche artisanale de la maison."
+          },
+          "frenchInfluence": null,
+          "bestFor": [
+            "quick-lunch"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "mayo"
+          ],
+          "pairings": [
+            "papas"
+          ],
+          "photoAlt": {
+            "es": "Arroz con carne de cerdo y ensalada.",
+            "en": "Arroz con carne de cerdo y ensalada.",
+            "fr": "Arroz con carne de cerdo y ensalada."
+          }
         },
         {
           "id": "arroz-carne-salsa",
           "name": {
             "es": "Arroz con carne en salsa",
-            "en": "Beef in Sauce with Rice"
+            "en": "Beef in Sauce with Rice",
+            "fr": "Boeuf en sauce avec riz"
           },
           "description": {
             "es": "Arroz blanco, carne de res en salsa, ensalada y piquitos.",
-            "en": "White rice, beef in sauce, salad and piquitos."
+            "en": "White rice, beef in sauce, salad and piquitos.",
+            "fr": "Riz blanc, boeuf en sauce, salade et piquitos."
           },
           "price": "3000",
           "image": "https://images.pexels.com/photos/6419726/pexels-photo-6419726.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [],
+          "story": {
+            "es": "Un plato pensado para la mesa de Las Veraneras: directo, generoso y con el detalle artesanal de la casa.",
+            "en": "A dish made for the Las Veraneras table: direct, generous, and finished with the house handmade touch.",
+            "fr": "Un plat pour la table de Las Veraneras: direct, genereux et termine avec la touche artisanale de la maison."
+          },
+          "frenchInfluence": null,
+          "bestFor": [
+            "local-favorite"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "papas"
+          ],
+          "pairings": [
+            "crepas"
+          ],
+          "photoAlt": {
+            "es": "Carne de res en salsa con arroz blanco.",
+            "en": "Carne de res en salsa con arroz blanco.",
+            "fr": "Carne de res en salsa con arroz blanco."
+          }
         },
         {
           "id": "chuleta",
           "featured": true,
           "name": {
             "es": "Chuleta en salsa francesa",
-            "en": "Pork Chop in French Sauce"
+            "en": "Pork Chop in French Sauce",
+            "fr": "Cote de porc sauce francaise"
           },
           "description": {
             "es": "Chuleta de cerdo con crema dulce, hongos, cebolla, ensalada y arroz blanco.",
-            "en": "Pork chop with cream, mushrooms, onion, salad and white rice."
+            "en": "Pork chop with cream, mushrooms, onion, salad and white rice.",
+            "fr": "Cote de porc avec creme, champignons, oignon, salade et riz blanc."
           },
           "price": "4300",
           "image": "https://images.pexels.com/photos/675951/pexels-photo-675951.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [
+            "Lácteos"
+          ],
+          "story": {
+            "es": "Una chuleta tica vestida con una salsa cremosa de inspiracion francesa: familiar, pero con otra profundidad.",
+            "en": "A Costa Rican pork chop dressed with a French-inspired cream sauce: familiar, but with more depth.",
+            "fr": "Une cote de porc tica avec une sauce cremeuse d inspiration francaise: familiere, mais plus profonde."
+          },
+          "frenchInfluence": {
+            "es": "Crema dulce, hongos y cebolla en una salsa estilo bistro.",
+            "en": "Cream, mushrooms, and onion in a bistro-style sauce.",
+            "fr": "Creme, champignons et oignon dans une sauce de bistrot."
+          },
+          "bestFor": [
+            "french-specialty"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "papas",
+            "mayo"
+          ],
+          "pairings": [
+            "crepas"
+          ],
+          "photoAlt": {
+            "es": "Chuleta en salsa francesa con arroz y ensalada.",
+            "en": "Chuleta en salsa francesa con arroz y ensalada.",
+            "fr": "Chuleta en salsa francesa con arroz y ensalada."
+          }
         },
         {
           "id": "pollo-francesa",
@@ -247,32 +628,90 @@
           "popular": true,
           "name": {
             "es": "Pollo en salsa francesa",
-            "en": "Chicken in French Sauce"
+            "en": "Chicken in French Sauce",
+            "fr": "Poulet sauce francaise"
           },
           "description": {
             "es": "Fajitas de pollo, crema dulce, hongos, cebolla, ensalada y arroz blanco.",
-            "en": "Chicken strips, cream, mushrooms, onion, salad and white rice."
+            "en": "Chicken strips, cream, mushrooms, onion, salad and white rice.",
+            "fr": "Emince de poulet, creme, champignons, oignon, salade et riz blanc."
           },
           "price": "3800",
           "image": "https://images.pexels.com/photos/2338407/pexels-photo-2338407.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [
+            "Lácteos"
+          ],
+          "story": {
+            "es": "El plato que mejor resume la casa: una salsa cremosa francesa servida como comida tica de todos los dias.",
+            "en": "The dish that best summarizes the house: a creamy French sauce served like everyday Costa Rican comfort food.",
+            "fr": "Le plat qui resume la maison: une sauce francaise cremeuse servie comme un repas tico du quotidien."
+          },
+          "frenchInfluence": {
+            "es": "Salsa cremosa de hongos y cebolla inspirada en cocina de bistro.",
+            "en": "Creamy mushroom and onion sauce inspired by bistro cooking.",
+            "fr": "Sauce cremeuse aux champignons et oignons inspiree du bistrot."
+          },
+          "bestFor": [
+            "french-specialty",
+            "local-favorite"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "papas",
+            "mayo"
+          ],
+          "pairings": [
+            "crepas"
+          ],
+          "photoAlt": {
+            "es": "Pollo en salsa francesa con arroz blanco.",
+            "en": "Pollo en salsa francesa con arroz blanco.",
+            "fr": "Pollo en salsa francesa con arroz blanco."
+          }
         },
         {
           "id": "daube",
           "featured": true,
           "name": {
             "es": "Daube Nicoise",
-            "en": "Daube Nicoise"
+            "en": "Daube Nicoise",
+            "fr": "Daube nicoise"
           },
           "description": {
             "es": "Lomo de paleta de res cocinada en vino tinto con cebolla y zanahoria; servido con ensalada y arroz.",
-            "en": "Beef shoulder cooked in red wine with onion and carrot; served with salad and rice."
+            "en": "Beef shoulder cooked in red wine with onion and carrot; served with salad and rice.",
+            "fr": "Palette de boeuf mijotee au vin rouge avec oignon et carotte; servie avec salade et riz."
           },
           "price": "7000",
           "image": "https://images.pexels.com/photos/533325/pexels-photo-533325.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [],
+          "story": {
+            "es": "La raiz francesa mas clara del menu: res cocinada lento en vino tinto, adaptada al plato de Tucurrique con arroz y ensalada.",
+            "en": "The clearest French root on the menu: beef cooked slowly in red wine, adapted to the Tucurrique plate with rice and salad.",
+            "fr": "La racine francaise la plus nette du menu: boeuf mijote au vin rouge, adapte a l assiette de Tucurrique avec riz et salade."
+          },
+          "frenchInfluence": {
+            "es": "Receta inspirada en Niza, coccion lenta y vino tinto.",
+            "en": "Nice-inspired recipe with slow cooking and red wine.",
+            "fr": "Recette inspiree de Nice, cuisson lente et vin rouge."
+          },
+          "bestFor": [
+            "french-specialty"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "papas"
+          ],
+          "pairings": [
+            "crepas"
+          ],
+          "photoAlt": {
+            "es": "Daube nicoise de res cocinada en vino tinto.",
+            "en": "Daube nicoise de res cocinada en vino tinto.",
+            "fr": "Daube nicoise de res cocinada en vino tinto."
+          }
         },
         {
           "id": "chifrijo",
@@ -280,78 +719,203 @@
           "popular": true,
           "name": {
             "es": "Chifrijo",
-            "en": "Chifrijo"
+            "en": "Chifrijo",
+            "fr": "Chifrijo"
           },
           "description": {
             "es": "Frijol tierno, arroz blanco, chicharrón, chimichurri y piquitos.",
-            "en": "Tender beans, white rice, pork cracklings, chimichurri and piquitos."
+            "en": "Tender beans, white rice, pork cracklings, chimichurri and piquitos.",
+            "fr": "Haricots tendres, riz blanc, chicharron, chimichurri et piquitos."
           },
           "price": "4000",
           "image": "https://images.pexels.com/photos/461198/pexels-photo-461198.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [],
+          "story": {
+            "es": "El clasico tico que mantiene al menu conectado con la comunidad de Tucurrique.",
+            "en": "The Costa Rican classic that keeps the menu connected to the Tucurrique community.",
+            "fr": "Le classique costaricien qui garde le menu lie a la communaute de Tucurrique."
+          },
+          "frenchInfluence": null,
+          "bestFor": [
+            "local-favorite",
+            "sharing"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "papas"
+          ],
+          "pairings": [
+            "crepas"
+          ],
+          "photoAlt": {
+            "es": "Chifrijo tradicional con chicharron y chimichurri.",
+            "en": "Chifrijo tradicional con chicharron y chimichurri.",
+            "fr": "Chifrijo tradicional con chicharron y chimichurri."
+          }
         },
         {
           "id": "fajitas",
           "name": {
             "es": "Fajitas de pollo",
-            "en": "Chicken Fajitas"
+            "en": "Chicken Fajitas",
+            "fr": "Fajitas de poulet"
           },
           "description": {
             "es": "Pechuga de pollo, cebolla, chile dulce, papas fritas o arroz y ensalada.",
-            "en": "Chicken breast, onion, sweet pepper, fries or rice and salad."
+            "en": "Chicken breast, onion, sweet pepper, fries or rice and salad.",
+            "fr": "Blanc de poulet, oignon, poivron, frites ou riz et salade."
           },
           "price": "3300",
           "image": "https://images.pexels.com/photos/2092507/pexels-photo-2092507.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [],
+          "story": {
+            "es": "Un plato pensado para la mesa de Las Veraneras: directo, generoso y con el detalle artesanal de la casa.",
+            "en": "A dish made for the Las Veraneras table: direct, generous, and finished with the house handmade touch.",
+            "fr": "Un plat pour la table de Las Veraneras: direct, genereux et termine avec la touche artisanale de la maison."
+          },
+          "frenchInfluence": null,
+          "bestFor": [
+            "quick-lunch"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "mayo"
+          ],
+          "pairings": [
+            "papas"
+          ],
+          "photoAlt": {
+            "es": "Fajitas de pollo con chile dulce y cebolla.",
+            "en": "Fajitas de pollo con chile dulce y cebolla.",
+            "fr": "Fajitas de pollo con chile dulce y cebolla."
+          }
         },
         {
           "id": "arroz-camarones",
           "featured": true,
           "name": {
             "es": "Arroz con camarones",
-            "en": "Shrimp Rice"
+            "en": "Shrimp Rice",
+            "fr": "Riz aux crevettes"
           },
           "description": {
             "es": "Arroz con camarón, ensalada y piquitos.",
-            "en": "Shrimp rice with salad and piquitos."
+            "en": "Shrimp rice with salad and piquitos.",
+            "fr": "Riz aux crevettes avec salade et piquitos."
           },
           "price": "3800",
           "image": "https://images.pexels.com/photos/20095296/pexels-photo-20095296.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [
+            "Mariscos"
+          ],
+          "story": {
+            "es": "Un plato pensado para la mesa de Las Veraneras: directo, generoso y con el detalle artesanal de la casa.",
+            "en": "A dish made for the Las Veraneras table: direct, generous, and finished with the house handmade touch.",
+            "fr": "Un plat pour la table de Las Veraneras: direct, genereux et termine avec la touche artisanale de la maison."
+          },
+          "frenchInfluence": null,
+          "bestFor": [
+            "local-favorite"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "papas"
+          ],
+          "pairings": [
+            "crepas"
+          ],
+          "photoAlt": {
+            "es": "Arroz con camarones y ensalada.",
+            "en": "Arroz con camarones y ensalada.",
+            "fr": "Arroz con camarones y ensalada."
+          }
         },
         {
           "id": "tilapia",
           "name": {
             "es": "Filet de tilapia",
-            "en": "Tilapia Fillet"
+            "en": "Tilapia Fillet",
+            "fr": "Filet de tilapia"
           },
           "description": {
             "es": "Filet de tilapia empanizado o al ajillo, con papas fritas o arroz blanco.",
-            "en": "Breaded or garlic tilapia fillet with fries or white rice."
+            "en": "Breaded or garlic tilapia fillet with fries or white rice.",
+            "fr": "Filet de tilapia pane ou a l ail avec frites ou riz blanc."
           },
           "price": "4000",
           "image": "https://images.pexels.com/photos/3296279/pexels-photo-3296279.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [
+            "Gluten"
+          ],
+          "story": {
+            "es": "Un plato pensado para la mesa de Las Veraneras: directo, generoso y con el detalle artesanal de la casa.",
+            "en": "A dish made for the Las Veraneras table: direct, generous, and finished with the house handmade touch.",
+            "fr": "Un plat pour la table de Las Veraneras: direct, genereux et termine avec la touche artisanale de la maison."
+          },
+          "frenchInfluence": null,
+          "bestFor": [
+            "quick-lunch"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "papas",
+            "mayo"
+          ],
+          "pairings": [
+            "crepas"
+          ],
+          "photoAlt": {
+            "es": "Filet de tilapia con papas o arroz.",
+            "en": "Filet de tilapia con papas o arroz.",
+            "fr": "Filet de tilapia con papas o arroz."
+          }
         },
         {
           "id": "camarones",
           "featured": true,
           "name": {
             "es": "Camarones empanizados",
-            "en": "Breaded Shrimp"
+            "en": "Breaded Shrimp",
+            "fr": "Crevettes panees"
           },
           "description": {
             "es": "Camarones empanizados con papas fritas y ensalada.",
-            "en": "Breaded shrimp with fries and salad."
+            "en": "Breaded shrimp with fries and salad.",
+            "fr": "Crevettes panees avec frites et salade."
           },
           "price": "4000",
           "image": "https://images.pexels.com/photos/7636383/pexels-photo-7636383.jpeg?auto=compress&cs=tinysrgb&w=900",
           "badgeText": "",
-          "allergens": []
+          "allergens": [
+            "Mariscos",
+            "Gluten"
+          ],
+          "story": {
+            "es": "Un plato pensado para la mesa de Las Veraneras: directo, generoso y con el detalle artesanal de la casa.",
+            "en": "A dish made for the Las Veraneras table: direct, generous, and finished with the house handmade touch.",
+            "fr": "Un plat pour la table de Las Veraneras: direct, genereux et termine avec la touche artisanale de la maison."
+          },
+          "frenchInfluence": null,
+          "bestFor": [
+            "sharing"
+          ],
+          "dietaryTags": [],
+          "addons": [
+            "papas",
+            "mayo"
+          ],
+          "pairings": [
+            "crepas"
+          ],
+          "photoAlt": {
+            "es": "Camarones empanizados con papas y ensalada.",
+            "en": "Camarones empanizados con papas y ensalada.",
+            "fr": "Camarones empanizados con papas y ensalada."
+          }
         }
       ]
     }

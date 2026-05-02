@@ -1,10 +1,10 @@
 {
   "name": "Las Veraneras",
   "short_name": "Las Veraneras",
-  "description": "Menú y pedidos por WhatsApp — Las Vueltas de Tucurrique",
+  "description": "Bistro tropical franco-tico, menú y pedidos por WhatsApp — Las Vueltas de Tucurrique",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#0D0A14",
-  "theme_color": "#2D1B4E",
+  "background_color": "#130D0B",
+  "theme_color": "#5D1625",
   "orientation": "portrait-primary"
 }
