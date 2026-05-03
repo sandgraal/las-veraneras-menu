@@ -2007,7 +2007,7 @@
               const kb = Math.round(f.size / 1024);
               const rawUrl =
                 f.download_url ||
-                f.path;
+                new URL(f.path, location.href).href;
               const cardId = "lib-" + f.sha.slice(0, 8);
               return `<div class="photo-lib-card" id="${esc(cardId)}">
         <img src="${esc(rawUrl)}" alt="${esc(f.name)}" loading="lazy">
