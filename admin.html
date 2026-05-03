@@ -1279,10 +1279,10 @@
     <label class="admin-label">Imagen</label>
     <div class="img-field-row">
       <input class="admin-input" id="img-url-${ci}-${ii}" value="${esc(item.image || "")}" placeholder="https:// o subir 📷" oninput="setItemField(${ci},${ii},'image',this.value);updateItemImg(${ci},${ii},this.value)">
-      <button class="btn-admin btn-upload-photo" type="button" title="Subir foto" onclick="openPhotoEditor({slug:'${esc(item.id || "foto")}',aspectRatio:4/3,maxDim:1200,onSuccess:p=>peSetItemImage(${ci},${ii},p)})">📷</button>
+      <button class="btn-admin btn-upload-photo" type="button" title="Subir foto" onclick="openPhotoEditor({slug:${esc(JSON.stringify(item.id || "foto"))},aspectRatio:4/3,maxDim:1200,onSuccess:p=>peSetItemImage(${ci},${ii},p)})">📷</button>
     </div>
     <img id="img-${ci}-${ii}" class="img-preview" src="" alt="" style="${item.image ? "" : "display:none"}">
-    <div class="item-row-2" style="margin-top:.4rem">
+    <div class="item-row-3" style="margin-top:.4rem">
       <div>
         <label class="admin-label" style="margin-top:.5rem">Alt texto ES</label>
         <input class="admin-input" value="${esc(item.photoAlt?.es || "")}" placeholder="Descripción de la foto…" oninput="setItemField(${ci},${ii},'photoAlt.es',this.value)">
@@ -1290,6 +1290,10 @@
       <div>
         <label class="admin-label" style="margin-top:.5rem">Alt texto EN</label>
         <input class="admin-input" value="${esc(item.photoAlt?.en || "")}" placeholder="Photo description…" oninput="setItemField(${ci},${ii},'photoAlt.en',this.value)">
+      </div>
+      <div>
+        <label class="admin-label" style="margin-top:.5rem">Alt texto FR</label>
+        <input class="admin-input" value="${esc(item.photoAlt?.fr || "")}" placeholder="Description de la photo…" oninput="setItemField(${ci},${ii},'photoAlt.fr',this.value)">
       </div>
     </div>
     <label class="admin-label">Crédito / fuente de imagen</label>
@@ -1729,11 +1733,13 @@
       let peContext = null;
       let peScaleX = 1,
         peScaleY = 1;
+      let _peReturnFocus = null;
 
       function openPhotoEditor(context) {
         peContext = context;
         peScaleX = 1;
         peScaleY = 1;
+        _peReturnFocus = document.activeElement;
         const modal = document.getElementById("photo-editor-modal");
         modal.classList.add("pe-open");
         document.getElementById("pe-dropzone").style.display = "";
@@ -1745,6 +1751,12 @@
           peCropper.destroy();
           peCropper = null;
         }
+        // Move keyboard focus into the dialog
+        setTimeout(() => {
+          document
+            .querySelector('#pe-dialog button[aria-label="Cerrar"]')
+            ?.focus();
+        }, 50);
       }
 
       function closePhotoEditor() {
@@ -1756,6 +1768,9 @@
           peCropper = null;
         }
         peContext = null;
+        // Return focus to the element that opened the modal
+        _peReturnFocus?.focus();
+        _peReturnFocus = null;
       }
 
       function peLoadFile(file) {
@@ -1893,6 +1908,17 @@
           if (e.target.tagName !== "BUTTON")
             document.getElementById("pe-file-input").click();
         });
+        // Escape key closes the modal
+        document.addEventListener("keydown", (e) => {
+          if (
+            e.key === "Escape" &&
+            document
+              .getElementById("photo-editor-modal")
+              ?.classList.contains("pe-open")
+          ) {
+            closePhotoEditor();
+          }
+        });
       }
 
       /* ── Photo editor helper callbacks ── */
@@ -1914,6 +1940,10 @@
       function peSetConfigImage(fieldId, path) {
         const el = document.getElementById(fieldId);
         if (el) el.value = path;
+        if (fieldId === "cfg-story-image") {
+          delete configData.storyImageSource;
+          delete configData.storyImageCurationNote;
+        }
         markDirty("settings");
         if (fieldId === "cfg-hero") updateHeroPreview();
       }
