@@ -563,6 +563,7 @@
             📷 Subir y Editar Foto
           </h2>
           <button
+            id="pe-close-btn"
             class="btn-admin"
             type="button"
             onclick="closePhotoEditor()"
@@ -1080,8 +1081,8 @@
           const u = new URL(url);
           return u.protocol === "https:" || u.protocol === "http:" ? url : "";
         } catch (e) {
-          // Allow relative repo image paths only
-          if (/^images\/[a-zA-Z0-9_\-.]+$/.test(url)) return url;
+          // Allow relative repo image paths only (must have a valid image extension)
+          if (/^images\/[a-zA-Z0-9_\-.]+\.(jpe?g|png|webp|gif|svg|heic)$/i.test(url)) return url;
           return "";
         }
       }
@@ -1751,11 +1752,9 @@
           peCropper.destroy();
           peCropper = null;
         }
-        // Move keyboard focus into the dialog
+        // Move keyboard focus into the dialog once CSS display transition completes
         setTimeout(() => {
-          document
-            .querySelector('#pe-dialog button[aria-label="Cerrar"]')
-            ?.focus();
+          document.getElementById("pe-close-btn")?.focus();
         }, 50);
       }
 

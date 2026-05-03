@@ -34,7 +34,7 @@ function isUrl(value) {
 
 function isImageRef(value) {
   if (!value) return true;
-  if (/^images\/[a-zA-Z0-9_\-.]+$/.test(value)) return true;
+  if (/^images\/[a-zA-Z0-9_\-.]+\.(jpe?g|png|webp|gif|svg|heic)$/i.test(value)) return true;
   return isUrl(value);
 }
 
