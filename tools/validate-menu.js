@@ -32,6 +32,12 @@ function isUrl(value) {
   }
 }
 
+function isImageRef(value) {
+  if (!value) return true;
+  if (/^images\/[a-zA-Z0-9_\-.]+\.(jpe?g|png|webp|gif|svg|heic)$/i.test(value)) return true;
+  return isUrl(value);
+}
+
 function requireText(obj, field, where) {
   if (!obj || typeof obj[field] !== 'string' || !obj[field].trim()) {
     errors.push(`${where}: missing ${field}`);
@@ -53,8 +59,8 @@ readJson('data/specials.json');
 
 if (config) {
   REQUIRED_CONFIG.forEach(field => requireText(config, field, 'data/config.json'));
-  if (!isUrl(config.heroImage)) errors.push('data/config.json: heroImage must be http/https URL');
-  if (config.storyImage && !isUrl(config.storyImage)) errors.push('data/config.json: storyImage must be http/https URL');
+  if (!isImageRef(config.heroImage)) errors.push('data/config.json: heroImage must be http/https URL or images/... path');
+  if (config.storyImage && !isImageRef(config.storyImage)) errors.push('data/config.json: storyImage must be http/https URL or images/... path');
   if (!config.brandStory || LANGS.some(lang => !config.brandStory[lang])) {
     errors.push('data/config.json: brandStory must include es, en, fr');
   }
@@ -78,7 +84,7 @@ if (!menu?.categories?.length) {
       requireLang(item, 'description', where);
       requireLang(item, 'story', where);
       if (!/^\d+$/.test(String(item.price || ''))) errors.push(`${where}: price must be a whole number string`);
-      if (item.image && !isUrl(item.image)) errors.push(`${where}: image must be http/https URL`);
+      if (item.image && !isImageRef(item.image)) errors.push(`${where}: image must be http/https URL or images/... path`);
       if (item.photoAlt) requireLang(item, 'photoAlt', where);
       ['allergens', 'bestFor', 'dietaryTags', 'addons', 'pairings'].forEach(field => {
         if (!Array.isArray(item[field])) errors.push(`${where}: ${field} must be an array`);
