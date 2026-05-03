@@ -691,6 +691,7 @@
               id="pe-apply-btn"
               class="btn-admin-primary"
               type="button"
+              data-default-label="✅ Aplicar y Subir"
               onclick="applyAndUpload()"
             >
               ✅ Aplicar y Subir
@@ -1751,7 +1752,8 @@
         const applyBtn = document.getElementById("pe-apply-btn");
         if (applyBtn) {
           applyBtn.disabled = false;
-          applyBtn.textContent = "✅ Aplicar y Subir";
+          applyBtn.textContent =
+            applyBtn.dataset.defaultLabel || applyBtn.textContent;
         }
         if (peCropper) {
           peCropper.destroy();
