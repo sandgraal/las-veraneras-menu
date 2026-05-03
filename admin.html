@@ -1748,6 +1748,11 @@
         document.getElementById("pe-brightness").value = 0;
         document.getElementById("pe-contrast").value = 0;
         document.getElementById("pe-file-input").value = "";
+        const applyBtn = document.getElementById("pe-apply-btn");
+        if (applyBtn) {
+          applyBtn.disabled = false;
+          applyBtn.textContent = "✅ Aplicar y Subir";
+        }
         if (peCropper) {
           peCropper.destroy();
           peCropper = null;
@@ -1998,7 +2003,9 @@
           grid.innerHTML = images
             .map((f) => {
               const kb = Math.round(f.size / 1024);
-              const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/images/${encodeURIComponent(f.name)}`;
+              const rawUrl =
+                f.download_url ||
+                `./${f.path}`;
               const cardId = "lib-" + f.sha.slice(0, 8);
               return `<div class="photo-lib-card" id="${esc(cardId)}">
         <img src="${esc(rawUrl)}" alt="${esc(f.name)}" loading="lazy">
