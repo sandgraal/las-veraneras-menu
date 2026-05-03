@@ -1,194 +1,777 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin | Las Veraneras</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Cg transform='translate(18,18)'%3E%3Cellipse rx='6' ry='11' fill='%23E53888' transform='rotate(0) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%23E53888' transform='rotate(72) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%235F8F4E' transform='rotate(144) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%235F8F4E' transform='rotate(216) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%23E5B94E' transform='rotate(288) translate(0,-6)'/%3E%3Ccircle r='3.5' fill='%23FFF4DF'/%3E%3C/g%3E%3C/svg%3E" type="image/svg+xml">
-<link rel="stylesheet" href="styles.css?v=20260502b">
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin | Las Veraneras</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700;900&family=Inter:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 36 36'%3E%3Cg transform='translate(18,18)'%3E%3Cellipse rx='6' ry='11' fill='%23E53888' transform='rotate(0) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%23E53888' transform='rotate(72) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%235F8F4E' transform='rotate(144) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%235F8F4E' transform='rotate(216) translate(0,-6)'/%3E%3Cellipse rx='6' ry='11' fill='%23E5B94E' transform='rotate(288) translate(0,-6)'/%3E%3Ccircle r='3.5' fill='%23FFF4DF'/%3E%3C/g%3E%3C/svg%3E"
+      type="image/svg+xml"
+    />
+    <link rel="stylesheet" href="styles.css?v=20260502b" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css"
+    />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"
+      defer
+    ></script>
+    <style>
+      /* ── Photo Editor Modal ── */
+      #photo-editor-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: rgba(0, 0, 0, 0.78);
+        display: none;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 1.5rem 1rem;
+        overflow-y: auto;
+      }
+      #photo-editor-modal.pe-open {
+        display: flex;
+      }
+      #pe-dialog {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        padding: 1.5rem;
+        width: 100%;
+        max-width: 700px;
+        margin: auto;
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.7);
+      }
+      #pe-dropzone {
+        border: 2px dashed var(--gold);
+        border-radius: 12px;
+        padding: 2.5rem 1rem;
+        text-align: center;
+        cursor: pointer;
+        transition: background 0.15s;
+        user-select: none;
+      }
+      #pe-dropzone.drag-over {
+        background: rgba(229, 185, 78, 0.1);
+      }
+      #pe-canvas-wrap {
+        border-radius: 8px;
+        overflow: hidden;
+        background: #111;
+        max-height: 55vh;
+      }
+      #pe-canvas-wrap img {
+        display: block;
+        max-width: 100%;
+      }
+      #pe-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        align-items: center;
+        margin: 0.75rem 0;
+      }
+      #pe-toolbar label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
+      #pe-toolbar input[type="range"] {
+        width: 80px;
+        accent-color: var(--gold);
+      }
+      .pe-sep {
+        width: 1px;
+        height: 24px;
+        background: var(--border);
+        margin: 0 0.15rem;
+        flex-shrink: 0;
+      }
+      #pe-aspect-btns {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 0.75rem;
+      }
+      #pe-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+        margin-top: 1rem;
+      }
+      /* Upload row */
+      .img-field-row {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+      }
+      .img-field-row .admin-input {
+        flex: 1;
+        min-width: 0;
+      }
+      .btn-upload-photo {
+        flex-shrink: 0;
+        padding: 0.45rem 0.75rem;
+        font-size: 1rem;
+      }
+      /* Photo library grid */
+      .photo-lib-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        overflow: hidden;
+      }
+      .photo-lib-card img {
+        width: 100%;
+        height: 110px;
+        object-fit: cover;
+        display: block;
+      }
+      .photo-lib-card-body {
+        padding: 0.5rem 0.4rem;
+      }
+      .photo-lib-filename {
+        font-size: 0.75rem;
+        color: var(--muted);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .photo-lib-actions {
+        display: flex;
+        gap: 0.4rem;
+        margin-top: 0.4rem;
+      }
+      .photo-lib-actions .btn-admin,
+      .photo-lib-actions .btn-danger {
+        font-size: 0.72rem;
+        padding: 0.2rem 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <header class="admin-header">
+      <div class="admin-header-title">
+        <h1>🌺 Las Veraneras — Admin</h1>
+        <p>Panel de administración del restaurante</p>
+      </div>
+      <div class="admin-header-right">
+        <span id="status" class="status-badge">Sin conectar</span>
+        <button
+          class="publish-btn"
+          id="publish-btn"
+          onclick="publishAll()"
+          disabled
+        >
+          🚀 Publicar Todo
+        </button>
+        <a href="./" class="btn-admin" style="text-decoration: none"
+          >👁 Ver Sitio</a
+        >
+      </div>
+    </header>
 
-<header class="admin-header">
-  <div class="admin-header-title">
-    <h1>🌺 Las Veraneras — Admin</h1>
-    <p>Panel de administración del restaurante</p>
-  </div>
-  <div class="admin-header-right">
-    <span id="status" class="status-badge">Sin conectar</span>
-    <button class="publish-btn" id="publish-btn" onclick="publishAll()" disabled>🚀 Publicar Todo</button>
-    <a href="./" class="btn-admin" style="text-decoration:none">👁 Ver Sitio</a>
-  </div>
-</header>
+    <div class="admin-wrap">
+      <!-- Auth -->
+      <section class="admin-card" id="auth-card"></section>
 
-<div class="admin-wrap">
+      <!-- Dashboard stats -->
+      <div class="stat-grid" id="stat-grid">
+        <div class="stat-card">
+          <span class="stat-value" id="stat-items">—</span>
+          <div class="stat-label">Platos en menú</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value" id="stat-specials">—</span>
+          <div class="stat-label">Especiales activos</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value" id="stat-events">—</span>
+          <div class="stat-label">Eventos próximos</div>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value" id="stat-saved">—</span>
+          <div class="stat-label">Último guardado</div>
+        </div>
+      </div>
 
-  <!-- Auth -->
-  <section class="admin-card" id="auth-card"></section>
+      <!-- Tabs -->
+      <div class="admin-tabs" id="admin-tabs">
+        <button class="tab-btn active" id="tab-menu" onclick="showTab('menu')">
+          🍽️ Menú<span class="dot"></span>
+        </button>
+        <button class="tab-btn" id="tab-specials" onclick="showTab('specials')">
+          🌟 Especiales<span class="dot"></span>
+        </button>
+        <button class="tab-btn" id="tab-combos" onclick="showTab('combos')">
+          LV Combos<span class="dot"></span>
+        </button>
+        <button class="tab-btn" id="tab-settings" onclick="showTab('settings')">
+          ⚙️ Configuración<span class="dot"></span>
+        </button>
+        <button class="tab-btn" id="tab-photos" onclick="showTab('photos')">
+          🖼️ Fotos<span class="dot"></span>
+        </button>
+        <button class="tab-btn" id="tab-preview" onclick="showTab('preview')">
+          👁 Preview<span class="dot"></span>
+        </button>
+      </div>
 
-  <!-- Dashboard stats -->
-  <div class="stat-grid" id="stat-grid">
-    <div class="stat-card"><span class="stat-value" id="stat-items">—</span><div class="stat-label">Platos en menú</div></div>
-    <div class="stat-card"><span class="stat-value" id="stat-specials">—</span><div class="stat-label">Especiales activos</div></div>
-    <div class="stat-card"><span class="stat-value" id="stat-events">—</span><div class="stat-label">Eventos próximos</div></div>
-    <div class="stat-card"><span class="stat-value" id="stat-saved">—</span><div class="stat-label">Último guardado</div></div>
-  </div>
+      <!-- TAB: Menu -->
+      <div class="tab-panel active" id="panel-menu">
+        <div class="admin-actions" style="margin-bottom: 1rem">
+          <button class="btn-admin-primary" onclick="addCategory()">
+            ＋ Categoría
+          </button>
+        </div>
+        <div id="categories-container"></div>
+      </div>
 
-  <!-- Tabs -->
-  <div class="admin-tabs" id="admin-tabs">
-    <button class="tab-btn active" id="tab-menu" onclick="showTab('menu')">🍽️ Menú<span class="dot"></span></button>
-    <button class="tab-btn" id="tab-specials" onclick="showTab('specials')">🌟 Especiales<span class="dot"></span></button>
-    <button class="tab-btn" id="tab-combos" onclick="showTab('combos')">LV Combos<span class="dot"></span></button>
-    <button class="tab-btn" id="tab-settings" onclick="showTab('settings')">⚙️ Configuración<span class="dot"></span></button>
-    <button class="tab-btn" id="tab-preview" onclick="showTab('preview')">👁 Preview<span class="dot"></span></button>
-  </div>
+      <!-- TAB: Specials -->
+      <div class="tab-panel" id="panel-specials">
+        <div class="admin-actions" style="margin-bottom: 1rem">
+          <button class="btn-admin-primary" onclick="addSpecial()">
+            ＋ Especial / Evento
+          </button>
+        </div>
+        <div id="specials-container"></div>
+      </div>
 
-  <!-- TAB: Menu -->
-  <div class="tab-panel active" id="panel-menu">
-    <div class="admin-actions" style="margin-bottom:1rem">
-      <button class="btn-admin-primary" onclick="addCategory()">＋ Categoría</button>
-    </div>
-    <div id="categories-container"></div>
-  </div>
+      <!-- TAB: Combos -->
+      <div class="tab-panel" id="panel-combos">
+        <div class="admin-card">
+          <h2>Combos del sitio</h2>
+          <p class="muted" style="margin-bottom: 0.75rem">
+            Edita el JSON de combos. Los IDs en <code>items</code> deben existir
+            en el menú.
+          </p>
+          <textarea
+            id="combos-json"
+            class="admin-textarea"
+            rows="16"
+            oninput="markDirty('combos')"
+            spellcheck="false"
+          ></textarea>
+          <div class="admin-actions">
+            <button class="btn-admin" onclick="formatCombosJson()">
+              Formatear JSON
+            </button>
+          </div>
+        </div>
+      </div>
 
-  <!-- TAB: Specials -->
-  <div class="tab-panel" id="panel-specials">
-    <div class="admin-actions" style="margin-bottom:1rem">
-      <button class="btn-admin-primary" onclick="addSpecial()">＋ Especial / Evento</button>
-    </div>
-    <div id="specials-container"></div>
-  </div>
+      <!-- TAB: Settings -->
+      <div class="tab-panel" id="panel-settings">
+        <div class="admin-card">
+          <h2>Restaurante</h2>
+          <label class="admin-label">Nombre del restaurante</label>
+          <input
+            id="cfg-name"
+            class="admin-input"
+            placeholder="Las Veraneras"
+            oninput="markDirty('settings')"
+          />
+          <label class="admin-label">Tagline (español)</label>
+          <input
+            id="cfg-tagline"
+            class="admin-input"
+            placeholder="Sabores del corazón de Tucurrique"
+            oninput="markDirty('settings')"
+          />
+          <label class="admin-label">Tagline (inglés)</label>
+          <input
+            id="cfg-tagline-en"
+            class="admin-input"
+            placeholder="Flavors from the heart of Tucurrique"
+            oninput="markDirty('settings')"
+          />
+          <label class="admin-label">Tagline (francés)</label>
+          <input
+            id="cfg-tagline-fr"
+            class="admin-input"
+            placeholder="Un bistrot franco-tico tropical..."
+            oninput="markDirty('settings')"
+          />
+          <label class="admin-label">Nombre del dueño / chef</label>
+          <input
+            id="cfg-owner"
+            class="admin-input"
+            placeholder="Jean-Luc"
+            oninput="markDirty('settings')"
+          />
+          <label class="admin-label">Historia de marca ES</label>
+          <textarea
+            id="cfg-story-es"
+            class="admin-textarea"
+            rows="3"
+            oninput="markDirty('settings')"
+          ></textarea>
+          <label class="admin-label">Brand story EN</label>
+          <textarea
+            id="cfg-story-en"
+            class="admin-textarea"
+            rows="3"
+            oninput="markDirty('settings')"
+          ></textarea>
+          <label class="admin-label">Histoire FR</label>
+          <textarea
+            id="cfg-story-fr"
+            class="admin-textarea"
+            rows="3"
+            oninput="markDirty('settings')"
+          ></textarea>
+          <label class="admin-label">Dirección</label>
+          <input
+            id="cfg-address"
+            class="admin-input"
+            placeholder="Las Vueltas de Tucurrique, Cartago"
+            oninput="markDirty('settings')"
+          />
+          <label class="admin-label">Teléfono</label>
+          <input
+            id="cfg-phone"
+            class="admin-input"
+            placeholder="+506 XXXX-XXXX"
+            oninput="markDirty('settings')"
+          />
+        </div>
+        <div class="admin-card">
+          <h2>WhatsApp</h2>
+          <p class="muted" style="margin-bottom: 0.75rem">
+            Número con código de país, sin + ni espacios. Ejemplo:
+            <code>50688887777</code>
+          </p>
+          <label class="admin-label">Número de WhatsApp</label>
+          <input
+            id="cfg-wa"
+            class="admin-input"
+            placeholder="50688887777"
+            oninput="markDirty('settings')"
+          />
+        </div>
+        <div class="admin-card">
+          <h2>Imágenes del Sitio</h2>
+          <label class="admin-label">Imagen Hero (banner principal)</label>
+          <div class="img-field-row">
+            <input
+              id="cfg-hero"
+              class="admin-input"
+              placeholder="https://..."
+              oninput="
+                markDirty('settings');
+                updateHeroPreview();
+              "
+            />
+            <button
+              class="btn-admin btn-upload-photo"
+              type="button"
+              title="Subir foto hero"
+              onclick="
+                openPhotoEditor({
+                  slug: 'hero',
+                  aspectRatio: 16 / 9,
+                  maxDim: 1920,
+                  onSuccess: (p) => peSetConfigImage('cfg-hero', p),
+                })
+              "
+            >
+              &#x1F4F7;
+            </button>
+          </div>
+          <img
+            id="cfg-hero-preview"
+            class="img-preview"
+            src=""
+            alt="preview hero"
+            style="
+              display: none;
+              margin-top: 0.5rem;
+              width: 200px;
+              height: 112px;
+              object-fit: cover;
+              border-radius: 8px;
+            "
+          />
+          <label class="admin-label">Imagen Historia / Paisaje</label>
+          <div class="img-field-row">
+            <input
+              id="cfg-story-image"
+              class="admin-input"
+              placeholder="https://..."
+              oninput="markDirty('settings')"
+            />
+            <button
+              class="btn-admin btn-upload-photo"
+              type="button"
+              title="Subir foto historia"
+              onclick="
+                openPhotoEditor({
+                  slug: 'historia',
+                  aspectRatio: NaN,
+                  maxDim: 1200,
+                  onSuccess: (p) => peSetConfigImage('cfg-story-image', p),
+                })
+              "
+            >
+              &#x1F4F7;
+            </button>
+          </div>
+        </div>
+        <div class="admin-card">
+          <h2>SEO local</h2>
+          <label class="admin-label">Google Business URL</label>
+          <input
+            id="cfg-google"
+            class="admin-input"
+            placeholder="https://..."
+            oninput="markDirty('settings')"
+          />
+          <div class="item-row-2">
+            <div>
+              <label class="admin-label">Latitud</label>
+              <input
+                id="cfg-lat"
+                class="admin-input"
+                placeholder="9.8..."
+                oninput="markDirty('settings')"
+              />
+            </div>
+            <div>
+              <label class="admin-label">Longitud</label>
+              <input
+                id="cfg-lng"
+                class="admin-input"
+                placeholder="-83.7..."
+                oninput="markDirty('settings')"
+              />
+            </div>
+          </div>
+        </div>
+        <div class="admin-card">
+          <h2>Horario</h2>
+          <div class="hours-admin" id="hours-admin"></div>
+        </div>
+        <div class="admin-card">
+          <h2>Redes Sociales</h2>
+          <label class="admin-label">Facebook URL</label>
+          <input
+            id="cfg-fb"
+            class="admin-input"
+            placeholder="https://facebook.com/..."
+            oninput="markDirty('settings')"
+          />
+          <label class="admin-label">Instagram URL</label>
+          <input
+            id="cfg-ig"
+            class="admin-input"
+            placeholder="https://instagram.com/..."
+            oninput="markDirty('settings')"
+          />
+          <label class="admin-label">TikTok URL</label>
+          <input
+            id="cfg-tt"
+            class="admin-input"
+            placeholder="https://tiktok.com/..."
+            oninput="markDirty('settings')"
+          />
+        </div>
+      </div>
 
-  <!-- TAB: Combos -->
-  <div class="tab-panel" id="panel-combos">
-    <div class="admin-card">
-      <h2>Combos del sitio</h2>
-      <p class="muted" style="margin-bottom:.75rem">Edita el JSON de combos. Los IDs en <code>items</code> deben existir en el menú.</p>
-      <textarea id="combos-json" class="admin-textarea" rows="16" oninput="markDirty('combos')" spellcheck="false"></textarea>
-      <div class="admin-actions">
-        <button class="btn-admin" onclick="formatCombosJson()">Formatear JSON</button>
+      <!-- TAB: Preview -->
+      <div class="tab-panel" id="panel-preview">
+        <p class="muted" style="margin-bottom: 0.75rem">
+          Vista previa del sitio. Guarda los cambios primero para ver
+          actualizaciones.
+        </p>
+        <iframe
+          src="./index.html"
+          style="
+            width: 100%;
+            height: 80vh;
+            border: none;
+            border-radius: 16px;
+            background: #0d0a14;
+          "
+          title="Vista previa"
+        ></iframe>
+      </div>
+
+      <!-- TAB: Photos -->
+      <div class="tab-panel" id="panel-photos">
+        <div class="admin-card">
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              flex-wrap: wrap;
+              gap: 0.75rem;
+              margin-bottom: var(--sp-md);
+            "
+          >
+            <h2 style="margin: 0">Biblioteca de Fotos</h2>
+            <button class="btn-admin" onclick="loadImageLibrary()">
+              🔄 Actualizar
+            </button>
+          </div>
+          <p class="muted" style="margin-bottom: 1rem">
+            Fotos almacenadas en el repositorio (<code>images/</code>). Usa el
+            botón 📷 junto a cualquier plato o especial para subir fotos nuevas.
+          </p>
+          <div
+            id="photo-library-grid"
+            style="
+              display: grid;
+              grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+              gap: 1rem;
+            "
+          ></div>
+        </div>
       </div>
     </div>
-  </div>
+    <!-- /admin-wrap -->
 
-  <!-- TAB: Settings -->
-  <div class="tab-panel" id="panel-settings">
-    <div class="admin-card">
-      <h2>Restaurante</h2>
-      <label class="admin-label">Nombre del restaurante</label>
-      <input id="cfg-name" class="admin-input" placeholder="Las Veraneras" oninput="markDirty('settings')">
-      <label class="admin-label">Tagline (español)</label>
-      <input id="cfg-tagline" class="admin-input" placeholder="Sabores del corazón de Tucurrique" oninput="markDirty('settings')">
-      <label class="admin-label">Tagline (inglés)</label>
-      <input id="cfg-tagline-en" class="admin-input" placeholder="Flavors from the heart of Tucurrique" oninput="markDirty('settings')">
-      <label class="admin-label">Tagline (francés)</label>
-      <input id="cfg-tagline-fr" class="admin-input" placeholder="Un bistrot franco-tico tropical..." oninput="markDirty('settings')">
-      <label class="admin-label">Nombre del dueño / chef</label>
-      <input id="cfg-owner" class="admin-input" placeholder="Jean-Luc" oninput="markDirty('settings')">
-      <label class="admin-label">Historia de marca ES</label>
-      <textarea id="cfg-story-es" class="admin-textarea" rows="3" oninput="markDirty('settings')"></textarea>
-      <label class="admin-label">Brand story EN</label>
-      <textarea id="cfg-story-en" class="admin-textarea" rows="3" oninput="markDirty('settings')"></textarea>
-      <label class="admin-label">Histoire FR</label>
-      <textarea id="cfg-story-fr" class="admin-textarea" rows="3" oninput="markDirty('settings')"></textarea>
-      <label class="admin-label">Dirección</label>
-      <input id="cfg-address" class="admin-input" placeholder="Las Vueltas de Tucurrique, Cartago" oninput="markDirty('settings')">
-      <label class="admin-label">Teléfono</label>
-      <input id="cfg-phone" class="admin-input" placeholder="+506 XXXX-XXXX" oninput="markDirty('settings')">
-    </div>
-    <div class="admin-card">
-      <h2>WhatsApp</h2>
-      <p class="muted" style="margin-bottom:.75rem">Número con código de país, sin + ni espacios. Ejemplo: <code>50688887777</code></p>
-      <label class="admin-label">Número de WhatsApp</label>
-      <input id="cfg-wa" class="admin-input" placeholder="50688887777" oninput="markDirty('settings')">
-    </div>
-    <div class="admin-card">
-      <h2>Imagen Hero</h2>
-      <label class="admin-label">URL de imagen hero</label>
-      <input id="cfg-hero" class="admin-input" placeholder="https://..." oninput="markDirty('settings');updateHeroPreview()">
-      <label class="admin-label">URL de imagen de historia / paisaje</label>
-      <input id="cfg-story-image" class="admin-input" placeholder="https://..." oninput="markDirty('settings')">
-      <img id="cfg-hero-preview" class="img-preview" src="" alt="preview" style="display:none;margin-top:.5rem;width:200px;height:100px;object-fit:cover">
-    </div>
-    <div class="admin-card">
-      <h2>SEO local</h2>
-      <label class="admin-label">Google Business URL</label>
-      <input id="cfg-google" class="admin-input" placeholder="https://..." oninput="markDirty('settings')">
-      <div class="item-row-2">
-        <div>
-          <label class="admin-label">Latitud</label>
-          <input id="cfg-lat" class="admin-input" placeholder="9.8..." oninput="markDirty('settings')">
+    <!-- ── Photo Editor Modal ── -->
+    <div
+      id="photo-editor-modal"
+      role="dialog"
+      aria-modal="true"
+      aria-label="Editor de fotos"
+    >
+      <div id="pe-dialog">
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+          "
+        >
+          <h2
+            style="margin: 0; font-family: var(--font-head); color: var(--text)"
+          >
+            📷 Subir y Editar Foto
+          </h2>
+          <button
+            id="pe-close-btn"
+            class="btn-admin"
+            type="button"
+            onclick="closePhotoEditor()"
+            aria-label="Cerrar"
+          >
+            ✕
+          </button>
         </div>
-        <div>
-          <label class="admin-label">Longitud</label>
-          <input id="cfg-lng" class="admin-input" placeholder="-83.7..." oninput="markDirty('settings')">
+        <!-- Drop zone (shown until file is chosen) -->
+        <div id="pe-dropzone">
+          <div style="font-size: 2.5rem; margin-bottom: 0.5rem">📸</div>
+          <p style="color: var(--muted); margin-bottom: 0.75rem">
+            Arrastra una foto aquí, o
+          </p>
+          <button
+            class="btn-admin-primary"
+            type="button"
+            onclick="document.getElementById('pe-file-input').click()"
+          >
+            Elegir archivo
+          </button>
+          <input
+            id="pe-file-input"
+            type="file"
+            accept="image/*"
+            style="display: none"
+            onchange="peLoadFile(this.files[0])"
+          />
+          <p class="muted small" style="margin-top: 0.75rem">
+            JPG · PNG · WebP · HEIC · GIF
+          </p>
+        </div>
+        <!-- Editor (shown after file chosen) -->
+        <div id="pe-editor" style="display: none">
+          <div id="pe-canvas-wrap">
+            <img id="pe-img" src="" alt="" />
+          </div>
+          <div id="pe-toolbar">
+            <button
+              class="btn-admin"
+              type="button"
+              onclick="peCropper && peCropper.rotate(-90)"
+              title="Rotar 90° izquierda"
+            >
+              ↺ 90°
+            </button>
+            <button
+              class="btn-admin"
+              type="button"
+              onclick="peCropper && peCropper.rotate(90)"
+              title="Rotar 90° derecha"
+            >
+              ↻ 90°
+            </button>
+            <button
+              class="btn-admin"
+              type="button"
+              onclick="peFlipH()"
+              title="Voltear horizontal"
+            >
+              ↔
+            </button>
+            <button
+              class="btn-admin"
+              type="button"
+              onclick="peFlipV()"
+              title="Voltear vertical"
+            >
+              ↕
+            </button>
+            <div class="pe-sep"></div>
+            <label
+              >Brillo
+              <input
+                type="range"
+                id="pe-brightness"
+                min="-100"
+                max="100"
+                value="0"
+                oninput="applyFilters()"
+            /></label>
+            <label
+              >Contraste
+              <input
+                type="range"
+                id="pe-contrast"
+                min="-100"
+                max="100"
+                value="0"
+                oninput="applyFilters()"
+            /></label>
+          </div>
+          <div id="pe-aspect-btns">
+            <button
+              class="btn-admin"
+              type="button"
+              onclick="peCropper && peCropper.setAspectRatio(NaN)"
+            >
+              Libre
+            </button>
+            <button
+              class="btn-admin"
+              type="button"
+              onclick="peCropper && peCropper.setAspectRatio(4 / 3)"
+            >
+              4:3 Plato
+            </button>
+            <button
+              class="btn-admin"
+              type="button"
+              onclick="peCropper && peCropper.setAspectRatio(16 / 9)"
+            >
+              16:9 Hero
+            </button>
+            <button
+              class="btn-admin"
+              type="button"
+              onclick="peCropper && peCropper.setAspectRatio(1)"
+            >
+              1:1
+            </button>
+          </div>
+          <div id="pe-actions">
+            <button
+              id="pe-apply-btn"
+              class="btn-admin-primary"
+              type="button"
+              onclick="applyAndUpload()"
+            >
+              ✅ Aplicar y Subir
+            </button>
+            <button
+              class="btn-admin"
+              type="button"
+              onclick="closePhotoEditor()"
+            >
+              Cancelar
+            </button>
+          </div>
         </div>
       </div>
     </div>
-    <div class="admin-card">
-      <h2>Horario</h2>
-      <div class="hours-admin" id="hours-admin"></div>
-    </div>
-    <div class="admin-card">
-      <h2>Redes Sociales</h2>
-      <label class="admin-label">Facebook URL</label>
-      <input id="cfg-fb" class="admin-input" placeholder="https://facebook.com/..." oninput="markDirty('settings')">
-      <label class="admin-label">Instagram URL</label>
-      <input id="cfg-ig" class="admin-input" placeholder="https://instagram.com/..." oninput="markDirty('settings')">
-      <label class="admin-label">TikTok URL</label>
-      <input id="cfg-tt" class="admin-input" placeholder="https://tiktok.com/..." oninput="markDirty('settings')">
-    </div>
-  </div>
 
-  <!-- TAB: Preview -->
-  <div class="tab-panel" id="panel-preview">
-    <p class="muted" style="margin-bottom:.75rem">Vista previa del sitio. Guarda los cambios primero para ver actualizaciones.</p>
-    <iframe src="./index.html" style="width:100%;height:80vh;border:none;border-radius:16px;background:#0D0A14" title="Vista previa"></iframe>
-  </div>
+    <script>
+      "use strict";
 
-</div><!-- /admin-wrap -->
+      /* ── State ── */
+      let menuData = { categories: [] };
+      let specialsData = [];
+      let combosData = [];
+      let configData = {};
+      let dirty = {
+        menu: false,
+        specials: false,
+        combos: false,
+        settings: false,
+      };
+      let _tok = ""; // decrypted GitHub token, kept only in memory
 
-<script>
-'use strict';
+      /* ── Crypto helpers ── */
+      const STORAGE_KEY = "lv-admin-encrypted";
+      async function _deriveKey(password, salt) {
+        const km = await crypto.subtle.importKey(
+          "raw",
+          new TextEncoder().encode(password),
+          "PBKDF2",
+          false,
+          ["deriveKey"],
+        );
+        return crypto.subtle.deriveKey(
+          { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
+          km,
+          { name: "AES-GCM", length: 256 },
+          false,
+          ["encrypt", "decrypt"],
+        );
+      }
+      async function encryptToken(token, password) {
+        const salt = crypto.getRandomValues(new Uint8Array(16));
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const key = await _deriveKey(password, salt);
+        const ct = await crypto.subtle.encrypt(
+          { name: "AES-GCM", iv },
+          key,
+          new TextEncoder().encode(token),
+        );
+        const buf = new Uint8Array(16 + 12 + ct.byteLength);
+        buf.set(salt, 0);
+        buf.set(iv, 16);
+        buf.set(new Uint8Array(ct), 28);
+        return btoa(String.fromCharCode(...buf));
+      }
+      async function decryptToken(encrypted, password) {
+        const buf = Uint8Array.from(atob(encrypted), (c) => c.charCodeAt(0));
+        const key = await _deriveKey(password, buf.slice(0, 16));
+        const pt = await crypto.subtle.decrypt(
+          { name: "AES-GCM", iv: buf.slice(16, 28) },
+          key,
+          buf.slice(28),
+        );
+        return new TextDecoder().decode(pt);
+      }
 
-/* ── State ── */
-let menuData = { categories: [] };
-let specialsData = [];
-let combosData = [];
-let configData = {};
-let dirty = { menu:false, specials:false, combos:false, settings:false };
-let _tok = ''; // decrypted GitHub token, kept only in memory
-
-/* ── Crypto helpers ── */
-const STORAGE_KEY = 'lv-admin-encrypted';
-async function _deriveKey(password, salt) {
-  const km = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveKey']);
-  return crypto.subtle.deriveKey({ name:'PBKDF2', salt, iterations:100000, hash:'SHA-256' }, km, { name:'AES-GCM', length:256 }, false, ['encrypt','decrypt']);
-}
-async function encryptToken(token, password) {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iv   = crypto.getRandomValues(new Uint8Array(12));
-  const key  = await _deriveKey(password, salt);
-  const ct   = await crypto.subtle.encrypt({ name:'AES-GCM', iv }, key, new TextEncoder().encode(token));
-  const buf  = new Uint8Array(16 + 12 + ct.byteLength);
-  buf.set(salt, 0); buf.set(iv, 16); buf.set(new Uint8Array(ct), 28);
-  return btoa(String.fromCharCode(...buf));
-}
-async function decryptToken(encrypted, password) {
-  const buf  = Uint8Array.from(atob(encrypted), c => c.charCodeAt(0));
-  const key  = await _deriveKey(password, buf.slice(0,16));
-  const pt   = await crypto.subtle.decrypt({ name:'AES-GCM', iv: buf.slice(16,28) }, key, buf.slice(28));
-  return new TextDecoder().decode(pt);
-}
-
-/* ── Auth UI ── */
-function renderAuthCard() {
-  const card = document.getElementById('auth-card');
-  if (localStorage.getItem(STORAGE_KEY)) {
-    card.innerHTML = `
+      /* ── Auth UI ── */
+      function renderAuthCard() {
+        const card = document.getElementById("auth-card");
+        if (localStorage.getItem(STORAGE_KEY)) {
+          card.innerHTML = `
       <div class="topbar"><div>
         <h2>Administrador</h2>
         <p class="muted">Ingresa tu contraseña para publicar cambios.</p>
@@ -200,12 +783,17 @@ function renderAuthCard() {
         <button class="btn-admin" onclick="downloadBackup()">⬇ Respaldo JSON</button>
         <button class="btn-admin" style="color:#e55;margin-left:auto" onclick="resetSetup()">Restablecer</button>
       </div>`;
-    setTimeout(() => {
-      const pw = document.getElementById('admin-pw');
-      if (pw) { pw.focus(); pw.addEventListener('keydown', e => { if (e.key==='Enter') loginAdmin(); }); }
-    }, 50);
-  } else {
-    card.innerHTML = `
+          setTimeout(() => {
+            const pw = document.getElementById("admin-pw");
+            if (pw) {
+              pw.focus();
+              pw.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") loginAdmin();
+              });
+            }
+          }, 50);
+        } else {
+          card.innerHTML = `
       <div class="topbar"><div>
         <h2>Configuración inicial</h2>
         <p class="muted">Configura el panel una sola vez. Después solo necesitarás la contraseña.</p>
@@ -220,48 +808,68 @@ function renderAuthCard() {
       <div class="admin-actions">
         <button class="btn-admin-primary" onclick="setupAdmin()">Configurar</button>
       </div>`;
-  }
-}
+        }
+      }
 
-async function setupAdmin() {
-  const pw1 = document.getElementById('setup-pw1')?.value;
-  const pw2 = document.getElementById('setup-pw2')?.value;
-  const tok = document.getElementById('setup-tok')?.value.trim();
-  if (!pw1 || pw1.length < 4) { alert('La contraseña debe tener al menos 4 caracteres.'); return; }
-  if (pw1 !== pw2) { alert('Las contraseñas no coinciden.'); return; }
-  if (!tok) { alert('Ingresa el GitHub Token.'); return; }
-  try {
-    localStorage.setItem(STORAGE_KEY, await encryptToken(tok, pw1));
-    await onLoggedIn(tok);
-  } catch(e) { alert('Error al configurar: ' + e.message); }
-}
+      async function setupAdmin() {
+        const pw1 = document.getElementById("setup-pw1")?.value;
+        const pw2 = document.getElementById("setup-pw2")?.value;
+        const tok = document.getElementById("setup-tok")?.value.trim();
+        if (!pw1 || pw1.length < 4) {
+          alert("La contraseña debe tener al menos 4 caracteres.");
+          return;
+        }
+        if (pw1 !== pw2) {
+          alert("Las contraseñas no coinciden.");
+          return;
+        }
+        if (!tok) {
+          alert("Ingresa el GitHub Token.");
+          return;
+        }
+        try {
+          localStorage.setItem(STORAGE_KEY, await encryptToken(tok, pw1));
+          await onLoggedIn(tok);
+        } catch (e) {
+          alert("Error al configurar: " + e.message);
+        }
+      }
 
-async function loginAdmin() {
-  const pw = document.getElementById('admin-pw')?.value;
-  if (!pw) return;
-  const encrypted = localStorage.getItem(STORAGE_KEY);
-  if (!encrypted) { renderAuthCard(); return; }
-  document.getElementById('status').textContent = 'Verificando…';
-  try {
-    await onLoggedIn(await decryptToken(encrypted, pw));
-  } catch(e) {
-    document.getElementById('status').textContent = '✗ Contraseña incorrecta';
-    document.getElementById('status').className = 'status-badge error';
-    alert('Contraseña incorrecta.');
-  }
-}
+      async function loginAdmin() {
+        const pw = document.getElementById("admin-pw")?.value;
+        if (!pw) return;
+        const encrypted = localStorage.getItem(STORAGE_KEY);
+        if (!encrypted) {
+          renderAuthCard();
+          return;
+        }
+        document.getElementById("status").textContent = "Verificando…";
+        try {
+          await onLoggedIn(await decryptToken(encrypted, pw));
+        } catch (e) {
+          document.getElementById("status").textContent =
+            "✗ Contraseña incorrecta";
+          document.getElementById("status").className = "status-badge error";
+          alert("Contraseña incorrecta.");
+        }
+      }
 
-async function onLoggedIn(tok) {
-  const status = document.getElementById('status');
-  try {
-    const res = await fetch('https://api.github.com/user', { headers:{ Authorization:'token '+tok, Accept:'application/vnd.github.v3+json' } });
-    if (!res.ok) throw new Error('Token inválido');
-    const user = await res.json();
-    _tok = tok;
-    status.textContent = '✓ ' + user.login;
-    status.className = 'status-badge connected';
-    document.getElementById('publish-btn').disabled = false;
-    document.getElementById('auth-card').innerHTML = `
+      async function onLoggedIn(tok) {
+        const status = document.getElementById("status");
+        try {
+          const res = await fetch("https://api.github.com/user", {
+            headers: {
+              Authorization: "token " + tok,
+              Accept: "application/vnd.github.v3+json",
+            },
+          });
+          if (!res.ok) throw new Error("Token inválido");
+          const user = await res.json();
+          _tok = tok;
+          status.textContent = "✓ " + user.login;
+          status.className = "status-badge connected";
+          document.getElementById("publish-btn").disabled = false;
+          document.getElementById("auth-card").innerHTML = `
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;padding:.25rem 0">
         <p class="muted" style="margin:0">✅ Sesión activa — <strong>${esc(user.login)}</strong></p>
         <div class="admin-actions" style="margin:0">
@@ -269,195 +877,276 @@ async function onLoggedIn(tok) {
           <button class="btn-admin" onclick="logout()">Cerrar sesión</button>
         </div>
       </div>`;
-    await loadAll();
-  } catch(e) {
-    status.textContent = '✗ ' + e.message;
-    status.className = 'status-badge error';
-    _tok = '';
-  }
-}
+          await loadAll();
+        } catch (e) {
+          status.textContent = "✗ " + e.message;
+          status.className = "status-badge error";
+          _tok = "";
+        }
+      }
 
-function logout() {
-  _tok = '';
-  document.getElementById('status').textContent = 'Sin conectar';
-  document.getElementById('status').className = 'status-badge';
-  document.getElementById('publish-btn').disabled = true;
-  renderAuthCard();
-}
+      function logout() {
+        _tok = "";
+        document.getElementById("status").textContent = "Sin conectar";
+        document.getElementById("status").className = "status-badge";
+        document.getElementById("publish-btn").disabled = true;
+        renderAuthCard();
+      }
 
-function resetSetup() {
-  if (!confirm('¿Eliminar la configuración guardada? Necesitarás ingresar el GitHub Token de nuevo.')) return;
-  localStorage.removeItem(STORAGE_KEY);
-  _tok = '';
-  renderAuthCard();
-}
+      function resetSetup() {
+        if (
+          !confirm(
+            "¿Eliminar la configuración guardada? Necesitarás ingresar el GitHub Token de nuevo.",
+          )
+        )
+          return;
+        localStorage.removeItem(STORAGE_KEY);
+        _tok = "";
+        renderAuthCard();
+      }
 
-const ALLERGENS = ['Gluten','Lácteos','Huevo','Mariscos','Nueces','Soya','Maní','Sésamo'];
-const DAYS = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
+      const ALLERGENS = [
+        "Gluten",
+        "Lácteos",
+        "Huevo",
+        "Mariscos",
+        "Nueces",
+        "Soya",
+        "Maní",
+        "Sésamo",
+      ];
+      const DAYS = [
+        "Lunes",
+        "Martes",
+        "Miércoles",
+        "Jueves",
+        "Viernes",
+        "Sábado",
+        "Domingo",
+      ];
 
-function esc(s) {
-  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
+      function esc(s) {
+        return String(s ?? "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
 
-function getToken() { return _tok; }
-function markDirty(tab) {
-  dirty[tab] = true;
-  const btn = document.getElementById('tab-'+tab);
-  if (btn) btn.classList.add('dirty');
-  document.getElementById('publish-btn').disabled = false;
-}
-function clearDirty(tab) {
-  dirty[tab] = false;
-  const btn = document.getElementById('tab-'+tab);
-  if (btn) btn.classList.remove('dirty');
-}
+      function getToken() {
+        return _tok;
+      }
+      function markDirty(tab) {
+        dirty[tab] = true;
+        const btn = document.getElementById("tab-" + tab);
+        if (btn) btn.classList.add("dirty");
+        document.getElementById("publish-btn").disabled = false;
+      }
+      function clearDirty(tab) {
+        dirty[tab] = false;
+        const btn = document.getElementById("tab-" + tab);
+        if (btn) btn.classList.remove("dirty");
+      }
 
+      /* ── Load data ── */
+      async function loadAll() {
+        await Promise.all([
+          loadMenu(),
+          loadConfig(),
+          loadSpecialsData(),
+          loadCombosData(),
+        ]);
+        updateStats();
+      }
 
-/* ── Load data ── */
-async function loadAll() {
-  await Promise.all([loadMenu(), loadConfig(), loadSpecialsData(), loadCombosData()]);
-  updateStats();
-}
+      async function loadMenu() {
+        try {
+          const res = await fetch("data/menu.json", { cache: "no-store" });
+          if (res.ok) menuData = await res.json();
+          renderCategories();
+        } catch (e) {}
+      }
 
-async function loadMenu() {
-  try {
-    const res = await fetch('data/menu.json', { cache:'no-store' });
-    if (res.ok) menuData = await res.json();
-    renderCategories();
-  } catch(e) {}
-}
+      async function loadConfig() {
+        try {
+          const res = await fetch("data/config.json", { cache: "no-store" });
+          if (res.ok) configData = await res.json();
+          populateSettings();
+        } catch (e) {}
+      }
 
-async function loadConfig() {
-  try {
-    const res = await fetch('data/config.json', { cache:'no-store' });
-    if (res.ok) configData = await res.json();
-    populateSettings();
-  } catch(e) {}
-}
+      async function loadSpecialsData() {
+        try {
+          const res = await fetch("data/specials.json", { cache: "no-store" });
+          if (res.ok) {
+            const d = await res.json();
+            specialsData = Array.isArray(d) ? d : [];
+          }
+          renderSpecials();
+        } catch (e) {}
+      }
 
-async function loadSpecialsData() {
-  try {
-    const res = await fetch('data/specials.json', { cache:'no-store' });
-    if (res.ok) { const d = await res.json(); specialsData = Array.isArray(d) ? d : []; }
-    renderSpecials();
-  } catch(e) {}
-}
+      async function loadCombosData() {
+        try {
+          const res = await fetch("data/combos.json", { cache: "no-store" });
+          if (res.ok) {
+            const d = await res.json();
+            combosData = Array.isArray(d) ? d : [];
+          }
+          renderCombos();
+        } catch (e) {}
+      }
 
-async function loadCombosData() {
-  try {
-    const res = await fetch('data/combos.json', { cache:'no-store' });
-    if (res.ok) { const d = await res.json(); combosData = Array.isArray(d) ? d : []; }
-    renderCombos();
-  } catch(e) {}
-}
+      function updateStats() {
+        const items = (menuData.categories || []).flatMap((c) => c.items || []);
+        document.getElementById("stat-items").textContent = items.length;
+        const now = new Date();
+        const active = specialsData.filter(
+          (s) => !s.validUntil || new Date(s.validUntil) >= now,
+        );
+        const events = specialsData.filter(
+          (s) => s.isEvent && s.eventDate && new Date(s.eventDate) >= now,
+        );
+        document.getElementById("stat-specials").textContent = active.length;
+        document.getElementById("stat-events").textContent = events.length;
+        const saved = localStorage.getItem("lv-last-saved");
+        document.getElementById("stat-saved").textContent = saved
+          ? new Date(saved).toLocaleDateString("es-CR", {
+              day: "numeric",
+              month: "short",
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "—";
+      }
 
-function updateStats() {
-  const items = (menuData.categories||[]).flatMap(c=>c.items||[]);
-  document.getElementById('stat-items').textContent = items.length;
-  const now = new Date();
-  const active = specialsData.filter(s => !s.validUntil || new Date(s.validUntil) >= now);
-  const events = specialsData.filter(s => s.isEvent && s.eventDate && new Date(s.eventDate) >= now);
-  document.getElementById('stat-specials').textContent = active.length;
-  document.getElementById('stat-events').textContent = events.length;
-  const saved = localStorage.getItem('lv-last-saved');
-  document.getElementById('stat-saved').textContent = saved ? new Date(saved).toLocaleDateString('es-CR',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'}) : '—';
-}
+      /* ── Tabs ── */
+      function showTab(name) {
+        document
+          .querySelectorAll(".tab-btn")
+          .forEach((b) => b.classList.remove("active"));
+        document
+          .querySelectorAll(".tab-panel")
+          .forEach((p) => p.classList.remove("active"));
+        document.getElementById("tab-" + name)?.classList.add("active");
+        document.getElementById("panel-" + name)?.classList.add("active");
+        if (name === "photos") loadImageLibrary();
+      }
 
-/* ── Tabs ── */
-function showTab(name) {
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.getElementById('tab-'+name)?.classList.add('active');
-  document.getElementById('panel-'+name)?.classList.add('active');
-}
-
-/* ── Settings ── */
-function populateSettings() {
-  const s = configData;
-  const set = (id, v) => { const el = document.getElementById(id); if (el) el.value = v||''; };
-  set('cfg-name', s.restaurantName);
-  set('cfg-tagline', s.tagline);
-  set('cfg-tagline-en', s.taglineEn);
-  set('cfg-tagline-fr', s.taglineFr);
-  set('cfg-owner', s.ownerName);
-  set('cfg-story-es', s.brandStory?.es);
-  set('cfg-story-en', s.brandStory?.en);
-  set('cfg-story-fr', s.brandStory?.fr);
-  set('cfg-address', s.address);
-  set('cfg-phone', s.phone);
-  set('cfg-wa', s.whatsappNumber);
-  set('cfg-hero', s.heroImage);
-  set('cfg-story-image', s.storyImage);
-  set('cfg-google', s.googleBusinessUrl);
-  set('cfg-lat', s.geo?.latitude);
-  set('cfg-lng', s.geo?.longitude);
-  set('cfg-fb', s.socialLinks?.facebook);
-  set('cfg-ig', s.socialLinks?.instagram);
-  set('cfg-tt', s.socialLinks?.tiktok);
-  updateHeroPreview();
-  // Hours
-  const ha = document.getElementById('hours-admin');
-  if (ha) {
-    ha.innerHTML = DAYS.map(day => `
+      /* ── Settings ── */
+      function populateSettings() {
+        const s = configData;
+        const set = (id, v) => {
+          const el = document.getElementById(id);
+          if (el) el.value = v || "";
+        };
+        set("cfg-name", s.restaurantName);
+        set("cfg-tagline", s.tagline);
+        set("cfg-tagline-en", s.taglineEn);
+        set("cfg-tagline-fr", s.taglineFr);
+        set("cfg-owner", s.ownerName);
+        set("cfg-story-es", s.brandStory?.es);
+        set("cfg-story-en", s.brandStory?.en);
+        set("cfg-story-fr", s.brandStory?.fr);
+        set("cfg-address", s.address);
+        set("cfg-phone", s.phone);
+        set("cfg-wa", s.whatsappNumber);
+        set("cfg-hero", s.heroImage);
+        set("cfg-story-image", s.storyImage);
+        set("cfg-google", s.googleBusinessUrl);
+        set("cfg-lat", s.geo?.latitude);
+        set("cfg-lng", s.geo?.longitude);
+        set("cfg-fb", s.socialLinks?.facebook);
+        set("cfg-ig", s.socialLinks?.instagram);
+        set("cfg-tt", s.socialLinks?.tiktok);
+        updateHeroPreview();
+        // Hours
+        const ha = document.getElementById("hours-admin");
+        if (ha) {
+          ha.innerHTML = DAYS.map(
+            (day) => `
       <div>
         <label class="admin-label">${day}</label>
-        <input id="hr-${day}" class="admin-input" value="${(s.hours||{})[day]||''}" placeholder="11:00–21:00" oninput="markDirty('settings')">
-      </div>`).join('');
-  }
-}
+        <input id="hr-${day}" class="admin-input" value="${(s.hours || {})[day] || ""}" placeholder="11:00–21:00" oninput="markDirty('settings')">
+      </div>`,
+          ).join("");
+        }
+      }
 
-function safeImgUrl(url) {
-  // Only allow http/https URLs for image preview (prevents javascript: XSS)
-  try {
-    const u = new URL(url);
-    return (u.protocol === 'https:' || u.protocol === 'http:') ? url : '';
-  } catch(e) { return ''; }
-}
+      function safeImgUrl(url) {
+        if (!url) return "";
+        // Allow http/https absolute URLs (prevents javascript: XSS)
+        try {
+          const u = new URL(url);
+          return u.protocol === "https:" || u.protocol === "http:" ? url : "";
+        } catch (e) {
+          // Allow relative repo image paths only (must have a valid image extension)
+          if (/^images\/[a-zA-Z0-9_\-.]+\.(jpe?g|png|webp|gif|svg|heic)$/i.test(url)) return url;
+          return "";
+        }
+      }
 
-function updateHeroPreview() {
-  const url = document.getElementById('cfg-hero')?.value;
-  const img = document.getElementById('cfg-hero-preview');
-  if (!img) return;
-  const safe = safeImgUrl(url || '');
-  if (safe) { img.src = safe; img.style.display = 'block'; } else img.style.display = 'none';
-}
+      function updateHeroPreview() {
+        const url = document.getElementById("cfg-hero")?.value;
+        const img = document.getElementById("cfg-hero-preview");
+        if (!img) return;
+        const safe = safeImgUrl(url || "");
+        if (safe) {
+          img.src = safe;
+          img.style.display = "block";
+        } else img.style.display = "none";
+      }
 
-function readSettings() {
-  const g = id => document.getElementById(id)?.value.trim() || '';
-  const hours = {};
-  DAYS.forEach(day => { const v = document.getElementById('hr-'+day)?.value.trim(); if (v) hours[day] = v; });
-  return {
-    ...configData,
-    restaurantName: g('cfg-name'),
-    tagline: g('cfg-tagline'),
-    taglineEn: g('cfg-tagline-en'),
-    taglineFr: g('cfg-tagline-fr'),
-    ownerName: g('cfg-owner'),
-    brandStory: { es:g('cfg-story-es'), en:g('cfg-story-en'), fr:g('cfg-story-fr') },
-    address: g('cfg-address'),
-    phone: g('cfg-phone'),
-    whatsappNumber: g('cfg-wa'),
-    heroImage: g('cfg-hero'),
-    storyImage: g('cfg-story-image'),
-    geo: { latitude:g('cfg-lat'), longitude:g('cfg-lng') },
-    googleBusinessUrl: g('cfg-google'),
-    openStatusMode: 'hours',
-    availableLanguages: ['es','en','fr'],
-    hours,
-    socialLinks: { facebook:g('cfg-fb'), instagram:g('cfg-ig'), tiktok:g('cfg-tt') }
-  };
-}
+      function readSettings() {
+        const g = (id) => document.getElementById(id)?.value.trim() || "";
+        const hours = {};
+        DAYS.forEach((day) => {
+          const v = document.getElementById("hr-" + day)?.value.trim();
+          if (v) hours[day] = v;
+        });
+        return {
+          ...configData,
+          restaurantName: g("cfg-name"),
+          tagline: g("cfg-tagline"),
+          taglineEn: g("cfg-tagline-en"),
+          taglineFr: g("cfg-tagline-fr"),
+          ownerName: g("cfg-owner"),
+          brandStory: {
+            es: g("cfg-story-es"),
+            en: g("cfg-story-en"),
+            fr: g("cfg-story-fr"),
+          },
+          address: g("cfg-address"),
+          phone: g("cfg-phone"),
+          whatsappNumber: g("cfg-wa"),
+          heroImage: g("cfg-hero"),
+          storyImage: g("cfg-story-image"),
+          geo: { latitude: g("cfg-lat"), longitude: g("cfg-lng") },
+          googleBusinessUrl: g("cfg-google"),
+          openStatusMode: "hours",
+          availableLanguages: ["es", "en", "fr"],
+          hours,
+          socialLinks: {
+            facebook: g("cfg-fb"),
+            instagram: g("cfg-ig"),
+            tiktok: g("cfg-tt"),
+          },
+        };
+      }
 
-/* ── Menu Categories ── */
-function renderCategories() {
-  const root = document.getElementById('categories-container');
-  if (!root) return;
-  root.innerHTML = (menuData.categories||[]).map((cat,ci) => `
+      /* ── Menu Categories ── */
+      function renderCategories() {
+        const root = document.getElementById("categories-container");
+        if (!root) return;
+        root.innerHTML = (menuData.categories || [])
+          .map(
+            (cat, ci) => `
     <div class="category-block" id="cat-block-${ci}">
       <div class="cat-header" onclick="toggleCat(${ci})">
-        <span style="font-size:1.3rem">${esc(cat.emoji||'🍴')}</span>
-        <span class="cat-name">${esc(cat.name?.es||'Categoría')}</span>
-        <span class="muted small">${(cat.items||[]).length} platos</span>
+        <span style="font-size:1.3rem">${esc(cat.emoji || "🍴")}</span>
+        <span class="cat-name">${esc(cat.name?.es || "Categoría")}</span>
+        <span class="muted small">${(cat.items || []).length} platos</span>
         <button class="cat-toggle" id="cat-toggle-${ci}">▼</button>
         <button class="btn-danger" onclick="event.stopPropagation();removeCategory(${ci})">✕</button>
       </div>
@@ -465,410 +1154,924 @@ function renderCategories() {
         <div class="item-row-2" style="margin-bottom:1rem">
           <div>
             <label class="admin-label" style="margin-top:0">Nombre ES</label>
-            <input class="admin-input" value="${esc(cat.name?.es||'')}" oninput="menuData.categories[${ci}].name.es=this.value;markDirty('menu')">
+            <input class="admin-input" value="${esc(cat.name?.es || "")}" oninput="menuData.categories[${ci}].name.es=this.value;markDirty('menu')">
           </div>
           <div>
             <label class="admin-label" style="margin-top:0">Nombre EN</label>
-            <input class="admin-input" value="${esc(cat.name?.en||'')}" oninput="menuData.categories[${ci}].name.en=this.value;markDirty('menu')">
+            <input class="admin-input" value="${esc(cat.name?.en || "")}" oninput="menuData.categories[${ci}].name.en=this.value;markDirty('menu')">
           </div>
         </div>
         <label class="admin-label" style="margin-top:0">Nombre FR</label>
-        <input class="admin-input" value="${esc(cat.name?.fr||'')}" oninput="menuData.categories[${ci}].name.fr=this.value;markDirty('menu')">
+        <input class="admin-input" value="${esc(cat.name?.fr || "")}" oninput="menuData.categories[${ci}].name.fr=this.value;markDirty('menu')">
         <label class="admin-label" style="margin-top:0">Emoji</label>
-        <input class="admin-input" value="${esc(cat.emoji||'')}" style="width:80px" oninput="menuData.categories[${ci}].emoji=this.value;markDirty('menu')">
-        <div style="margin:1rem 0">${(cat.items||[]).map((_,ii) => itemEditor(ci,ii)).join('')}</div>
+        <input class="admin-input" value="${esc(cat.emoji || "")}" style="width:80px" oninput="menuData.categories[${ci}].emoji=this.value;markDirty('menu')">
+        <div style="margin:1rem 0">${(cat.items || []).map((_, ii) => itemEditor(ci, ii)).join("")}</div>
         <button class="btn-admin-primary" onclick="addItem(${ci})">＋ Agregar plato</button>
       </div>
-    </div>`).join('');
-  // After DOM renders, safely set image srcs
-  (menuData.categories||[]).forEach((cat,ci) => {
-    (cat.items||[]).forEach((item,ii) => {
-      if (item.image) updateItemImg(ci, ii, item.image);
-    });
-  });
-}
+    </div>`,
+          )
+          .join("");
+        // After DOM renders, safely set image srcs
+        (menuData.categories || []).forEach((cat, ci) => {
+          (cat.items || []).forEach((item, ii) => {
+            if (item.image) updateItemImg(ci, ii, item.image);
+          });
+        });
+      }
 
-function toggleCat(ci) {
-  const body = document.getElementById('cat-body-'+ci);
-  const btn = document.getElementById('cat-toggle-'+ci);
-  if (!body) return;
-  const open = body.classList.toggle('open');
-  if (btn) btn.textContent = open ? '▲' : '▼';
-}
+      function toggleCat(ci) {
+        const body = document.getElementById("cat-body-" + ci);
+        const btn = document.getElementById("cat-toggle-" + ci);
+        if (!body) return;
+        const open = body.classList.toggle("open");
+        if (btn) btn.textContent = open ? "▲" : "▼";
+      }
 
-function itemEditor(ci, ii) {
-  const item = menuData.categories[ci]?.items?.[ii];
-  if (!item) return '';
-  const allergenChips = ALLERGENS.map(a => {
-    const sel = (item.allergens||[]).includes(a);
-    return `<span class="allergen-chip${sel?' selected':''}" onclick="toggleAllergen(${ci},${ii},'${a}',this)">${a}</span>`;
-  }).join('');
-  return `<div class="item-block" id="item-block-${ci}-${ii}">
+      function itemEditor(ci, ii) {
+        const item = menuData.categories[ci]?.items?.[ii];
+        if (!item) return "";
+        const allergenChips = ALLERGENS.map((a) => {
+          const sel = (item.allergens || []).includes(a);
+          return `<span class="allergen-chip${sel ? " selected" : ""}" onclick="toggleAllergen(${ci},${ii},'${a}',this)">${a}</span>`;
+        }).join("");
+        return `<div class="item-block" id="item-block-${ci}-${ii}">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
-      <strong style="color:var(--gold)">${esc(item.name?.es||'Plato')}</strong>
+      <strong style="color:var(--gold)">${esc(item.name?.es || "Plato")}</strong>
       <button class="btn-danger" onclick="removeItem(${ci},${ii})">✕ Eliminar</button>
     </div>
     <div class="item-row-2">
       <div>
         <label class="admin-label" style="margin-top:0">Nombre ES</label>
-        <input class="admin-input" value="${esc(item.name?.es||'')}" oninput="setItemField(${ci},${ii},'name.es',this.value)">
+        <input class="admin-input" value="${esc(item.name?.es || "")}" oninput="setItemField(${ci},${ii},'name.es',this.value)">
       </div>
       <div>
         <label class="admin-label" style="margin-top:0">Nombre EN</label>
-        <input class="admin-input" value="${esc(item.name?.en||'')}" oninput="setItemField(${ci},${ii},'name.en',this.value)">
+        <input class="admin-input" value="${esc(item.name?.en || "")}" oninput="setItemField(${ci},${ii},'name.en',this.value)">
       </div>
     </div>
     <label class="admin-label">Nombre FR</label>
-    <input class="admin-input" value="${esc(item.name?.fr||'')}" oninput="setItemField(${ci},${ii},'name.fr',this.value)">
+    <input class="admin-input" value="${esc(item.name?.fr || "")}" oninput="setItemField(${ci},${ii},'name.fr',this.value)">
     <div class="item-row-2">
       <div>
         <label class="admin-label">Descripción ES</label>
-        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.es',this.value)">${esc(item.description?.es||'')}</textarea>
+        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.es',this.value)">${esc(item.description?.es || "")}</textarea>
       </div>
       <div>
         <label class="admin-label">Descripción EN</label>
-        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.en',this.value)">${esc(item.description?.en||'')}</textarea>
+        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.en',this.value)">${esc(item.description?.en || "")}</textarea>
       </div>
     </div>
     <label class="admin-label">Descripción FR</label>
-    <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.fr',this.value)">${esc(item.description?.fr||'')}</textarea>
+    <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.fr',this.value)">${esc(item.description?.fr || "")}</textarea>
     <div class="item-row-2">
       <div>
         <label class="admin-label">Historia ES</label>
-        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.es',this.value)">${esc(item.story?.es||'')}</textarea>
+        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.es',this.value)">${esc(item.story?.es || "")}</textarea>
       </div>
       <div>
         <label class="admin-label">Story EN</label>
-        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.en',this.value)">${esc(item.story?.en||'')}</textarea>
+        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.en',this.value)">${esc(item.story?.en || "")}</textarea>
       </div>
     </div>
     <label class="admin-label">Histoire FR</label>
-    <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.fr',this.value)">${esc(item.story?.fr||'')}</textarea>
+    <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.fr',this.value)">${esc(item.story?.fr || "")}</textarea>
     <div class="item-row-2">
       <div>
         <label class="admin-label">Toque francés ES</label>
-        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.es',this.value)">${esc(item.frenchInfluence?.es||'')}</textarea>
+        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.es',this.value)">${esc(item.frenchInfluence?.es || "")}</textarea>
       </div>
       <div>
         <label class="admin-label">French touch EN</label>
-        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.en',this.value)">${esc(item.frenchInfluence?.en||'')}</textarea>
+        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.en',this.value)">${esc(item.frenchInfluence?.en || "")}</textarea>
       </div>
     </div>
     <label class="admin-label">Touche française FR</label>
-    <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.fr',this.value)">${esc(item.frenchInfluence?.fr||'')}</textarea>
+    <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.fr',this.value)">${esc(item.frenchInfluence?.fr || "")}</textarea>
     <div class="item-row-3">
       <div>
         <label class="admin-label">Best for (CSV)</label>
-        <input class="admin-input" value="${esc((item.bestFor||[]).join(','))}" placeholder="quick-lunch,local-favorite" oninput="setItemList(${ci},${ii},'bestFor',this.value)">
+        <input class="admin-input" value="${esc((item.bestFor || []).join(","))}" placeholder="quick-lunch,local-favorite" oninput="setItemList(${ci},${ii},'bestFor',this.value)">
       </div>
       <div>
         <label class="admin-label">Dietary tags (CSV)</label>
-        <input class="admin-input" value="${esc((item.dietaryTags||[]).join(','))}" placeholder="vegetarian" oninput="setItemList(${ci},${ii},'dietaryTags',this.value)">
+        <input class="admin-input" value="${esc((item.dietaryTags || []).join(","))}" placeholder="vegetarian" oninput="setItemList(${ci},${ii},'dietaryTags',this.value)">
       </div>
       <div>
         <label class="admin-label">Add-ons (CSV IDs)</label>
-        <input class="admin-input" value="${esc((item.addons||[]).join(','))}" placeholder="mayo,papas" oninput="setItemList(${ci},${ii},'addons',this.value)">
+        <input class="admin-input" value="${esc((item.addons || []).join(","))}" placeholder="mayo,papas" oninput="setItemList(${ci},${ii},'addons',this.value)">
       </div>
     </div>
     <label class="admin-label">Pairings (CSV IDs)</label>
-    <input class="admin-input" value="${esc((item.pairings||[]).join(','))}" placeholder="crepas,papas" oninput="setItemList(${ci},${ii},'pairings',this.value)">
+    <input class="admin-input" value="${esc((item.pairings || []).join(","))}" placeholder="crepas,papas" oninput="setItemList(${ci},${ii},'pairings',this.value)">
     <div class="item-row-3">
       <div>
         <label class="admin-label">Precio (₡)</label>
-        <input class="admin-input" type="number" value="${esc(item.price||'')}" oninput="setItemField(${ci},${ii},'price',this.value)">
+        <input class="admin-input" type="number" value="${esc(item.price || "")}" oninput="setItemField(${ci},${ii},'price',this.value)">
       </div>
       <div>
         <label class="admin-label">Badge texto</label>
-        <input class="admin-input" value="${esc(item.badgeText||'')}" placeholder="Nuevo, Temporada…" oninput="setItemField(${ci},${ii},'badgeText',this.value)">
+        <input class="admin-input" value="${esc(item.badgeText || "")}" placeholder="Nuevo, Temporada…" oninput="setItemField(${ci},${ii},'badgeText',this.value)">
       </div>
       <div>
         <label class="admin-label">ID</label>
-        <input class="admin-input" value="${esc(item.id||'')}" oninput="setItemField(${ci},${ii},'id',this.value)">
+        <input class="admin-input" value="${esc(item.id || "")}" oninput="setItemField(${ci},${ii},'id',this.value)">
       </div>
     </div>
-    <label class="admin-label">Imagen URL</label>
-    <input class="admin-input" value="${esc(item.image||'')}" placeholder="https://..." oninput="setItemField(${ci},${ii},'image',this.value);updateItemImg(${ci},${ii},this.value)">
-    <img id="img-${ci}-${ii}" class="img-preview" src="" alt="" style="${item.image?'':'display:none'}">
+    <label class="admin-label">Imagen</label>
+    <div class="img-field-row">
+      <input class="admin-input" id="img-url-${ci}-${ii}" value="${esc(item.image || "")}" placeholder="https:// o subir 📷" oninput="setItemField(${ci},${ii},'image',this.value);updateItemImg(${ci},${ii},this.value)">
+      <button class="btn-admin btn-upload-photo" type="button" title="Subir foto" onclick="openPhotoEditor({slug:${esc(JSON.stringify(item.id || "foto"))},aspectRatio:4/3,maxDim:1200,onSuccess:p=>peSetItemImage(${ci},${ii},p)})">📷</button>
+    </div>
+    <img id="img-${ci}-${ii}" class="img-preview" src="" alt="" style="${item.image ? "" : "display:none"}">
+    <div class="item-row-3" style="margin-top:.4rem">
+      <div>
+        <label class="admin-label" style="margin-top:.5rem">Alt texto ES</label>
+        <input class="admin-input" value="${esc(item.photoAlt?.es || "")}" placeholder="Descripción de la foto…" oninput="setItemField(${ci},${ii},'photoAlt.es',this.value)">
+      </div>
+      <div>
+        <label class="admin-label" style="margin-top:.5rem">Alt texto EN</label>
+        <input class="admin-input" value="${esc(item.photoAlt?.en || "")}" placeholder="Photo description…" oninput="setItemField(${ci},${ii},'photoAlt.en',this.value)">
+      </div>
+      <div>
+        <label class="admin-label" style="margin-top:.5rem">Alt texto FR</label>
+        <input class="admin-input" value="${esc(item.photoAlt?.fr || "")}" placeholder="Description de la photo…" oninput="setItemField(${ci},${ii},'photoAlt.fr',this.value)">
+      </div>
+    </div>
+    <label class="admin-label">Crédito / fuente de imagen</label>
+    <input class="admin-input" value="${esc(item.imageSource || "")}" placeholder="Unsplash, Wikimedia, foto propia…" oninput="setItemField(${ci},${ii},'imageSource',this.value)">
     <div class="checkbox-row">
-      <input type="checkbox" id="feat-${ci}-${ii}" ${item.featured?'checked':''} onchange="setItemField(${ci},${ii},'featured',this.checked)">
+      <input type="checkbox" id="feat-${ci}-${ii}" ${item.featured ? "checked" : ""} onchange="setItemField(${ci},${ii},'featured',this.checked)">
       <label for="feat-${ci}-${ii}">⭐ Recomendado (featured)</label>
-      <input type="checkbox" id="pop-${ci}-${ii}" ${item.popular?'checked':''} onchange="setItemField(${ci},${ii},'popular',this.checked)" style="margin-left:.75rem">
+      <input type="checkbox" id="pop-${ci}-${ii}" ${item.popular ? "checked" : ""} onchange="setItemField(${ci},${ii},'popular',this.checked)" style="margin-left:.75rem">
       <label for="pop-${ci}-${ii}">🔥 Popular</label>
     </div>
     <label class="admin-label">Alérgenos</label>
     <div class="allergen-grid">${allergenChips}</div>
   </div>`;
-}
+      }
 
-function setItemField(ci, ii, path, value) {
-  const item = menuData.categories[ci]?.items?.[ii];
-  if (!item) return;
-  const parts = path.split('.');
-  if (parts.length === 1) { item[parts[0]] = value; }
-  else if (parts.length === 2) { if (!item[parts[0]]) item[parts[0]] = {}; item[parts[0]][parts[1]] = value; }
-  markDirty('menu');
-}
+      function setItemField(ci, ii, path, value) {
+        const item = menuData.categories[ci]?.items?.[ii];
+        if (!item) return;
+        const parts = path.split(".");
+        if (parts.length === 1) {
+          item[parts[0]] = value;
+        } else if (parts.length === 2) {
+          if (!item[parts[0]]) item[parts[0]] = {};
+          item[parts[0]][parts[1]] = value;
+        }
+        markDirty("menu");
+      }
 
-function setItemList(ci, ii, field, value) {
-  const item = menuData.categories[ci]?.items?.[ii];
-  if (!item) return;
-  item[field] = value.split(',').map(s => s.trim()).filter(Boolean);
-  markDirty('menu');
-}
+      function setItemList(ci, ii, field, value) {
+        const item = menuData.categories[ci]?.items?.[ii];
+        if (!item) return;
+        item[field] = value
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean);
+        markDirty("menu");
+      }
 
-function updateItemImg(ci, ii, url) {
-  const img = document.getElementById(`img-${ci}-${ii}`);
-  if (!img) return;
-  const safe = safeImgUrl(url || '');
-  if (safe) { img.src = safe; img.style.display = 'block'; } else img.style.display = 'none';
-}
+      function updateItemImg(ci, ii, url) {
+        const img = document.getElementById(`img-${ci}-${ii}`);
+        if (!img) return;
+        const safe = safeImgUrl(url || "");
+        if (safe) {
+          img.src = safe;
+          img.style.display = "block";
+        } else img.style.display = "none";
+      }
 
-function toggleAllergen(ci, ii, allergen, el) {
-  const item = menuData.categories[ci]?.items?.[ii];
-  if (!item) return;
-  if (!item.allergens) item.allergens = [];
-  const idx = item.allergens.indexOf(allergen);
-  if (idx === -1) { item.allergens.push(allergen); el.classList.add('selected'); }
-  else { item.allergens.splice(idx, 1); el.classList.remove('selected'); }
-  markDirty('menu');
-}
+      function toggleAllergen(ci, ii, allergen, el) {
+        const item = menuData.categories[ci]?.items?.[ii];
+        if (!item) return;
+        if (!item.allergens) item.allergens = [];
+        const idx = item.allergens.indexOf(allergen);
+        if (idx === -1) {
+          item.allergens.push(allergen);
+          el.classList.add("selected");
+        } else {
+          item.allergens.splice(idx, 1);
+          el.classList.remove("selected");
+        }
+        markDirty("menu");
+      }
 
-function addCategory() {
-  if (!menuData.categories) menuData.categories = [];
-  menuData.categories.push({ id:'nueva-cat-'+Date.now(), emoji:'🍽️', name:{es:'Nueva Categoría',en:'New Category',fr:'Nouvelle categorie'}, items:[] });
-  markDirty('menu');
-  renderCategories();
-  // Open newly added
-  const last = menuData.categories.length - 1;
-  setTimeout(() => toggleCat(last), 50);
-}
+      function addCategory() {
+        if (!menuData.categories) menuData.categories = [];
+        menuData.categories.push({
+          id: "nueva-cat-" + Date.now(),
+          emoji: "🍽️",
+          name: {
+            es: "Nueva Categoría",
+            en: "New Category",
+            fr: "Nouvelle categorie",
+          },
+          items: [],
+        });
+        markDirty("menu");
+        renderCategories();
+        // Open newly added
+        const last = menuData.categories.length - 1;
+        setTimeout(() => toggleCat(last), 50);
+      }
 
-function removeCategory(ci) {
-  if (!confirm('¿Eliminar esta categoría y todos sus platos?')) return;
-  menuData.categories.splice(ci, 1);
-  markDirty('menu');
-  renderCategories();
-}
+      function removeCategory(ci) {
+        if (!confirm("¿Eliminar esta categoría y todos sus platos?")) return;
+        menuData.categories.splice(ci, 1);
+        markDirty("menu");
+        renderCategories();
+      }
 
-function addItem(ci) {
-  if (!menuData.categories[ci].items) menuData.categories[ci].items = [];
-  menuData.categories[ci].items.push({
-    id:'nuevo-'+Date.now(),
-    name:{es:'Nuevo plato',en:'New dish',fr:'Nouveau plat'},
-    description:{es:'',en:'',fr:''},
-    story:{es:'',en:'',fr:''},
-    frenchInfluence:{es:'',en:'',fr:''},
-    price:'0',
-    image:'',
-    featured:false,
-    popular:false,
-    badgeText:'',
-    allergens:[],
-    bestFor:[],
-    dietaryTags:[],
-    addons:[],
-    pairings:[],
-    photoAlt:{es:'',en:'',fr:''}
-  });
-  markDirty('menu');
-  renderCategories();
-  // Re-open category
-  const body = document.getElementById('cat-body-'+ci);
-  if (body && !body.classList.contains('open')) toggleCat(ci);
-}
+      function addItem(ci) {
+        if (!menuData.categories[ci].items) menuData.categories[ci].items = [];
+        menuData.categories[ci].items.push({
+          id: "nuevo-" + Date.now(),
+          name: { es: "Nuevo plato", en: "New dish", fr: "Nouveau plat" },
+          description: { es: "", en: "", fr: "" },
+          story: { es: "", en: "", fr: "" },
+          frenchInfluence: { es: "", en: "", fr: "" },
+          price: "0",
+          image: "",
+          featured: false,
+          popular: false,
+          badgeText: "",
+          allergens: [],
+          bestFor: [],
+          dietaryTags: [],
+          addons: [],
+          pairings: [],
+          photoAlt: { es: "", en: "", fr: "" },
+        });
+        markDirty("menu");
+        renderCategories();
+        // Re-open category
+        const body = document.getElementById("cat-body-" + ci);
+        if (body && !body.classList.contains("open")) toggleCat(ci);
+      }
 
-function removeItem(ci, ii) {
-  if (!confirm('¿Eliminar este plato?')) return;
-  menuData.categories[ci].items.splice(ii, 1);
-  markDirty('menu');
-  renderCategories();
-}
+      function removeItem(ci, ii) {
+        if (!confirm("¿Eliminar este plato?")) return;
+        menuData.categories[ci].items.splice(ii, 1);
+        markDirty("menu");
+        renderCategories();
+      }
 
-/* ── Specials ── */
-function renderSpecials() {
-  const root = document.getElementById('specials-container');
-  if (!root) return;
-  root.innerHTML = specialsData.map((s,i) => `
+      /* ── Specials ── */
+      function renderSpecials() {
+        const root = document.getElementById("specials-container");
+        if (!root) return;
+        root.innerHTML =
+          specialsData
+            .map(
+              (s, i) => `
     <div class="special-block">
       <div class="special-header">
-        <strong>${esc(s.title||'Especial '+(i+1))}</strong>
+        <strong>${esc(s.title || "Especial " + (i + 1))}</strong>
         <button class="btn-danger" onclick="removeSpecial(${i})">✕ Eliminar</button>
       </div>
       <div class="item-row-2">
         <div>
           <label class="admin-label" style="margin-top:0">Título ES</label>
-          <input class="admin-input" value="${esc(s.title||'')}" oninput="specialsData[${i}].title=this.value;markDirty('specials')">
+          <input class="admin-input" value="${esc(s.title || "")}" oninput="specialsData[${i}].title=this.value;markDirty('specials')">
         </div>
         <div>
           <label class="admin-label" style="margin-top:0">Título EN</label>
-          <input class="admin-input" value="${esc(s.titleEn||'')}" oninput="specialsData[${i}].titleEn=this.value;markDirty('specials')">
+          <input class="admin-input" value="${esc(s.titleEn || "")}" oninput="specialsData[${i}].titleEn=this.value;markDirty('specials')">
         </div>
       </div>
       <label class="admin-label">Título FR</label>
-      <input class="admin-input" value="${esc(s.titleFr||'')}" oninput="specialsData[${i}].titleFr=this.value;markDirty('specials')">
+      <input class="admin-input" value="${esc(s.titleFr || "")}" oninput="specialsData[${i}].titleFr=this.value;markDirty('specials')">
       <div class="item-row-2">
         <div>
           <label class="admin-label">Descripción ES</label>
-          <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].description=this.value;markDirty('specials')">${esc(s.description||'')}</textarea>
+          <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].description=this.value;markDirty('specials')">${esc(s.description || "")}</textarea>
         </div>
         <div>
           <label class="admin-label">Descripción EN</label>
-          <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].descriptionEn=this.value;markDirty('specials')">${esc(s.descriptionEn||'')}</textarea>
+          <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].descriptionEn=this.value;markDirty('specials')">${esc(s.descriptionEn || "")}</textarea>
         </div>
       </div>
       <label class="admin-label">Descripción FR</label>
-      <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].descriptionFr=this.value;markDirty('specials')">${esc(s.descriptionFr||'')}</textarea>
+      <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].descriptionFr=this.value;markDirty('specials')">${esc(s.descriptionFr || "")}</textarea>
       <div class="item-row-3">
         <div>
           <label class="admin-label">Precio (₡, opcional)</label>
-          <input class="admin-input" type="number" value="${esc(s.price||'')}" oninput="specialsData[${i}].price=this.value;markDirty('specials')">
+          <input class="admin-input" type="number" value="${esc(s.price || "")}" oninput="specialsData[${i}].price=this.value;markDirty('specials')">
         </div>
         <div>
           <label class="admin-label">Válido hasta</label>
-          <input class="admin-input" type="date" value="${esc(s.validUntil||'')}" oninput="specialsData[${i}].validUntil=this.value;markDirty('specials')">
+          <input class="admin-input" type="date" value="${esc(s.validUntil || "")}" oninput="specialsData[${i}].validUntil=this.value;markDirty('specials')">
         </div>
         <div>
           <label class="admin-label">ID</label>
-          <input class="admin-input" value="${esc(s.id||'')}" oninput="specialsData[${i}].id=this.value;markDirty('specials')">
+          <input class="admin-input" value="${esc(s.id || "")}" oninput="specialsData[${i}].id=this.value;markDirty('specials')">
         </div>
       </div>
-      <label class="admin-label">Imagen URL</label>
-      <input class="admin-input" value="${esc(s.image||'')}" placeholder="https://..." oninput="specialsData[${i}].image=this.value;markDirty('specials')">
+      <label class="admin-label">Imagen</label>
+      <div class="img-field-row">
+        <input class="admin-input" id="sp-img-url-${i}" value="${esc(s.image || "")}" placeholder="https:// o subir 📷" oninput="specialsData[${i}].image=this.value;markDirty('specials');updateSpecialImg(${i},this.value)">
+        <button class="btn-admin btn-upload-photo" type="button" title="Subir foto" onclick="openPhotoEditor({slug:'especial-${i}',aspectRatio:16/9,maxDim:1200,onSuccess:p=>peSetSpecialImage(${i},p)})">&#x1F4F7;</button>
+      </div>
+      <img id="sp-img-${i}" class="img-preview" src="" alt="" style="${s.image ? "" : "display:none"}">
       <div class="checkbox-row">
-        <input type="checkbox" id="ev-${i}" ${s.isEvent?'checked':''} onchange="specialsData[${i}].isEvent=this.checked;markDirty('specials');renderSpecials()">
+        <input type="checkbox" id="ev-${i}" ${s.isEvent ? "checked" : ""} onchange="specialsData[${i}].isEvent=this.checked;markDirty('specials');renderSpecials()">
         <label for="ev-${i}">📅 Es un evento</label>
       </div>
-      ${s.isEvent ? `
+      ${
+        s.isEvent
+          ? `
         <label class="admin-label">Fecha y hora del evento</label>
-        <input class="admin-input" type="datetime-local" value="${esc(s.eventDate||'')}" oninput="specialsData[${i}].eventDate=this.value;markDirty('specials')">
-      ` : ''}
-    </div>`).join('') || '<p class="muted">No hay especiales. Haz clic en "+ Especial" para agregar.</p>';
-}
+        <input class="admin-input" type="datetime-local" value="${esc(s.eventDate || "")}" oninput="specialsData[${i}].eventDate=this.value;markDirty('specials')">
+      `
+          : ""
+      }
+    </div>`,
+            )
+            .join("") ||
+          '<p class="muted">No hay especiales. Haz clic en "+ Especial" para agregar.</p>';
+        specialsData.forEach((s, i) => {
+          if (s.image) updateSpecialImg(i, s.image);
+        });
+      }
 
-function addSpecial() {
-  specialsData.push({ id:'special-'+Date.now(), title:'', titleEn:'', titleFr:'', description:'', descriptionEn:'', descriptionFr:'', price:'', image:'', validUntil:'', isEvent:false, eventDate:'' });
-  markDirty('specials');
-  renderSpecials();
-}
+      function addSpecial() {
+        specialsData.push({
+          id: "special-" + Date.now(),
+          title: "",
+          titleEn: "",
+          titleFr: "",
+          description: "",
+          descriptionEn: "",
+          descriptionFr: "",
+          price: "",
+          image: "",
+          validUntil: "",
+          isEvent: false,
+          eventDate: "",
+        });
+        markDirty("specials");
+        renderSpecials();
+      }
 
-function removeSpecial(i) {
-  if (!confirm('¿Eliminar este especial?')) return;
-  specialsData.splice(i, 1);
-  markDirty('specials');
-  renderSpecials();
-}
+      function removeSpecial(i) {
+        if (!confirm("¿Eliminar este especial?")) return;
+        specialsData.splice(i, 1);
+        markDirty("specials");
+        renderSpecials();
+      }
 
-/* ── Combos ── */
-function renderCombos() {
-  const ta = document.getElementById('combos-json');
-  if (ta) ta.value = JSON.stringify(combosData, null, 2);
-}
+      /* ── Combos ── */
+      function renderCombos() {
+        const ta = document.getElementById("combos-json");
+        if (ta) ta.value = JSON.stringify(combosData, null, 2);
+      }
 
-function readCombos() {
-  const ta = document.getElementById('combos-json');
-  if (!ta) return combosData;
-  const parsed = JSON.parse(ta.value || '[]');
-  if (!Array.isArray(parsed)) throw new Error('Combos debe ser un arreglo JSON.');
-  return parsed;
-}
+      function readCombos() {
+        const ta = document.getElementById("combos-json");
+        if (!ta) return combosData;
+        const parsed = JSON.parse(ta.value || "[]");
+        if (!Array.isArray(parsed))
+          throw new Error("Combos debe ser un arreglo JSON.");
+        return parsed;
+      }
 
-function formatCombosJson() {
-  try {
-    combosData = readCombos();
-    renderCombos();
-  } catch(e) {
-    alert(e.message);
-  }
-}
+      function formatCombosJson() {
+        try {
+          combosData = readCombos();
+          renderCombos();
+        } catch (e) {
+          alert(e.message);
+        }
+      }
 
-/* ── GitHub file helpers ── */
-async function getFileSHA(path) {
-  const token = getToken();
-  const [owner, repo] = getOwnerRepo();
-  try {
-    const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-      headers: { Authorization:'token '+token, Accept:'application/vnd.github.v3+json' }
-    });
-    if (res.ok) { const d = await res.json(); return d.sha; }
-  } catch(e) {}
-  return null;
-}
+      /* ── GitHub file helpers ── */
+      async function getFileSHA(path) {
+        const token = getToken();
+        const [owner, repo] = getOwnerRepo();
+        try {
+          const res = await fetch(
+            `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
+            {
+              headers: {
+                Authorization: "token " + token,
+                Accept: "application/vnd.github.v3+json",
+              },
+            },
+          );
+          if (res.ok) {
+            const d = await res.json();
+            return d.sha;
+          }
+        } catch (e) {}
+        return null;
+      }
 
-async function putFile(path, content, message) {
-  const token = getToken();
-  const [owner, repo] = getOwnerRepo();
-  const sha = await getFileSHA(path);
-  const body = { message, content: btoa(unescape(encodeURIComponent(content))) };
-  if (sha) body.sha = sha;
-  const res = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-    method:'PUT',
-    headers: { Authorization:'token '+token, Accept:'application/vnd.github.v3+json', 'Content-Type':'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) { const e = await res.json(); throw new Error(e.message||'Error guardando '+path); }
-  return res.json();
-}
+      async function putFile(path, content, message) {
+        const token = getToken();
+        const [owner, repo] = getOwnerRepo();
+        const sha = await getFileSHA(path);
+        const body = {
+          message,
+          content: btoa(unescape(encodeURIComponent(content))),
+        };
+        if (sha) body.sha = sha;
+        const res = await fetch(
+          `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: "token " + token,
+              Accept: "application/vnd.github.v3+json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          },
+        );
+        if (!res.ok) {
+          const e = await res.json();
+          throw new Error(e.message || "Error guardando " + path);
+        }
+        return res.json();
+      }
 
-function getOwnerRepo() {
-  // GitHub Pages: username.github.io/reponame/...
-  const m = location.hostname.match(/^([^.]+)\.github\.io$/);
-  if (m) {
-    const owner = m[1];
-    const repo = location.pathname.split('/').filter(Boolean)[0] || 'las-veraneras-menu';
-    return [owner, repo];
-  }
-  // Fallback for local dev or custom domains
-  return ['sandgraal', 'las-veraneras-menu'];
-}
+      function getOwnerRepo() {
+        // GitHub Pages: username.github.io/reponame/...
+        const m = location.hostname.match(/^([^.]+)\.github\.io$/);
+        if (m) {
+          const owner = m[1];
+          const repo =
+            location.pathname.split("/").filter(Boolean)[0] ||
+            "las-veraneras-menu";
+          return [owner, repo];
+        }
+        // Fallback for local dev or custom domains
+        return ["sandgraal", "las-veraneras-menu"];
+      }
 
-/* ── Publish All ── */
-async function publishAll() {
-  const btn = document.getElementById('publish-btn');
-  const status = document.getElementById('status');
-  if (!getToken()) { alert('Inicia sesión primero.'); return; }
-  btn.disabled = true;
-  btn.textContent = '⏳ Publicando…';
-  status.textContent = 'Guardando…';
-  status.className = 'status-badge';
-  try {
-    const cfgToSave = readSettings();
-    combosData = readCombos();
-    const ts = new Date().toISOString().slice(0,16).replace('T',' ');
-    await putFile('data/menu.json', JSON.stringify(menuData, null, 2), `✏️ Admin: actualizar menú [${ts}]`);
-    await putFile('data/specials.json', JSON.stringify(specialsData, null, 2), `✏️ Admin: actualizar especiales [${ts}]`);
-    await putFile('data/combos.json', JSON.stringify(combosData, null, 2), `✏️ Admin: actualizar combos [${ts}]`);
-    await putFile('data/config.json', JSON.stringify(cfgToSave, null, 2), `✏️ Admin: actualizar configuración [${ts}]`);
-    localStorage.setItem('lv-last-saved', new Date().toISOString());
-    status.textContent = '✓ Publicado';
-    status.className = 'status-badge connected';
-    btn.textContent = '✓ Publicado';
-    ['menu','specials','combos','settings'].forEach(clearDirty);
-    updateStats();
-    setTimeout(() => { btn.textContent = '🚀 Publicar Todo'; btn.disabled = false; }, 3000);
-  } catch(e) {
-    status.textContent = '✗ ' + e.message;
-    status.className = 'status-badge error';
-    btn.textContent = '🚀 Publicar Todo';
-    btn.disabled = false;
-    alert('Error al publicar: ' + e.message);
-  }
-}
+      /* ── Publish All ── */
+      async function publishAll() {
+        const btn = document.getElementById("publish-btn");
+        const status = document.getElementById("status");
+        if (!getToken()) {
+          alert("Inicia sesión primero.");
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = "⏳ Publicando…";
+        status.textContent = "Guardando…";
+        status.className = "status-badge";
+        try {
+          const cfgToSave = readSettings();
+          combosData = readCombos();
+          const ts = new Date().toISOString().slice(0, 16).replace("T", " ");
+          await putFile(
+            "data/menu.json",
+            JSON.stringify(menuData, null, 2),
+            `✏️ Admin: actualizar menú [${ts}]`,
+          );
+          await putFile(
+            "data/specials.json",
+            JSON.stringify(specialsData, null, 2),
+            `✏️ Admin: actualizar especiales [${ts}]`,
+          );
+          await putFile(
+            "data/combos.json",
+            JSON.stringify(combosData, null, 2),
+            `✏️ Admin: actualizar combos [${ts}]`,
+          );
+          await putFile(
+            "data/config.json",
+            JSON.stringify(cfgToSave, null, 2),
+            `✏️ Admin: actualizar configuración [${ts}]`,
+          );
+          localStorage.setItem("lv-last-saved", new Date().toISOString());
+          status.textContent = "✓ Publicado";
+          status.className = "status-badge connected";
+          btn.textContent = "✓ Publicado";
+          ["menu", "specials", "combos", "settings"].forEach(clearDirty);
+          updateStats();
+          setTimeout(() => {
+            btn.textContent = "🚀 Publicar Todo";
+            btn.disabled = false;
+          }, 3000);
+        } catch (e) {
+          status.textContent = "✗ " + e.message;
+          status.className = "status-badge error";
+          btn.textContent = "🚀 Publicar Todo";
+          btn.disabled = false;
+          alert("Error al publicar: " + e.message);
+        }
+      }
 
-/* ── Backup ── */
-function downloadBackup() {
-  const data = { menu: menuData, specials: specialsData, combos: combosData, config: configData, exportedAt: new Date().toISOString() };
-  const blob = new Blob([JSON.stringify(data, null, 2)], { type:'application/json' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `las-veraneras-backup-${new Date().toISOString().slice(0,10)}.json`;
-  a.click();
-}
+      /* ── Backup ── */
+      function downloadBackup() {
+        const data = {
+          menu: menuData,
+          specials: specialsData,
+          combos: combosData,
+          config: configData,
+          exportedAt: new Date().toISOString(),
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {
+          type: "application/json",
+        });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = `las-veraneras-backup-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+      }
 
-/* ── Init ── */
-(async function init() {
-  renderAuthCard();
-  await loadAll(); // read-only pre-load so data shows in preview tab
-})();
-</script>
-</body>
+      /* ── Photo Upload Engine (Phase 1) ── */
+      function safeFilename(slug) {
+        return (
+          (slug || "foto")
+            .replace(/[^a-z0-9]/gi, "-")
+            .toLowerCase()
+            .replace(/-+/g, "-")
+            .replace(/^-|-$/g, "")
+            .slice(0, 40) +
+          "-" +
+          Date.now() +
+          ".webp"
+        );
+      }
+
+      async function uploadImageToGitHub(base64Data, filename) {
+        const token = getToken();
+        if (!token)
+          throw new Error("No hay sesión activa. Inicia sesión primero.");
+        const [owner, repo] = getOwnerRepo();
+        const path = "images/" + filename;
+        const sha = await getFileSHA(path);
+        const body = {
+          message: "\u{1F4F7} Admin: subir imagen " + filename,
+          content: base64Data,
+        };
+        if (sha) body.sha = sha;
+        const res = await fetch(
+          `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
+          {
+            method: "PUT",
+            headers: {
+              Authorization: "token " + token,
+              Accept: "application/vnd.github.v3+json",
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(body),
+          },
+        );
+        if (!res.ok) {
+          const e = await res.json();
+          throw new Error(e.message || "Error al subir imagen");
+        }
+        return path; // 'images/filename.webp'
+      }
+
+      /* ── Photo Editor State & Logic (Phase 2) ── */
+      let peCropper = null;
+      let peContext = null;
+      let peScaleX = 1,
+        peScaleY = 1;
+      let _peReturnFocus = null;
+
+      function openPhotoEditor(context) {
+        peContext = context;
+        peScaleX = 1;
+        peScaleY = 1;
+        _peReturnFocus = document.activeElement;
+        const modal = document.getElementById("photo-editor-modal");
+        modal.classList.add("pe-open");
+        document.getElementById("pe-dropzone").style.display = "";
+        document.getElementById("pe-editor").style.display = "none";
+        document.getElementById("pe-brightness").value = 0;
+        document.getElementById("pe-contrast").value = 0;
+        document.getElementById("pe-file-input").value = "";
+        if (peCropper) {
+          peCropper.destroy();
+          peCropper = null;
+        }
+        // Move keyboard focus into the dialog once CSS display transition completes
+        setTimeout(() => {
+          document.getElementById("pe-close-btn")?.focus();
+        }, 50);
+      }
+
+      function closePhotoEditor() {
+        document
+          .getElementById("photo-editor-modal")
+          .classList.remove("pe-open");
+        if (peCropper) {
+          peCropper.destroy();
+          peCropper = null;
+        }
+        peContext = null;
+        // Return focus to the element that opened the modal
+        _peReturnFocus?.focus();
+        _peReturnFocus = null;
+      }
+
+      function peLoadFile(file) {
+        if (!file || !file.type.startsWith("image/")) {
+          alert(
+            "Por favor selecciona un archivo de imagen (JPG, PNG, WebP, etc.).",
+          );
+          return;
+        }
+        if (typeof Cropper === "undefined") {
+          alert(
+            "El editor de fotos aún se está cargando. Por favor espera un momento e inténtalo de nuevo.",
+          );
+          return;
+        }
+        peScaleX = 1;
+        peScaleY = 1;
+        const url = URL.createObjectURL(file);
+        const img = document.getElementById("pe-img");
+        img.onload = () => {
+          URL.revokeObjectURL(url);
+          document.getElementById("pe-dropzone").style.display = "none";
+          document.getElementById("pe-editor").style.display = "";
+          document.getElementById("pe-brightness").value = 0;
+          document.getElementById("pe-contrast").value = 0;
+          document.getElementById("pe-canvas-wrap").style.filter = "";
+          if (peCropper) peCropper.destroy();
+          peCropper = new Cropper(img, {
+            aspectRatio:
+              peContext?.aspectRatio !== undefined
+                ? peContext.aspectRatio
+                : NaN,
+            viewMode: 1,
+            autoCropArea: 0.9,
+            responsive: true,
+          });
+        };
+        img.src = url;
+      }
+
+      function peFlipH() {
+        if (!peCropper) return;
+        peScaleX *= -1;
+        peCropper.scaleX(peScaleX);
+      }
+
+      function peFlipV() {
+        if (!peCropper) return;
+        peScaleY *= -1;
+        peCropper.scaleY(peScaleY);
+      }
+
+      function applyFilters() {
+        const b =
+          parseFloat(document.getElementById("pe-brightness").value) || 0;
+        const c = parseFloat(document.getElementById("pe-contrast").value) || 0;
+        const wrap = document.getElementById("pe-canvas-wrap");
+        if (wrap)
+          wrap.style.filter = `brightness(${1 + b / 100}) contrast(${1 + c / 100})`;
+      }
+
+      async function applyAndUpload() {
+        if (!peCropper || !peContext) return;
+        const btn = document.getElementById("pe-apply-btn");
+        btn.disabled = true;
+        btn.textContent = "⏳ Subiendo…";
+        try {
+          const maxDim = peContext.maxDim || 1200;
+          const b =
+            parseFloat(document.getElementById("pe-brightness").value) || 0;
+          const c =
+            parseFloat(document.getElementById("pe-contrast").value) || 0;
+          const cropped = peCropper.getCroppedCanvas({
+            maxWidth: maxDim,
+            maxHeight: maxDim,
+            imageSmoothingQuality: "high",
+          });
+          const finalCanvas = document.createElement("canvas");
+          finalCanvas.width = cropped.width;
+          finalCanvas.height = cropped.height;
+          const ctx = finalCanvas.getContext("2d");
+          ctx.filter = `brightness(${1 + b / 100}) contrast(${1 + c / 100})`;
+          ctx.drawImage(cropped, 0, 0);
+          const base64 = await new Promise((resolve, reject) => {
+            finalCanvas.toBlob(
+              (blob) => {
+                if (!blob) {
+                  reject(new Error("No se pudo convertir la imagen"));
+                  return;
+                }
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result.split(",")[1]);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+              },
+              "image/webp",
+              0.85,
+            );
+          });
+          const filename = safeFilename(peContext.slug || "foto");
+          const ctx2 = peContext; // capture before closePhotoEditor clears it
+          const path = await uploadImageToGitHub(base64, filename);
+          closePhotoEditor();
+          ctx2?.onSuccess?.(path);
+          if (
+            document
+              .getElementById("panel-photos")
+              ?.classList.contains("active")
+          )
+            loadImageLibrary();
+        } catch (e) {
+          alert("Error al subir: " + e.message);
+          btn.disabled = false;
+          btn.textContent = "\u2705 Aplicar y Subir";
+        }
+      }
+
+      function peSetupDragDrop() {
+        const dz = document.getElementById("pe-dropzone");
+        if (!dz) return;
+        dz.addEventListener("dragover", (e) => {
+          e.preventDefault();
+          dz.classList.add("drag-over");
+        });
+        dz.addEventListener("dragleave", () =>
+          dz.classList.remove("drag-over"),
+        );
+        dz.addEventListener("drop", (e) => {
+          e.preventDefault();
+          dz.classList.remove("drag-over");
+          const file = e.dataTransfer?.files?.[0];
+          if (file) peLoadFile(file);
+        });
+        dz.addEventListener("click", (e) => {
+          if (e.target.tagName !== "BUTTON")
+            document.getElementById("pe-file-input").click();
+        });
+        // Escape key closes the modal
+        document.addEventListener("keydown", (e) => {
+          if (
+            e.key === "Escape" &&
+            document
+              .getElementById("photo-editor-modal")
+              ?.classList.contains("pe-open")
+          ) {
+            closePhotoEditor();
+          }
+        });
+      }
+
+      /* ── Photo editor helper callbacks ── */
+      function peSetItemImage(ci, ii, path) {
+        setItemField(ci, ii, "image", path);
+        const input = document.getElementById(`img-url-${ci}-${ii}`);
+        if (input) input.value = path;
+        updateItemImg(ci, ii, path);
+      }
+
+      function peSetSpecialImage(i, path) {
+        specialsData[i].image = path;
+        markDirty("specials");
+        const input = document.getElementById(`sp-img-url-${i}`);
+        if (input) input.value = path;
+        updateSpecialImg(i, path);
+      }
+
+      function peSetConfigImage(fieldId, path) {
+        const el = document.getElementById(fieldId);
+        if (el) el.value = path;
+        if (fieldId === "cfg-story-image") {
+          delete configData.storyImageSource;
+          delete configData.storyImageCurationNote;
+        }
+        markDirty("settings");
+        if (fieldId === "cfg-hero") updateHeroPreview();
+      }
+
+      function updateSpecialImg(i, url) {
+        const img = document.getElementById(`sp-img-${i}`);
+        if (!img) return;
+        const safe = safeImgUrl(url || "");
+        if (safe) {
+          img.src = safe;
+          img.style.display = "block";
+        } else img.style.display = "none";
+      }
+
+      /* ── Image Library (Phase 4) ── */
+      async function loadImageLibrary() {
+        const grid = document.getElementById("photo-library-grid");
+        if (!grid) return;
+        const token = getToken();
+        if (!token) {
+          grid.innerHTML =
+            '<p class="muted">Inicia sesión para ver las fotos.</p>';
+          return;
+        }
+        grid.innerHTML = '<p class="muted">Cargando\u2026</p>';
+        const [owner, repo] = getOwnerRepo();
+        try {
+          const res = await fetch(
+            `https://api.github.com/repos/${owner}/${repo}/contents/images`,
+            {
+              headers: {
+                Authorization: "token " + token,
+                Accept: "application/vnd.github.v3+json",
+              },
+            },
+          );
+          if (!res.ok) {
+            grid.innerHTML =
+              '<p class="muted">No se pudo cargar la biblioteca.</p>';
+            return;
+          }
+          const files = await res.json();
+          const images = Array.isArray(files)
+            ? files.filter((f) =>
+                /\.(jpe?g|png|webp|gif|svg|heic)$/i.test(f.name),
+              )
+            : [];
+          if (!images.length) {
+            grid.innerHTML =
+              '<p class="muted">No hay fotos aún. Usa el botón 📷 junto a cualquier plato o especial para subir fotos.</p>';
+            return;
+          }
+          grid.innerHTML = images
+            .map((f) => {
+              const kb = Math.round(f.size / 1024);
+              const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/images/${encodeURIComponent(f.name)}`;
+              const cardId = "lib-" + f.sha.slice(0, 8);
+              return `<div class="photo-lib-card" id="${esc(cardId)}">
+        <img src="${esc(rawUrl)}" alt="${esc(f.name)}" loading="lazy">
+        <div class="photo-lib-card-body">
+          <div class="photo-lib-filename" title="${esc(f.name)}">${esc(f.name)}</div>
+          <div class="photo-lib-filename">${kb} KB</div>
+          <div class="photo-lib-actions">
+            <button class="btn-admin" type="button" onclick="copyImagePath('images/${esc(f.name)}',this)">Copiar</button>
+            <button class="btn-danger" type="button" onclick="deleteImageFromRepo('${esc(f.path)}','${esc(f.sha)}','${esc(cardId)}')">\u2715</button>
+          </div>
+        </div>
+      </div>`;
+            })
+            .join("");
+        } catch (e) {
+          grid.innerHTML = `<p class="muted">Error: ${esc(e.message)}</p>`;
+        }
+      }
+
+      function copyImagePath(path, btn) {
+        navigator.clipboard
+          .writeText(path)
+          .then(() => {
+            const orig = btn.textContent;
+            btn.textContent = "\u2713 Copiado";
+            setTimeout(() => {
+              btn.textContent = orig;
+            }, 1800);
+          })
+          .catch(() => alert("No se pudo copiar: " + path));
+      }
+
+      async function deleteImageFromRepo(path, sha, cardId) {
+        if (
+          !confirm(
+            `¿Eliminar ${path}?\n\nEsta acción no se puede deshacer. Las referencias en el menú no se eliminan automáticamente.`,
+          )
+        )
+          return;
+        const token = getToken();
+        const [owner, repo] = getOwnerRepo();
+        try {
+          const res = await fetch(
+            `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
+            {
+              method: "DELETE",
+              headers: {
+                Authorization: "token " + token,
+                Accept: "application/vnd.github.v3+json",
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                message: "\u{1F5D1}\uFE0F Admin: eliminar imagen " + path,
+                sha,
+              }),
+            },
+          );
+          if (!res.ok) {
+            const e = await res.json();
+            throw new Error(e.message || "Error al eliminar");
+          }
+          document.getElementById(cardId)?.remove();
+        } catch (e) {
+          alert("Error al eliminar: " + e.message);
+        }
+      }
+
+      /* ── Init ── */
+      (async function init() {
+        renderAuthCard();
+        peSetupDragDrop();
+        await loadAll(); // read-only pre-load so data shows in preview tab
+      })();
+    </script>
+  </body>
 </html>
