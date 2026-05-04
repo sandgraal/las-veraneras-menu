@@ -179,7 +179,7 @@ function getSession(req) {
 function isOriginAllowed(origin) {
   const cfg = config();
   if (!origin) return true;
-  if (!cfg.allowedOrigins.length) return true;
+  if (!cfg.allowedOrigins.length) return false;
   return cfg.allowedOrigins.includes(origin);
 }
 
