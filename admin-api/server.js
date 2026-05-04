@@ -154,7 +154,12 @@ function verifySessionToken(token) {
     .update(body)
     .digest("base64url");
   if (!safeEqual(signature, expected)) return null;
-  const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
+  let payload;
+  try {
+    payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
+  } catch {
+    return null;
+  }
   if (!payload?.exp || payload.exp < Date.now()) return null;
   return payload;
 }
