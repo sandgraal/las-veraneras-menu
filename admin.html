@@ -1737,6 +1737,14 @@
         peScaleY = 1;
       let _peReturnFocus = null;
 
+      function resetPhotoEditorApplyButton(btn) {
+        const applyBtn = btn || document.getElementById("pe-apply-btn");
+        if (!applyBtn) return;
+        applyBtn.disabled = false;
+        applyBtn.textContent =
+          applyBtn.dataset.defaultLabel || applyBtn.textContent;
+      }
+
       function openPhotoEditor(context) {
         peContext = context;
         peScaleX = 1;
@@ -1749,12 +1757,7 @@
         document.getElementById("pe-brightness").value = 0;
         document.getElementById("pe-contrast").value = 0;
         document.getElementById("pe-file-input").value = "";
-        const applyBtn = document.getElementById("pe-apply-btn");
-        if (applyBtn) {
-          applyBtn.disabled = false;
-          applyBtn.textContent =
-            applyBtn.dataset.defaultLabel || applyBtn.textContent;
-        }
+        resetPhotoEditorApplyButton();
         if (peCropper) {
           peCropper.destroy();
           peCropper = null;
@@ -1889,8 +1892,7 @@
             loadImageLibrary();
         } catch (e) {
           alert("Error al subir: " + e.message);
-          btn.disabled = false;
-          btn.textContent = "\u2705 Aplicar y Subir";
+          resetPhotoEditorApplyButton(btn);
         }
       }
 
