@@ -841,9 +841,13 @@
       }
 
       async function clearApiBase() {
-        localStorage.removeItem(API_BASE_STORAGE_KEY);
-        if (_session.authenticated) await logout();
-        else renderAuthCard();
+        if (_session.authenticated) {
+          await logout();
+          localStorage.removeItem(API_BASE_STORAGE_KEY);
+        } else {
+          localStorage.removeItem(API_BASE_STORAGE_KEY);
+          renderAuthCard();
+        }
       }
 
       async function loginAdmin() {
