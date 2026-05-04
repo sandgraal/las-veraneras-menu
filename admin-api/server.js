@@ -220,7 +220,13 @@ async function readJsonBody(req) {
   for await (const chunk of req) chunks.push(chunk);
   const raw = Buffer.concat(chunks).toString("utf8").trim();
   if (!raw) return {};
-  return JSON.parse(raw);
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    const err = new Error("Invalid JSON body.");
+    err.status = 400;
+    throw err;
+  }
 }
 
 function encodeGitHubPath(filePath) {
