@@ -24,6 +24,7 @@
       src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"
       defer
     ></script>
+    <script src="admin-config.js"></script>
     <style>
       /* ── Photo Editor Modal ── */
       #photo-editor-modal {
@@ -722,187 +723,188 @@
         combos: false,
         settings: false,
       };
-      let _tok = ""; // decrypted GitHub token, kept only in memory
+      let _session = { authenticated: false, user: "" };
+      const API_BASE_STORAGE_KEY = "lv-admin-api-base";
 
-      /* ── Crypto helpers ── */
-      const STORAGE_KEY = "lv-admin-encrypted";
-      async function _deriveKey(password, salt) {
-        const km = await crypto.subtle.importKey(
-          "raw",
-          new TextEncoder().encode(password),
-          "PBKDF2",
-          false,
-          ["deriveKey"],
-        );
-        return crypto.subtle.deriveKey(
-          { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
-          km,
-          { name: "AES-GCM", length: 256 },
-          false,
-          ["encrypt", "decrypt"],
-        );
+      function normalizeApiBase(url) {
+        return String(url || "")
+          .trim()
+          .replace(/\/+$/, "");
       }
-      async function encryptToken(token, password) {
-        const salt = crypto.getRandomValues(new Uint8Array(16));
-        const iv = crypto.getRandomValues(new Uint8Array(12));
-        const key = await _deriveKey(password, salt);
-        const ct = await crypto.subtle.encrypt(
-          { name: "AES-GCM", iv },
-          key,
-          new TextEncoder().encode(token),
+
+      function getConfiguredApiBase() {
+        const stored = normalizeApiBase(
+          localStorage.getItem(API_BASE_STORAGE_KEY),
         );
-        const buf = new Uint8Array(16 + 12 + ct.byteLength);
-        buf.set(salt, 0);
-        buf.set(iv, 16);
-        buf.set(new Uint8Array(ct), 28);
-        return btoa(String.fromCharCode(...buf));
+        const configured = normalizeApiBase(window.LV_ADMIN_API_BASE || "");
+        return stored || configured || "";
       }
-      async function decryptToken(encrypted, password) {
-        const buf = Uint8Array.from(atob(encrypted), (c) => c.charCodeAt(0));
-        const key = await _deriveKey(password, buf.slice(0, 16));
-        const pt = await crypto.subtle.decrypt(
-          { name: "AES-GCM", iv: buf.slice(16, 28) },
-          key,
-          buf.slice(28),
-        );
-        return new TextDecoder().decode(pt);
+
+      function saveApiBase(url) {
+        const normalized = normalizeApiBase(url);
+        if (normalized) localStorage.setItem(API_BASE_STORAGE_KEY, normalized);
+        else localStorage.removeItem(API_BASE_STORAGE_KEY);
+        return normalized;
+      }
+
+      function requiresExplicitApiBase() {
+        return location.hostname.endsWith(".github.io");
+      }
+
+      function getApiUrl(path) {
+        const base = getConfiguredApiBase();
+        return base ? base + path : path;
+      }
+
+      async function apiFetch(path, options = {}) {
+        const headers = new Headers(options.headers || {});
+        if (options.body && !headers.has("Content-Type")) {
+          headers.set("Content-Type", "application/json");
+        }
+        if (!headers.has("Accept")) headers.set("Accept", "application/json");
+        const res = await fetch(getApiUrl(path), {
+          ...options,
+          headers,
+          credentials: "include",
+        });
+        const text = await res.text();
+        let data = null;
+        try {
+          data = text ? JSON.parse(text) : null;
+        } catch (e) {
+          data = null;
+        }
+        if (!res.ok) {
+          throw new Error(
+            data?.error ||
+              data?.message ||
+              text ||
+              `La API respondió con ${res.status}`,
+          );
+        }
+        return data;
       }
 
       /* ── Auth UI ── */
       function renderAuthCard() {
         const card = document.getElementById("auth-card");
-        if (localStorage.getItem(STORAGE_KEY)) {
+        const apiBase = getConfiguredApiBase();
+        const requiresBase = requiresExplicitApiBase();
+        if (_session.authenticated) {
           card.innerHTML = `
       <div class="topbar"><div>
         <h2>Administrador</h2>
-        <p class="muted">Ingresa tu contraseña para publicar cambios.</p>
+        <p class="muted">La sesión segura está activa. El GitHub token vive en el servidor, no en este navegador.</p>
+      </div></div>
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;padding:.25rem 0">
+        <p class="muted" style="margin:0">✅ Sesión activa — <strong>${esc(_session.user || "Administrador")}</strong></p>
+        <div class="admin-actions" style="margin:0">
+          <button class="btn-admin" onclick="downloadBackup()">⬇ Respaldo JSON</button>
+          <button class="btn-admin" onclick="logout()">Cerrar sesión</button>
+          <button class="btn-admin" onclick="clearApiBase()">Cambiar endpoint</button>
+        </div>
+      </div>`;
+          return;
+        }
+        card.innerHTML = `
+      <div class="topbar"><div>
+        <h2>Administrador</h2>
+        <p class="muted">Usa tu contraseña para entrar. El endpoint seguro se configura una sola vez por navegador.</p>
       </div></div>
       <label class="admin-label">Contraseña</label>
       <input id="admin-pw" type="password" class="admin-input" placeholder="••••••••" autocomplete="current-password">
+      <label class="admin-label" style="margin-top:.75rem">Admin API URL</label>
+      <input id="admin-api-base" class="admin-input" placeholder="https://tu-admin-api.example.com" value="${esc(apiBase)}" autocomplete="url">
+      <p class="muted small" style="margin-top:.25rem">${
+        requiresBase
+          ? "En GitHub Pages esta URL es obligatoria. No es secreta; solo apunta al servicio seguro."
+          : "Si el API vive en el mismo dominio, puedes dejar este campo vacío."
+      }</p>
       <div class="admin-actions">
         <button class="btn-admin-primary" onclick="loginAdmin()">Entrar</button>
         <button class="btn-admin" onclick="downloadBackup()">⬇ Respaldo JSON</button>
-        <button class="btn-admin" style="color:#e55;margin-left:auto" onclick="resetSetup()">Restablecer</button>
-      </div>`;
-          setTimeout(() => {
-            const pw = document.getElementById("admin-pw");
-            if (pw) {
-              pw.focus();
-              pw.addEventListener("keydown", (e) => {
-                if (e.key === "Enter") loginAdmin();
-              });
-            }
-          }, 50);
-        } else {
-          card.innerHTML = `
-      <div class="topbar"><div>
-        <h2>Configuración inicial</h2>
-        <p class="muted">Configura el panel una sola vez. Después solo necesitarás la contraseña.</p>
-      </div></div>
-      <label class="admin-label">Contraseña de administrador</label>
-      <input id="setup-pw1" type="password" class="admin-input" placeholder="Elige una contraseña">
-      <label class="admin-label" style="margin-top:.75rem">Confirmar contraseña</label>
-      <input id="setup-pw2" type="password" class="admin-input" placeholder="Repite la contraseña">
-      <label class="admin-label" style="margin-top:.75rem">GitHub Token <span class="muted">(solo esta vez)</span></label>
-      <input id="setup-tok" type="password" class="admin-input" placeholder="github_pat_...">
-      <p class="muted small" style="margin-top:.25rem">El token se guarda cifrado en este navegador. No se almacena en el repositorio.</p>
-      <div class="admin-actions">
-        <button class="btn-admin-primary" onclick="setupAdmin()">Configurar</button>
-      </div>`;
+        ${
+          apiBase
+            ? '<button class="btn-admin" style="margin-left:auto" onclick="clearApiBase()">Olvidar endpoint</button>'
+            : ""
         }
+      </div>`;
+        setTimeout(() => {
+          const pw = document.getElementById("admin-pw");
+          if (pw) {
+            pw.focus();
+            pw.addEventListener("keydown", (e) => {
+              if (e.key === "Enter") loginAdmin();
+            });
+          }
+        }, 50);
       }
 
-      async function setupAdmin() {
-        const pw1 = document.getElementById("setup-pw1")?.value;
-        const pw2 = document.getElementById("setup-pw2")?.value;
-        const tok = document.getElementById("setup-tok")?.value.trim();
-        if (!pw1 || pw1.length < 4) {
-          alert("La contraseña debe tener al menos 4 caracteres.");
-          return;
-        }
-        if (pw1 !== pw2) {
-          alert("Las contraseñas no coinciden.");
-          return;
-        }
-        if (!tok) {
-          alert("Ingresa el GitHub Token.");
-          return;
-        }
-        try {
-          localStorage.setItem(STORAGE_KEY, await encryptToken(tok, pw1));
-          await onLoggedIn(tok);
-        } catch (e) {
-          alert("Error al configurar: " + e.message);
+      async function clearApiBase() {
+        if (_session.authenticated) {
+          await logout();
+          localStorage.removeItem(API_BASE_STORAGE_KEY);
+        } else {
+          localStorage.removeItem(API_BASE_STORAGE_KEY);
+          renderAuthCard();
         }
       }
 
       async function loginAdmin() {
         const pw = document.getElementById("admin-pw")?.value;
-        if (!pw) return;
-        const encrypted = localStorage.getItem(STORAGE_KEY);
-        if (!encrypted) {
-          renderAuthCard();
+        const apiInput = document.getElementById("admin-api-base")?.value;
+        if (!pw) {
+          alert("Ingresa la contraseña.");
+          return;
+        }
+        saveApiBase(apiInput);
+        const apiBase = getConfiguredApiBase();
+        if (requiresExplicitApiBase() && !apiBase) {
+          alert("Configura la URL del Admin API antes de entrar.");
           return;
         }
         document.getElementById("status").textContent = "Verificando…";
         try {
-          await onLoggedIn(await decryptToken(encrypted, pw));
-        } catch (e) {
-          document.getElementById("status").textContent =
-            "✗ Contraseña incorrecta";
-          document.getElementById("status").className = "status-badge error";
-          alert("Contraseña incorrecta.");
-        }
-      }
-
-      async function onLoggedIn(tok) {
-        const status = document.getElementById("status");
-        try {
-          const res = await fetch("https://api.github.com/user", {
-            headers: {
-              Authorization: "token " + tok,
-              Accept: "application/vnd.github.v3+json",
-            },
+          const data = await apiFetch("/api/session/login", {
+            method: "POST",
+            body: JSON.stringify({ password: pw }),
           });
-          if (!res.ok) throw new Error("Token inválido");
-          const user = await res.json();
-          _tok = tok;
-          status.textContent = "✓ " + user.login;
-          status.className = "status-badge connected";
-          document.getElementById("publish-btn").disabled = false;
-          document.getElementById("auth-card").innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;padding:.25rem 0">
-        <p class="muted" style="margin:0">✅ Sesión activa — <strong>${esc(user.login)}</strong></p>
-        <div class="admin-actions" style="margin:0">
-          <button class="btn-admin" onclick="downloadBackup()">⬇ Respaldo JSON</button>
-          <button class="btn-admin" onclick="logout()">Cerrar sesión</button>
-        </div>
-      </div>`;
-          await loadAll();
+          await onLoggedIn(data?.user || "Administrador");
         } catch (e) {
-          status.textContent = "✗ " + e.message;
-          status.className = "status-badge error";
-          _tok = "";
+          document.getElementById("status").textContent = "✗ " + e.message;
+          document.getElementById("status").className = "status-badge error";
+          alert("No se pudo iniciar sesión: " + e.message);
         }
       }
 
-      function logout() {
-        _tok = "";
+      async function restoreSession() {
+        if (requiresExplicitApiBase() && !getConfiguredApiBase()) return;
+        try {
+          const data = await apiFetch("/api/session");
+          if (data?.authenticated) {
+            await onLoggedIn(data.user || "Administrador", false);
+          }
+        } catch (e) {}
+      }
+
+      async function onLoggedIn(user, shouldLoad = true) {
+        const status = document.getElementById("status");
+        _session = { authenticated: true, user };
+        status.textContent = "✓ " + user;
+        status.className = "status-badge connected";
+        document.getElementById("publish-btn").disabled = false;
+        renderAuthCard();
+        if (shouldLoad) await loadAll();
+      }
+
+      async function logout() {
+        try {
+          await apiFetch("/api/session/logout", { method: "POST" });
+        } catch (e) {}
+        _session = { authenticated: false, user: "" };
         document.getElementById("status").textContent = "Sin conectar";
         document.getElementById("status").className = "status-badge";
         document.getElementById("publish-btn").disabled = true;
-        renderAuthCard();
-      }
-
-      function resetSetup() {
-        if (
-          !confirm(
-            "¿Eliminar la configuración guardada? Necesitarás ingresar el GitHub Token de nuevo.",
-          )
-        )
-          return;
-        localStorage.removeItem(STORAGE_KEY);
-        _tok = "";
         renderAuthCard();
       }
 
@@ -935,9 +937,6 @@
           .replace(/'/g, "&#39;");
       }
 
-      function getToken() {
-        return _tok;
-      }
       function markDirty(tab) {
         dirty[tab] = true;
         const btn = document.getElementById("tab-" + tab);
@@ -1547,75 +1546,11 @@
         }
       }
 
-      /* ── GitHub file helpers ── */
-      async function getFileSHA(path) {
-        const token = getToken();
-        const [owner, repo] = getOwnerRepo();
-        try {
-          const res = await fetch(
-            `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
-            {
-              headers: {
-                Authorization: "token " + token,
-                Accept: "application/vnd.github.v3+json",
-              },
-            },
-          );
-          if (res.ok) {
-            const d = await res.json();
-            return d.sha;
-          }
-        } catch (e) {}
-        return null;
-      }
-
-      async function putFile(path, content, message) {
-        const token = getToken();
-        const [owner, repo] = getOwnerRepo();
-        const sha = await getFileSHA(path);
-        const body = {
-          message,
-          content: btoa(unescape(encodeURIComponent(content))),
-        };
-        if (sha) body.sha = sha;
-        const res = await fetch(
-          `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
-          {
-            method: "PUT",
-            headers: {
-              Authorization: "token " + token,
-              Accept: "application/vnd.github.v3+json",
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-          },
-        );
-        if (!res.ok) {
-          const e = await res.json();
-          throw new Error(e.message || "Error guardando " + path);
-        }
-        return res.json();
-      }
-
-      function getOwnerRepo() {
-        // GitHub Pages: username.github.io/reponame/...
-        const m = location.hostname.match(/^([^.]+)\.github\.io$/);
-        if (m) {
-          const owner = m[1];
-          const repo =
-            location.pathname.split("/").filter(Boolean)[0] ||
-            "las-veraneras-menu";
-          return [owner, repo];
-        }
-        // Fallback for local dev or custom domains
-        return ["sandgraal", "las-veraneras-menu"];
-      }
-
       /* ── Publish All ── */
       async function publishAll() {
         const btn = document.getElementById("publish-btn");
         const status = document.getElementById("status");
-        if (!getToken()) {
+        if (!_session.authenticated) {
           alert("Inicia sesión primero.");
           return;
         }
@@ -1626,27 +1561,15 @@
         try {
           const cfgToSave = readSettings();
           combosData = readCombos();
-          const ts = new Date().toISOString().slice(0, 16).replace("T", " ");
-          await putFile(
-            "data/menu.json",
-            JSON.stringify(menuData, null, 2),
-            `✏️ Admin: actualizar menú [${ts}]`,
-          );
-          await putFile(
-            "data/specials.json",
-            JSON.stringify(specialsData, null, 2),
-            `✏️ Admin: actualizar especiales [${ts}]`,
-          );
-          await putFile(
-            "data/combos.json",
-            JSON.stringify(combosData, null, 2),
-            `✏️ Admin: actualizar combos [${ts}]`,
-          );
-          await putFile(
-            "data/config.json",
-            JSON.stringify(cfgToSave, null, 2),
-            `✏️ Admin: actualizar configuración [${ts}]`,
-          );
+          await apiFetch("/api/publish", {
+            method: "POST",
+            body: JSON.stringify({
+              menu: menuData,
+              specials: specialsData,
+              combos: combosData,
+              config: cfgToSave,
+            }),
+          });
           localStorage.setItem("lv-last-saved", new Date().toISOString());
           status.textContent = "✓ Publicado";
           status.className = "status-badge connected";
@@ -1700,34 +1623,14 @@
       }
 
       async function uploadImageToGitHub(base64Data, filename) {
-        const token = getToken();
-        if (!token)
+        if (!_session.authenticated) {
           throw new Error("No hay sesión activa. Inicia sesión primero.");
-        const [owner, repo] = getOwnerRepo();
-        const path = "images/" + filename;
-        const sha = await getFileSHA(path);
-        const body = {
-          message: "\u{1F4F7} Admin: subir imagen " + filename,
-          content: base64Data,
-        };
-        if (sha) body.sha = sha;
-        const res = await fetch(
-          `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
-          {
-            method: "PUT",
-            headers: {
-              Authorization: "token " + token,
-              Accept: "application/vnd.github.v3+json",
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(body),
-          },
-        );
-        if (!res.ok) {
-          const e = await res.json();
-          throw new Error(e.message || "Error al subir imagen");
         }
-        return path; // 'images/filename.webp'
+        const data = await apiFetch("/api/images", {
+          method: "POST",
+          body: JSON.stringify({ base64Data, filename }),
+        });
+        return data.path;
       }
 
       /* ── Photo Editor State & Logic (Phase 2) ── */
@@ -1970,35 +1873,15 @@
       async function loadImageLibrary() {
         const grid = document.getElementById("photo-library-grid");
         if (!grid) return;
-        const token = getToken();
-        if (!token) {
+        if (!_session.authenticated) {
           grid.innerHTML =
             '<p class="muted">Inicia sesión para ver las fotos.</p>';
           return;
         }
         grid.innerHTML = '<p class="muted">Cargando\u2026</p>';
-        const [owner, repo] = getOwnerRepo();
         try {
-          const res = await fetch(
-            `https://api.github.com/repos/${owner}/${repo}/contents/images`,
-            {
-              headers: {
-                Authorization: "token " + token,
-                Accept: "application/vnd.github.v3+json",
-              },
-            },
-          );
-          if (!res.ok) {
-            grid.innerHTML =
-              '<p class="muted">No se pudo cargar la biblioteca.</p>';
-            return;
-          }
-          const files = await res.json();
-          const images = Array.isArray(files)
-            ? files.filter((f) =>
-                /\.(jpe?g|png|webp|gif|svg|heic)$/i.test(f.name),
-              )
-            : [];
+          const data = await apiFetch("/api/images");
+          const images = Array.isArray(data?.images) ? data.images : [];
           if (!images.length) {
             grid.innerHTML =
               '<p class="muted">No hay fotos aún. Usa el botón 📷 junto a cualquier plato o especial para subir fotos.</p>';
@@ -2007,12 +1890,13 @@
           grid.innerHTML = images
             .map((f) => {
               const kb = Math.round(f.size / 1024);
+              const thumbUrl = `${f.path}?v=${encodeURIComponent(f.sha.slice(0, 8))}`;
               const rawUrl =
                 f.download_url ||
                 new URL(f.path, location.href).href;
               const cardId = "lib-" + f.sha.slice(0, 8);
               return `<div class="photo-lib-card" id="${esc(cardId)}">
-        <img src="${esc(rawUrl)}" alt="${esc(f.name)}" loading="lazy">
+        <img src="${esc(thumbUrl)}" alt="${esc(f.name)}" loading="lazy">
         <div class="photo-lib-card-body">
           <div class="photo-lib-filename" title="${esc(f.name)}">${esc(f.name)}</div>
           <div class="photo-lib-filename">${kb} KB</div>
@@ -2049,28 +1933,11 @@
           )
         )
           return;
-        const token = getToken();
-        const [owner, repo] = getOwnerRepo();
         try {
-          const res = await fetch(
-            `https://api.github.com/repos/${owner}/${repo}/contents/${path}`,
-            {
-              method: "DELETE",
-              headers: {
-                Authorization: "token " + token,
-                Accept: "application/vnd.github.v3+json",
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                message: "\u{1F5D1}\uFE0F Admin: eliminar imagen " + path,
-                sha,
-              }),
-            },
-          );
-          if (!res.ok) {
-            const e = await res.json();
-            throw new Error(e.message || "Error al eliminar");
-          }
+          await apiFetch("/api/images", {
+            method: "DELETE",
+            body: JSON.stringify({ path, sha }),
+          });
           document.getElementById(cardId)?.remove();
         } catch (e) {
           alert("Error al eliminar: " + e.message);
@@ -2082,6 +1949,7 @@
         renderAuthCard();
         peSetupDragDrop();
         await loadAll(); // read-only pre-load so data shows in preview tab
+        await restoreSession();
       })();
     </script>
   </body>
