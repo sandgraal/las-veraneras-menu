@@ -1,0 +1,13 @@
+{
+  "name": "las-veraneras-admin-api",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "hash:password": "node hash-password.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

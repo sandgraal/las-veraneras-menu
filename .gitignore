@@ -1,0 +1,5 @@
+.DS_Store
+node_modules/
+admin-api/node_modules/
+.env
+admin-api/.env
