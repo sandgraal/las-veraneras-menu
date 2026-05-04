@@ -6,5 +6,8 @@
   "scripts": {
     "start": "node server.js",
     "hash:password": "node hash-password.js"
+  },
+  "engines": {
+    "node": ">=18"
   }
 }
