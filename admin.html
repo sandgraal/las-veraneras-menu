@@ -691,6 +691,7 @@
               id="pe-apply-btn"
               class="btn-admin-primary"
               type="button"
+              data-default-label="✅ Aplicar y Subir"
               onclick="applyAndUpload()"
             >
               ✅ Aplicar y Subir
@@ -1736,6 +1737,14 @@
         peScaleY = 1;
       let _peReturnFocus = null;
 
+      function resetPhotoEditorApplyButton(btn) {
+        const applyBtn = btn || document.getElementById("pe-apply-btn");
+        if (!applyBtn) return;
+        applyBtn.disabled = false;
+        applyBtn.textContent =
+          applyBtn.dataset.defaultLabel || applyBtn.textContent;
+      }
+
       function openPhotoEditor(context) {
         peContext = context;
         peScaleX = 1;
@@ -1748,6 +1757,7 @@
         document.getElementById("pe-brightness").value = 0;
         document.getElementById("pe-contrast").value = 0;
         document.getElementById("pe-file-input").value = "";
+        resetPhotoEditorApplyButton();
         if (peCropper) {
           peCropper.destroy();
           peCropper = null;
@@ -1882,8 +1892,7 @@
             loadImageLibrary();
         } catch (e) {
           alert("Error al subir: " + e.message);
-          btn.disabled = false;
-          btn.textContent = "\u2705 Aplicar y Subir";
+          resetPhotoEditorApplyButton(btn);
         }
       }
 
@@ -1998,7 +2007,9 @@
           grid.innerHTML = images
             .map((f) => {
               const kb = Math.round(f.size / 1024);
-              const rawUrl = `https://raw.githubusercontent.com/${owner}/${repo}/main/images/${encodeURIComponent(f.name)}`;
+              const rawUrl =
+                f.download_url ||
+                new URL(f.path, location.href).href;
               const cardId = "lib-" + f.sha.slice(0, 8);
               return `<div class="photo-lib-card" id="${esc(cardId)}">
         <img src="${esc(rawUrl)}" alt="${esc(f.name)}" loading="lazy">
