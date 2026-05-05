@@ -34,6 +34,16 @@ function loadEnvFile(filePath) {
   }
 }
 
+function normalizeOriginValue(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  try {
+    return new URL(raw).origin;
+  } catch {
+    return raw.replace(/\/+$/, "");
+  }
+}
+
 function config() {
   return {
     password: process.env.LV_ADMIN_PASSWORD || "",
@@ -42,7 +52,7 @@ function config() {
     sessionTtlHours: Number(process.env.LV_ADMIN_SESSION_TTL_HOURS || 12),
     allowedOrigins: String(process.env.LV_ADMIN_ALLOWED_ORIGIN || "")
       .split(",")
-      .map((s) => s.trim())
+      .map((s) => normalizeOriginValue(s))
       .filter(Boolean),
     githubToken: process.env.LV_GITHUB_TOKEN || "",
     owner: process.env.LV_GITHUB_OWNER || "",
@@ -183,9 +193,11 @@ function getSession(req) {
 
 function isOriginAllowed(origin) {
   const cfg = config();
-  if (!origin) return true;
+  const normalizedOrigin = normalizeOriginValue(origin);
+  if (!normalizedOrigin) return true;
   if (!cfg.allowedOrigins.length) return false;
-  return cfg.allowedOrigins.includes(origin);
+  if (cfg.allowedOrigins.includes("*")) return true;
+  return cfg.allowedOrigins.includes(normalizedOrigin);
 }
 
 function applyCors(res, req) {
