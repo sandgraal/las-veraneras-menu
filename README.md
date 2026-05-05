@@ -26,9 +26,10 @@ The backend lives in `admin-api/`.
 
 1. Fill in the root `.env` placeholders or create `admin-api/.env`
 2. Start the API from `admin-api/`
-3. Point the admin page to that API using either:
-   - the one-time `Admin API URL` field on the login screen, or
+3. Prefer preconfiguring the API for the admin page using either:
+   - a same-origin deployment/proxy, or
    - `admin-config.js` for a deployed environment
+4. The login screen will auto-detect the secure admin service when possible; the `Admin API URL` field is now just a fallback if detection fails
 
 ### Important
 

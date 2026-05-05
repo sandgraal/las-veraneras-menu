@@ -64,3 +64,5 @@ Important bits:
 - set `LV_ADMIN_ALLOWED_ORIGIN` to the exact public admin origin
 - keep `LV_GITHUB_TOKEN` and `LV_ADMIN_SESSION_SECRET` only on the server
 - when the admin site is on HTTPS and the API is on another origin, the cookie is sent as `SameSite=None; Secure`
+- for the smoothest owner experience, preconfigure the admin page with `window.LV_ADMIN_API_BASE` or `window.LV_ADMIN_API_CANDIDATES` in `admin-config.js` so the owner rarely needs to type the API URL manually
+- the admin login will probe `/api/health` on likely candidates automatically; keep that route reachable from the public admin origin
