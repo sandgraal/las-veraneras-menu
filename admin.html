@@ -823,8 +823,8 @@
         return location.hostname.endsWith(".github.io");
       }
 
-      function getApiUrl(path) {
-        const base = getConfiguredApiBase();
+      function getApiUrl(path, apiBase = getConfiguredApiBase()) {
+        const base = normalizeApiBase(apiBase);
         return base ? base + path : path;
       }
 
@@ -1029,15 +1029,16 @@
       }
 
       async function apiFetch(path, options = {}) {
-        const headers = new Headers(options.headers || {});
-        if (options.body && !headers.has("Content-Type")) {
+        const { apiBase = getConfiguredApiBase(), ...fetchOptions } = options;
+        const headers = new Headers(fetchOptions.headers || {});
+        if (fetchOptions.body && !headers.has("Content-Type")) {
           headers.set("Content-Type", "application/json");
         }
         if (!headers.has("Accept")) headers.set("Accept", "application/json");
         let res;
         try {
-          res = await fetch(getApiUrl(path), {
-            ...options,
+          res = await fetch(getApiUrl(path, apiBase), {
+            ...fetchOptions,
             headers,
             credentials: "include",
           });
@@ -1143,7 +1144,11 @@
       }
 
       async function clearApiBase() {
-        localStorage.removeItem(API_BASE_STORAGE_KEY);
+        const previousApiBase = getConfiguredApiBase();
+        if (_session.authenticated) {
+          await logout({ apiBase: previousApiBase, render: false });
+        }
+        saveApiBase("");
         _apiDiscovery = {
           ..._apiDiscovery,
           base: "",
@@ -1153,8 +1158,7 @@
             : `Usaremos ${formatApiBaseLabel("")}`,
         };
         _showAdvancedEndpoint = requiresExplicitApiBase();
-        if (_session.authenticated) await logout();
-        else renderAuthCard();
+        renderAuthCard();
       }
 
       async function loginAdmin() {
@@ -1210,15 +1214,15 @@
         if (shouldLoad) await loadAll();
       }
 
-      async function logout() {
+      async function logout({ apiBase, render = true } = {}) {
         try {
-          await apiFetch("/api/session/logout", { method: "POST" });
+          await apiFetch("/api/session/logout", { method: "POST", apiBase });
         } catch (e) {}
         _session = { authenticated: false, user: "" };
         document.getElementById("status").textContent = "Sin conectar";
         document.getElementById("status").className = "status-badge";
         document.getElementById("publish-btn").disabled = true;
-        renderAuthCard();
+        if (render) renderAuthCard();
       }
 
       const ALLERGENS = [
@@ -2449,6 +2453,8 @@
       }
 
       function clearDraft() {
+        clearTimeout(_draftTimer);
+        _draftTimer = null;
         localStorage.removeItem(DRAFT_KEY);
       }
 
