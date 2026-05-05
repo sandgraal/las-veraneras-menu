@@ -592,44 +592,50 @@ const server = http.createServer(async (req, res) => {
         "data/combos.json",
         "data/config.json",
       ];
-      // Fetch each file at the given commit, then republish
+      // Fetch all required files at the given commit and only republish if all exist
       const restored = {};
+      const missingFiles = [];
       await Promise.all(
         DATA_FILES.map(async (f) => {
           try {
             const fileData = await githubFetch(
               `/repos/${cfg.owner}/${cfg.repo}/contents/${encodeGitHubPath(f)}?ref=${encodeURIComponent(sha)}`,
             );
-            if (fileData?.content) {
-              const content = Buffer.from(
-                fileData.content.replace(/\s/g, ""),
-                "base64",
-              ).toString("utf8");
-              restored[f] = content;
+            if (!fileData?.content) {
+              missingFiles.push(f);
+              return;
             }
+            const content = Buffer.from(
+              fileData.content.replace(/\s/g, ""),
+              "base64",
+            ).toString("utf8");
+            restored[f] = content;
           } catch (e) {
-            // File may not exist at that commit — skip
+            missingFiles.push(f);
           }
         }),
       );
-      if (!Object.keys(restored).length) {
+      if (missingFiles.length) {
         return sendJson(res, req, 404, {
-          error: "No se encontraron archivos de datos en ese commit.",
+          error:
+            "El commit no contiene todos los archivos de datos requeridos para un rollback consistente.",
+          missingFiles,
+          fromSha: sha,
         });
       }
       const ts = new Date().toISOString().slice(0, 16).replace("T", " ");
       await Promise.all(
-        Object.entries(restored).map(([f, content]) =>
+        DATA_FILES.map((f) =>
           putTextFile(
             f,
-            content,
+            restored[f],
             `⏪ Admin API: rollback a ${sha.slice(0, 7)} [${ts}]`,
           ),
         ),
       );
       return sendJson(res, req, 200, {
         ok: true,
-        restoredFiles: Object.keys(restored),
+        restoredFiles: DATA_FILES,
         fromSha: sha,
       });
     }
