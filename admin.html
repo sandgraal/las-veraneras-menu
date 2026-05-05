@@ -1749,11 +1749,31 @@
         renderCategories();
       }
 
+      function getUniqueDuplicatedItemId(baseId) {
+        const existingIds = new Set();
+        (menuData.categories || []).forEach((category) => {
+          (category.items || []).forEach((item) => {
+            if (item?.id) existingIds.add(item.id);
+          });
+        });
+
+        const root = (baseId || "item") + "-copia";
+        if (!existingIds.has(root)) return root;
+
+        let counter = 2;
+        let candidate = root + "-" + counter;
+        while (existingIds.has(candidate)) {
+          counter += 1;
+          candidate = root + "-" + counter;
+        }
+        return candidate;
+      }
+
       function duplicateItem(ci, ii) {
         const orig = menuData.categories[ci]?.items?.[ii];
         if (!orig) return;
         const copy = JSON.parse(JSON.stringify(orig));
-        copy.id = (orig.id || "item") + "-copia";
+        copy.id = getUniqueDuplicatedItemId(orig.id);
         if (copy.name) copy.name.es = (copy.name.es || "") + " (copia)";
         menuData.categories[ci].items.splice(ii + 1, 0, copy);
         markDirty("menu");
