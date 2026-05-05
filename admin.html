@@ -230,10 +230,20 @@
 
       <!-- TAB: Menu -->
       <div class="tab-panel active" id="panel-menu">
-        <div class="admin-actions" style="margin-bottom: 1rem">
+        <div
+          class="admin-actions"
+          style="margin-bottom: 1rem; flex-wrap: wrap; gap: 0.5rem"
+        >
           <button class="btn-admin-primary" onclick="addCategory()">
             ＋ Categoría
           </button>
+          <input
+            id="menu-search"
+            class="admin-input"
+            style="max-width: 220px"
+            placeholder="🔍 Buscar plato…"
+            oninput="filterMenu(this.value)"
+          />
         </div>
         <div id="categories-container"></div>
       </div>
@@ -250,25 +260,12 @@
 
       <!-- TAB: Combos -->
       <div class="tab-panel" id="panel-combos">
-        <div class="admin-card">
-          <h2>Combos del sitio</h2>
-          <p class="muted" style="margin-bottom: 0.75rem">
-            Edita el JSON de combos. Los IDs en <code>items</code> deben existir
-            en el menú.
-          </p>
-          <textarea
-            id="combos-json"
-            class="admin-textarea"
-            rows="16"
-            oninput="markDirty('combos')"
-            spellcheck="false"
-          ></textarea>
-          <div class="admin-actions">
-            <button class="btn-admin" onclick="formatCombosJson()">
-              Formatear JSON
-            </button>
-          </div>
+        <div class="admin-actions" style="margin-bottom: 1rem">
+          <button class="btn-admin-primary" onclick="addCombo()">
+            ＋ Nuevo combo
+          </button>
         </div>
+        <div id="combos-container"></div>
       </div>
 
       <!-- TAB: Settings -->
@@ -485,6 +482,69 @@
             placeholder="https://tiktok.com/..."
             oninput="markDirty('settings')"
           />
+        </div>
+
+        <!-- Safety & Recovery -->
+        <div class="admin-card" id="recovery-card">
+          <h2>🛡️ Seguridad y Recuperación</h2>
+          <p class="muted" style="margin-bottom: 1rem">
+            Descarga respaldos o restaura una versión anterior del menú.
+          </p>
+
+          <div
+            class="admin-actions"
+            style="flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem"
+          >
+            <button class="btn-admin" onclick="downloadBackup()">
+              ⬇ Descargar respaldo
+            </button>
+            <label class="btn-admin" style="cursor: pointer; margin: 0">
+              ⬆ Restaurar respaldo
+              <input
+                type="file"
+                accept=".json"
+                style="display: none"
+                onchange="restoreFromBackupFile(this)"
+              />
+            </label>
+            <button
+              class="btn-admin"
+              onclick="
+                if (confirm('¿Borrar el borrador guardado localmente?')) {
+                  clearDraft();
+                  alert('Borrador eliminado.');
+                }
+              "
+            >
+              🗑 Borrar borrador
+            </button>
+          </div>
+
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              justify-content: space-between;
+              flex-wrap: wrap;
+              gap: 0.5rem;
+              margin-bottom: 0.75rem;
+            "
+          >
+            <strong>Historial de publicaciones</strong>
+            <button
+              class="btn-admin"
+              onclick="loadPublishHistory()"
+              id="history-reload-btn"
+            >
+              🔄 Cargar historial
+            </button>
+          </div>
+          <div id="history-container">
+            <p class="muted small">
+              Haz clic en "Cargar historial" para ver las últimas versiones
+              publicadas.
+            </p>
+          </div>
         </div>
       </div>
 
@@ -725,6 +785,18 @@
       };
       let _session = { authenticated: false, user: "" };
       const API_BASE_STORAGE_KEY = "lv-admin-api-base";
+      const API_DISCOVERY_TIMEOUT_MS = 2200;
+      let _showAdvancedEndpoint = false;
+      let _apiDiscovery = {
+        state: "idle",
+        checking: false,
+        base: "",
+        message: "Buscando el servicio seguro…",
+        service: "",
+        repo: "",
+        branch: "",
+      };
+      let _apiDiscoveryPromise = null;
 
       function normalizeApiBase(url) {
         return String(url || "")
@@ -756,17 +828,222 @@
         return base ? base + path : path;
       }
 
+      function canProbeSameOriginApi() {
+        return (
+          !requiresExplicitApiBase() && /^https?:$/i.test(location.protocol)
+        );
+      }
+
+      function formatApiBaseLabel(base) {
+        if (base) return base;
+        return canProbeSameOriginApi()
+          ? location.origin || "este mismo sitio"
+          : "el mismo dominio";
+      }
+
+      function getApiCandidates() {
+        const seen = new Set();
+        const candidates = [];
+        const addCandidate = (base, label, source) => {
+          const normalized = normalizeApiBase(base);
+          const key = normalized || "__same-origin__";
+          if (seen.has(key)) return;
+          seen.add(key);
+          candidates.push({ base: normalized, label, source });
+        };
+
+        const stored = normalizeApiBase(
+          localStorage.getItem(API_BASE_STORAGE_KEY) || "",
+        );
+        const configured = normalizeApiBase(window.LV_ADMIN_API_BASE || "");
+        const configuredCandidates = Array.isArray(
+          window.LV_ADMIN_API_CANDIDATES,
+        )
+          ? window.LV_ADMIN_API_CANDIDATES
+          : [];
+
+        if (stored) addCandidate(stored, stored, "saved");
+        if (configured) addCandidate(configured, configured, "configured");
+        if (canProbeSameOriginApi()) {
+          addCandidate(
+            "",
+            location.origin || "este mismo sitio",
+            "same-origin",
+          );
+        }
+        configuredCandidates.forEach((candidate) => {
+          const normalized = normalizeApiBase(candidate);
+          if (normalized) addCandidate(normalized, normalized, "candidate");
+        });
+        if (
+          location.hostname === "localhost" ||
+          location.hostname === "127.0.0.1" ||
+          location.protocol === "file:"
+        ) {
+          addCandidate(
+            "http://localhost:8787",
+            "http://localhost:8787",
+            "localhost",
+          );
+        }
+        return candidates;
+      }
+
+      async function pingApiBase(base) {
+        const controller =
+          typeof AbortController !== "undefined" ? new AbortController() : null;
+        const timeoutId = controller
+          ? setTimeout(() => controller.abort(), API_DISCOVERY_TIMEOUT_MS)
+          : null;
+        try {
+          const target = base ? `${base}/api/health` : "/api/health";
+          const res = await fetch(target, {
+            headers: { Accept: "application/json" },
+            credentials: "omit",
+            signal: controller?.signal,
+          });
+          const data = await res.json().catch(() => ({}));
+          if (!res.ok || !data?.ok) {
+            throw new Error(
+              data?.error || `La API respondió con ${res.status}`,
+            );
+          }
+          return data;
+        } finally {
+          if (timeoutId) clearTimeout(timeoutId);
+        }
+      }
+
+      function buildApiDiscoveryMessage(base, health) {
+        const repo = health?.repo ? ` · ${health.repo}` : "";
+        const branch = health?.branch ? ` (${health.branch})` : "";
+        return `Servicio seguro listo en ${formatApiBaseLabel(base)}${repo}${branch}`;
+      }
+
+      async function discoverApiBase({ force = false } = {}) {
+        if (_apiDiscoveryPromise && !force) return _apiDiscoveryPromise;
+        const autoDetectEnabled = window.LV_ADMIN_API_AUTO_DETECT !== false;
+        if (!autoDetectEnabled && !force) {
+          const existing = getConfiguredApiBase();
+          _apiDiscovery = {
+            ..._apiDiscovery,
+            state: existing || !requiresExplicitApiBase() ? "ready" : "idle",
+            checking: false,
+            base: existing,
+            message: existing
+              ? `Usando ${formatApiBaseLabel(existing)}`
+              : "La detección automática está desactivada.",
+          };
+          renderAuthCard();
+          return {
+            ok: Boolean(existing || !requiresExplicitApiBase()),
+            base: existing,
+          };
+        }
+        _apiDiscoveryPromise = (async () => {
+          const candidates = getApiCandidates();
+          _apiDiscovery = {
+            ..._apiDiscovery,
+            checking: true,
+            state: "searching",
+            message: "Buscando el servicio seguro…",
+          };
+          renderAuthCard();
+
+          let lastError = null;
+          for (const candidate of candidates) {
+            try {
+              const health = await pingApiBase(candidate.base);
+              saveApiBase(candidate.base);
+              _apiDiscovery = {
+                state: "ready",
+                checking: false,
+                base: candidate.base,
+                message: buildApiDiscoveryMessage(candidate.base, health),
+                service: health?.service || "",
+                repo: health?.repo || "",
+                branch: health?.branch || "",
+              };
+              _showAdvancedEndpoint = false;
+              renderAuthCard();
+              return { ok: true, base: candidate.base, health };
+            } catch (error) {
+              lastError = error;
+            }
+          }
+
+          const existing = getConfiguredApiBase();
+          const canUseSameOrigin = canProbeSameOriginApi() && !existing;
+          _apiDiscovery = {
+            state: "error",
+            checking: false,
+            base: existing,
+            message: lastError?.name === "AbortError"
+              ? "No encontramos el servicio seguro todavía. Revisa que el Admin API esté encendido."
+              : canUseSameOrigin
+                ? "No pudimos verificar el servicio seguro en este sitio automáticamente. Puedes pegar la URL una sola vez."
+                : "No pudimos detectar el servicio seguro automáticamente. Puedes pegar la URL una sola vez.",
+            service: "",
+            repo: "",
+            branch: "",
+          };
+          _showAdvancedEndpoint = true;
+          renderAuthCard();
+          return { ok: false, base: existing, error: lastError };
+        })().finally(() => {
+          _apiDiscoveryPromise = null;
+        });
+        return _apiDiscoveryPromise;
+      }
+
+      async function ensureApiBase(options = {}) {
+        const existing = getConfiguredApiBase();
+        if (options.force || window.LV_ADMIN_API_AUTO_DETECT !== false) {
+          return discoverApiBase({ force: Boolean(options.force) });
+        }
+        if (existing || !requiresExplicitApiBase()) {
+          return { ok: true, base: existing };
+        }
+        return { ok: false, base: existing };
+      }
+
+      function getApiConnectionHint() {
+        if (_apiDiscovery.checking) return "Detectando el servicio seguro…";
+        return (
+          _apiDiscovery.message ||
+          "Necesitamos encontrar el servicio seguro del admin."
+        );
+      }
+
+      function toggleEndpointEditor(show = true) {
+        _showAdvancedEndpoint = Boolean(show);
+        renderAuthCard();
+      }
+
+      function describeApiFetchFailure(error) {
+        const target = formatApiBaseLabel(getConfiguredApiBase());
+        if (error?.name === "AbortError") {
+          return `El servicio seguro en ${target} tardó demasiado en responder.`;
+        }
+        return `No se pudo conectar con el servicio seguro en ${target}. Revisa la URL o que el Admin API esté activo.`;
+      }
+
       async function apiFetch(path, options = {}) {
         const headers = new Headers(options.headers || {});
         if (options.body && !headers.has("Content-Type")) {
           headers.set("Content-Type", "application/json");
         }
         if (!headers.has("Accept")) headers.set("Accept", "application/json");
-        const res = await fetch(getApiUrl(path), {
-          ...options,
-          headers,
-          credentials: "include",
-        });
+        let res;
+        try {
+          res = await fetch(getApiUrl(path), {
+            ...options,
+            headers,
+            credentials: "include",
+          });
+        } catch (error) {
+          throw new Error(describeApiFetchFailure(error));
+        }
         const text = await res.text();
         let data = null;
         try {
@@ -790,45 +1067,70 @@
         const card = document.getElementById("auth-card");
         const apiBase = getConfiguredApiBase();
         const requiresBase = requiresExplicitApiBase();
+        const showApiInput =
+          _showAdvancedEndpoint ||
+          (!apiBase && (requiresBase || _apiDiscovery.state === "error"));
+        const detectionHint = getApiConnectionHint();
+        const endpointSummary = apiBase
+          ? `Servicio detectado: ${formatApiBaseLabel(apiBase)}`
+          : requiresBase || !canProbeSameOriginApi()
+            ? "Aún no encontramos el servicio seguro."
+            : `Usaremos ${formatApiBaseLabel("")}`;
         if (_session.authenticated) {
           card.innerHTML = `
-      <div class="topbar"><div>
-        <h2>Administrador</h2>
-        <p class="muted">La sesión segura está activa. El GitHub token vive en el servidor, no en este navegador.</p>
-      </div></div>
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;padding:.25rem 0">
-        <p class="muted" style="margin:0">✅ Sesión activa — <strong>${esc(_session.user || "Administrador")}</strong></p>
-        <div class="admin-actions" style="margin:0">
-          <button class="btn-admin" onclick="downloadBackup()">⬇ Respaldo JSON</button>
-          <button class="btn-admin" onclick="logout()">Cerrar sesión</button>
-          <button class="btn-admin" onclick="clearApiBase()">Cambiar endpoint</button>
-        </div>
-      </div>`;
+            <div class="topbar"><div>
+              <h2>Administrador</h2>
+              <p class="muted">La sesión segura está activa. El GitHub token vive en el servidor, no en este navegador.</p>
+            </div></div>
+            <p class="muted small" style="margin:.25rem 0 .75rem">🔐 ${esc(detectionHint)}</p>
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:.5rem;padding:.25rem 0">
+              <p class="muted" style="margin:0">✅ Sesión activa — <strong>${esc(_session.user || "Administrador")}</strong></p>
+              <div class="admin-actions" style="margin:0">
+                <button class="btn-admin" onclick="downloadBackup()">⬇ Respaldo JSON</button>
+                <button class="btn-admin" onclick="showTab('settings');setTimeout(()=>document.getElementById('recovery-card')?.scrollIntoView({behavior:'smooth'}),120)">🛡️ Recuperación</button>
+                <button class="btn-admin" onclick="logout()">Cerrar sesión</button>
+                <button class="btn-admin" onclick="clearApiBase()">Cambiar endpoint</button>
+              </div>
+            </div>`;
           return;
         }
         card.innerHTML = `
-      <div class="topbar"><div>
-        <h2>Administrador</h2>
-        <p class="muted">Usa tu contraseña para entrar. El endpoint seguro se configura una sola vez por navegador.</p>
-      </div></div>
-      <label class="admin-label">Contraseña</label>
-      <input id="admin-pw" type="password" class="admin-input" placeholder="••••••••" autocomplete="current-password">
-      <label class="admin-label" style="margin-top:.75rem">Admin API URL</label>
-      <input id="admin-api-base" class="admin-input" placeholder="https://tu-admin-api.example.com" value="${esc(apiBase)}" autocomplete="url">
-      <p class="muted small" style="margin-top:.25rem">${
-        requiresBase
-          ? "En GitHub Pages esta URL es obligatoria. No es secreta; solo apunta al servicio seguro."
-          : "Si el API vive en el mismo dominio, puedes dejar este campo vacío."
-      }</p>
-      <div class="admin-actions">
-        <button class="btn-admin-primary" onclick="loginAdmin()">Entrar</button>
-        <button class="btn-admin" onclick="downloadBackup()">⬇ Respaldo JSON</button>
-        ${
-          apiBase
-            ? '<button class="btn-admin" style="margin-left:auto" onclick="clearApiBase()">Olvidar endpoint</button>'
-            : ""
-        }
-      </div>`;
+            <div class="topbar"><div>
+              <h2>Administrador</h2>
+              <p class="muted">Usa tu contraseña para entrar. Normalmente detectamos el servicio seguro automáticamente.</p>
+            </div></div>
+            <div style="padding:.85rem 1rem;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.03);margin-bottom:.85rem">
+              <strong style="display:block;margin-bottom:.25rem">${esc(endpointSummary)}</strong>
+              <p class="muted small" style="margin:0">${esc(detectionHint)}</p>
+            </div>
+            <label class="admin-label">Contraseña</label>
+            <input id="admin-pw" type="password" class="admin-input" placeholder="••••••••" autocomplete="current-password">
+            ${
+              showApiInput
+                ? `<label class="admin-label" style="margin-top:.75rem">Admin API URL (avanzado)</label>
+            <input id="admin-api-base" class="admin-input" placeholder="https://tu-admin-api.example.com" value="${esc(apiBase)}" autocomplete="url">
+            <p class="muted small" style="margin-top:.25rem">${
+              requiresBase
+                ? "Solo úsalo si la detección automática falló. La URL no es secreta; solo apunta al servicio seguro."
+                : "En entornos locales puedes dejarlo vacío si el API vive en este mismo sitio."
+            }</p>`
+                : ""
+            }
+            <div class="admin-actions">
+              <button class="btn-admin-primary" onclick="loginAdmin()">Entrar</button>
+              <button class="btn-admin" onclick="downloadBackup()">⬇ Respaldo JSON</button>
+              <button class="btn-admin" onclick="discoverApiBase({ force: true })">Detectar servicio</button>
+              ${
+                showApiInput
+                  ? '<button class="btn-admin" onclick="toggleEndpointEditor(false)">Ocultar URL</button>'
+                  : '<button class="btn-admin" onclick="toggleEndpointEditor(true)">Usar otra URL</button>'
+              }
+              ${
+                apiBase
+                  ? '<button class="btn-admin" style="margin-left:auto" onclick="clearApiBase()">Olvidar endpoint</button>'
+                  : ""
+              }
+            </div>`;
         setTimeout(() => {
           const pw = document.getElementById("admin-pw");
           if (pw) {
@@ -841,13 +1143,18 @@
       }
 
       async function clearApiBase() {
-        if (_session.authenticated) {
-          await logout();
-          localStorage.removeItem(API_BASE_STORAGE_KEY);
-        } else {
-          localStorage.removeItem(API_BASE_STORAGE_KEY);
-          renderAuthCard();
-        }
+        localStorage.removeItem(API_BASE_STORAGE_KEY);
+        _apiDiscovery = {
+          ..._apiDiscovery,
+          base: "",
+          state: requiresExplicitApiBase() ? "idle" : "ready",
+          message: requiresExplicitApiBase()
+            ? "Necesitamos encontrar el servicio seguro."
+            : `Usaremos ${formatApiBaseLabel("")}`,
+        };
+        _showAdvancedEndpoint = requiresExplicitApiBase();
+        if (_session.authenticated) await logout();
+        else renderAuthCard();
       }
 
       async function loginAdmin() {
@@ -857,10 +1164,15 @@
           alert("Ingresa la contraseña.");
           return;
         }
-        saveApiBase(apiInput);
+        if (typeof apiInput === "string") saveApiBase(apiInput);
+        await ensureApiBase({ force: typeof apiInput === "string" });
         const apiBase = getConfiguredApiBase();
         if (requiresExplicitApiBase() && !apiBase) {
-          alert("Configura la URL del Admin API antes de entrar.");
+          _showAdvancedEndpoint = true;
+          renderAuthCard();
+          alert(
+            "No encontramos el Admin API. Usa “Detectar servicio” o pega la URL una sola vez.",
+          );
           return;
         }
         document.getElementById("status").textContent = "Verificando…";
@@ -878,6 +1190,7 @@
       }
 
       async function restoreSession() {
+        await ensureApiBase();
         if (requiresExplicitApiBase() && !getConfiguredApiBase()) return;
         try {
           const data = await apiFetch("/api/session");
@@ -942,6 +1255,7 @@
         const btn = document.getElementById("tab-" + tab);
         if (btn) btn.classList.add("dirty");
         document.getElementById("publish-btn").disabled = false;
+        scheduleDraftSave();
       }
       function clearDirty(tab) {
         dirty[tab] = false;
@@ -958,6 +1272,10 @@
           loadCombosData(),
         ]);
         updateStats();
+        // Offer to restore unsaved draft after a real publish-authenticated load
+        if (_session.authenticated) {
+          loadDraftIfNewer();
+        }
       }
 
       async function loadMenu() {
@@ -1066,10 +1384,10 @@
         if (ha) {
           ha.innerHTML = DAYS.map(
             (day) => `
-      <div>
-        <label class="admin-label">${day}</label>
-        <input id="hr-${day}" class="admin-input" value="${(s.hours || {})[day] || ""}" placeholder="11:00–21:00" oninput="markDirty('settings')">
-      </div>`,
+            <div>
+              <label class="admin-label">${day}</label>
+              <input id="hr-${day}" class="admin-input" value="${(s.hours || {})[day] || ""}" placeholder="11:00–21:00" oninput="markDirty('settings')">
+            </div>`,
           ).join("");
         }
       }
@@ -1082,7 +1400,12 @@
           return u.protocol === "https:" || u.protocol === "http:" ? url : "";
         } catch (e) {
           // Allow relative repo image paths only (must have a valid image extension)
-          if (/^images\/[a-zA-Z0-9_\-.]+\.(jpe?g|png|webp|gif|svg|heic)$/i.test(url)) return url;
+          if (
+            /^images\/[a-zA-Z0-9_\-.]+\.(jpe?g|png|webp|gif|svg|heic)$/i.test(
+              url,
+            )
+          )
+            return url;
           return "";
         }
       }
@@ -1142,33 +1465,36 @@
         root.innerHTML = (menuData.categories || [])
           .map(
             (cat, ci) => `
-    <div class="category-block" id="cat-block-${ci}">
-      <div class="cat-header" onclick="toggleCat(${ci})">
-        <span style="font-size:1.3rem">${esc(cat.emoji || "🍴")}</span>
-        <span class="cat-name">${esc(cat.name?.es || "Categoría")}</span>
-        <span class="muted small">${(cat.items || []).length} platos</span>
-        <button class="cat-toggle" id="cat-toggle-${ci}">▼</button>
-        <button class="btn-danger" onclick="event.stopPropagation();removeCategory(${ci})">✕</button>
-      </div>
-      <div class="cat-body" id="cat-body-${ci}">
-        <div class="item-row-2" style="margin-bottom:1rem">
-          <div>
-            <label class="admin-label" style="margin-top:0">Nombre ES</label>
-            <input class="admin-input" value="${esc(cat.name?.es || "")}" oninput="menuData.categories[${ci}].name.es=this.value;markDirty('menu')">
-          </div>
-          <div>
-            <label class="admin-label" style="margin-top:0">Nombre EN</label>
-            <input class="admin-input" value="${esc(cat.name?.en || "")}" oninput="menuData.categories[${ci}].name.en=this.value;markDirty('menu')">
-          </div>
-        </div>
-        <label class="admin-label" style="margin-top:0">Nombre FR</label>
-        <input class="admin-input" value="${esc(cat.name?.fr || "")}" oninput="menuData.categories[${ci}].name.fr=this.value;markDirty('menu')">
-        <label class="admin-label" style="margin-top:0">Emoji</label>
-        <input class="admin-input" value="${esc(cat.emoji || "")}" style="width:80px" oninput="menuData.categories[${ci}].emoji=this.value;markDirty('menu')">
-        <div style="margin:1rem 0">${(cat.items || []).map((_, ii) => itemEditor(ci, ii)).join("")}</div>
-        <button class="btn-admin-primary" onclick="addItem(${ci})">＋ Agregar plato</button>
-      </div>
-    </div>`,
+          <div class="category-block" id="cat-block-${ci}">
+            <div class="cat-header" onclick="toggleCat(${ci})">
+              <span style="font-size:1.3rem">${esc(cat.emoji || "\ud83c\udf74")}</span>
+              <span class="cat-name">${esc(cat.name?.es || "Categor\u00eda")}</span>
+              <span class="muted small">${(cat.items || []).length} platos</span>
+              <button class="cat-toggle" id="cat-toggle-${ci}">\u25bc</button>
+              <button class="btn-admin" style="padding:.15rem .45rem;font-size:.75rem" onclick="event.stopPropagation();moveCategory(${ci},-1)" title="Subir categor\u00eda" ${ci === 0 ? "disabled" : ""}>\u25b2</button>
+              <button class="btn-admin" style="padding:.15rem .45rem;font-size:.75rem" onclick="event.stopPropagation();moveCategory(${ci},1)" title="Bajar categor\u00eda" ${ci === (menuData.categories || []).length - 1 ? "disabled" : ""}>\u25bc</button>
+              <button class="btn-admin" style="padding:.15rem .45rem;font-size:.75rem" onclick="event.stopPropagation();duplicateCategory(${ci})" title="Duplicar categor\u00eda">\u29c9</button>
+              <button class="btn-danger" onclick="event.stopPropagation();removeCategory(${ci})">\u2715</button>
+            </div>
+            <div class="cat-body" id="cat-body-${ci}">
+              <div class="item-row-2" style="margin-bottom:1rem">
+                <div>
+                  <label class="admin-label" style="margin-top:0">Nombre ES</label>
+                  <input class="admin-input" value="${esc(cat.name?.es || "")}" oninput="menuData.categories[${ci}].name.es=this.value;markDirty('menu')">
+                </div>
+                <div>
+                  <label class="admin-label" style="margin-top:0">Nombre EN</label>
+                  <input class="admin-input" value="${esc(cat.name?.en || "")}" oninput="menuData.categories[${ci}].name.en=this.value;markDirty('menu')">
+                </div>
+              </div>
+              <label class="admin-label" style="margin-top:0">Nombre FR</label>
+              <input class="admin-input" value="${esc(cat.name?.fr || "")}" oninput="menuData.categories[${ci}].name.fr=this.value;markDirty('menu')">
+              <label class="admin-label" style="margin-top:0">Emoji</label>
+              <input class="admin-input" value="${esc(cat.emoji || "")}" style="width:80px" oninput="menuData.categories[${ci}].emoji=this.value;markDirty('menu')">
+              <div style="margin:1rem 0">${(cat.items || []).map((_, ii) => itemEditor(ci, ii)).join("")}</div>
+              <button class="btn-admin-primary" onclick="addItem(${ci})">＋ Agregar plato</button>
+            </div>
+          </div>`,
           )
           .join("");
         // After DOM renders, safely set image srcs
@@ -1195,119 +1521,124 @@
           return `<span class="allergen-chip${sel ? " selected" : ""}" onclick="toggleAllergen(${ci},${ii},'${a}',this)">${a}</span>`;
         }).join("");
         return `<div class="item-block" id="item-block-${ci}-${ii}">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem">
-      <strong style="color:var(--gold)">${esc(item.name?.es || "Plato")}</strong>
-      <button class="btn-danger" onclick="removeItem(${ci},${ii})">✕ Eliminar</button>
-    </div>
-    <div class="item-row-2">
-      <div>
-        <label class="admin-label" style="margin-top:0">Nombre ES</label>
-        <input class="admin-input" value="${esc(item.name?.es || "")}" oninput="setItemField(${ci},${ii},'name.es',this.value)">
-      </div>
-      <div>
-        <label class="admin-label" style="margin-top:0">Nombre EN</label>
-        <input class="admin-input" value="${esc(item.name?.en || "")}" oninput="setItemField(${ci},${ii},'name.en',this.value)">
-      </div>
-    </div>
-    <label class="admin-label">Nombre FR</label>
-    <input class="admin-input" value="${esc(item.name?.fr || "")}" oninput="setItemField(${ci},${ii},'name.fr',this.value)">
-    <div class="item-row-2">
-      <div>
-        <label class="admin-label">Descripción ES</label>
-        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.es',this.value)">${esc(item.description?.es || "")}</textarea>
-      </div>
-      <div>
-        <label class="admin-label">Descripción EN</label>
-        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.en',this.value)">${esc(item.description?.en || "")}</textarea>
-      </div>
-    </div>
-    <label class="admin-label">Descripción FR</label>
-    <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.fr',this.value)">${esc(item.description?.fr || "")}</textarea>
-    <div class="item-row-2">
-      <div>
-        <label class="admin-label">Historia ES</label>
-        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.es',this.value)">${esc(item.story?.es || "")}</textarea>
-      </div>
-      <div>
-        <label class="admin-label">Story EN</label>
-        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.en',this.value)">${esc(item.story?.en || "")}</textarea>
-      </div>
-    </div>
-    <label class="admin-label">Histoire FR</label>
-    <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.fr',this.value)">${esc(item.story?.fr || "")}</textarea>
-    <div class="item-row-2">
-      <div>
-        <label class="admin-label">Toque francés ES</label>
-        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.es',this.value)">${esc(item.frenchInfluence?.es || "")}</textarea>
-      </div>
-      <div>
-        <label class="admin-label">French touch EN</label>
-        <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.en',this.value)">${esc(item.frenchInfluence?.en || "")}</textarea>
-      </div>
-    </div>
-    <label class="admin-label">Touche française FR</label>
-    <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.fr',this.value)">${esc(item.frenchInfluence?.fr || "")}</textarea>
-    <div class="item-row-3">
-      <div>
-        <label class="admin-label">Best for (CSV)</label>
-        <input class="admin-input" value="${esc((item.bestFor || []).join(","))}" placeholder="quick-lunch,local-favorite" oninput="setItemList(${ci},${ii},'bestFor',this.value)">
-      </div>
-      <div>
-        <label class="admin-label">Dietary tags (CSV)</label>
-        <input class="admin-input" value="${esc((item.dietaryTags || []).join(","))}" placeholder="vegetarian" oninput="setItemList(${ci},${ii},'dietaryTags',this.value)">
-      </div>
-      <div>
-        <label class="admin-label">Add-ons (CSV IDs)</label>
-        <input class="admin-input" value="${esc((item.addons || []).join(","))}" placeholder="mayo,papas" oninput="setItemList(${ci},${ii},'addons',this.value)">
-      </div>
-    </div>
-    <label class="admin-label">Pairings (CSV IDs)</label>
-    <input class="admin-input" value="${esc((item.pairings || []).join(","))}" placeholder="crepas,papas" oninput="setItemList(${ci},${ii},'pairings',this.value)">
-    <div class="item-row-3">
-      <div>
-        <label class="admin-label">Precio (₡)</label>
-        <input class="admin-input" type="number" value="${esc(item.price || "")}" oninput="setItemField(${ci},${ii},'price',this.value)">
-      </div>
-      <div>
-        <label class="admin-label">Badge texto</label>
-        <input class="admin-input" value="${esc(item.badgeText || "")}" placeholder="Nuevo, Temporada…" oninput="setItemField(${ci},${ii},'badgeText',this.value)">
-      </div>
-      <div>
-        <label class="admin-label">ID</label>
-        <input class="admin-input" value="${esc(item.id || "")}" oninput="setItemField(${ci},${ii},'id',this.value)">
-      </div>
-    </div>
-    <label class="admin-label">Imagen</label>
-    <div class="img-field-row">
-      <input class="admin-input" id="img-url-${ci}-${ii}" value="${esc(item.image || "")}" placeholder="https:// o subir 📷" oninput="setItemField(${ci},${ii},'image',this.value);updateItemImg(${ci},${ii},this.value)">
-      <button class="btn-admin btn-upload-photo" type="button" title="Subir foto" onclick="openPhotoEditor({slug:${esc(JSON.stringify(item.id || "foto"))},aspectRatio:4/3,maxDim:1200,onSuccess:p=>peSetItemImage(${ci},${ii},p)})">📷</button>
-    </div>
-    <img id="img-${ci}-${ii}" class="img-preview" src="" alt="" style="${item.image ? "" : "display:none"}">
-    <div class="item-row-3" style="margin-top:.4rem">
-      <div>
-        <label class="admin-label" style="margin-top:.5rem">Alt texto ES</label>
-        <input class="admin-input" value="${esc(item.photoAlt?.es || "")}" placeholder="Descripción de la foto…" oninput="setItemField(${ci},${ii},'photoAlt.es',this.value)">
-      </div>
-      <div>
-        <label class="admin-label" style="margin-top:.5rem">Alt texto EN</label>
-        <input class="admin-input" value="${esc(item.photoAlt?.en || "")}" placeholder="Photo description…" oninput="setItemField(${ci},${ii},'photoAlt.en',this.value)">
-      </div>
-      <div>
-        <label class="admin-label" style="margin-top:.5rem">Alt texto FR</label>
-        <input class="admin-input" value="${esc(item.photoAlt?.fr || "")}" placeholder="Description de la photo…" oninput="setItemField(${ci},${ii},'photoAlt.fr',this.value)">
-      </div>
-    </div>
-    <label class="admin-label">Crédito / fuente de imagen</label>
-    <input class="admin-input" value="${esc(item.imageSource || "")}" placeholder="Unsplash, Wikimedia, foto propia…" oninput="setItemField(${ci},${ii},'imageSource',this.value)">
-    <div class="checkbox-row">
-      <input type="checkbox" id="feat-${ci}-${ii}" ${item.featured ? "checked" : ""} onchange="setItemField(${ci},${ii},'featured',this.checked)">
-      <label for="feat-${ci}-${ii}">⭐ Recomendado (featured)</label>
-      <input type="checkbox" id="pop-${ci}-${ii}" ${item.popular ? "checked" : ""} onchange="setItemField(${ci},${ii},'popular',this.checked)" style="margin-left:.75rem">
-      <label for="pop-${ci}-${ii}">🔥 Popular</label>
-    </div>
-    <label class="admin-label">Alérgenos</label>
-    <div class="allergen-grid">${allergenChips}</div>
-  </div>`;
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;flex-wrap:wrap;gap:.3rem">
+            <strong style="color:var(--gold)">${esc(item.name?.es || "Plato")}</strong>
+            <div style="display:flex;gap:.3rem;flex-wrap:wrap">
+              <button class="btn-admin" style="padding:.15rem .45rem;font-size:.75rem" onclick="moveItem(${ci},${ii},-1)" title="Subir plato" ${ii === 0 ? "disabled" : ""}>\u25b2</button>
+              <button class="btn-admin" style="padding:.15rem .45rem;font-size:.75rem" onclick="moveItem(${ci},${ii},1)" title="Bajar plato" ${ii === (menuData.categories[ci]?.items || []).length - 1 ? "disabled" : ""}>\u25bc</button>
+              <button class="btn-admin" style="padding:.15rem .45rem;font-size:.75rem" onclick="duplicateItem(${ci},${ii})" title="Duplicar plato">\u29c9</button>
+              <button class="btn-danger" onclick="removeItem(${ci},${ii})">\u2715 Eliminar</button>
+            </div>
+          </div>
+          <div class="item-row-2">
+            <div>
+              <label class="admin-label" style="margin-top:0">Nombre ES</label>
+              <input class="admin-input" value="${esc(item.name?.es || "")}" oninput="setItemField(${ci},${ii},'name.es',this.value)">
+            </div>
+            <div>
+              <label class="admin-label" style="margin-top:0">Nombre EN</label>
+              <input class="admin-input" value="${esc(item.name?.en || "")}" oninput="setItemField(${ci},${ii},'name.en',this.value)">
+            </div>
+          </div>
+          <label class="admin-label">Nombre FR</label>
+          <input class="admin-input" value="${esc(item.name?.fr || "")}" oninput="setItemField(${ci},${ii},'name.fr',this.value)">
+          <div class="item-row-2">
+            <div>
+              <label class="admin-label">Descripción ES</label>
+              <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.es',this.value)">${esc(item.description?.es || "")}</textarea>
+            </div>
+            <div>
+              <label class="admin-label">Descripción EN</label>
+              <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.en',this.value)">${esc(item.description?.en || "")}</textarea>
+            </div>
+          </div>
+          <label class="admin-label">Descripción FR</label>
+          <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.fr',this.value)">${esc(item.description?.fr || "")}</textarea>
+          <div class="item-row-2">
+            <div>
+              <label class="admin-label">Historia ES</label>
+              <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.es',this.value)">${esc(item.story?.es || "")}</textarea>
+            </div>
+            <div>
+              <label class="admin-label">Story EN</label>
+              <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.en',this.value)">${esc(item.story?.en || "")}</textarea>
+            </div>
+          </div>
+          <label class="admin-label">Histoire FR</label>
+          <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.fr',this.value)">${esc(item.story?.fr || "")}</textarea>
+          <div class="item-row-2">
+            <div>
+              <label class="admin-label">Toque francés ES</label>
+              <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.es',this.value)">${esc(item.frenchInfluence?.es || "")}</textarea>
+            </div>
+            <div>
+              <label class="admin-label">French touch EN</label>
+              <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.en',this.value)">${esc(item.frenchInfluence?.en || "")}</textarea>
+            </div>
+          </div>
+          <label class="admin-label">Touche française FR</label>
+          <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.fr',this.value)">${esc(item.frenchInfluence?.fr || "")}</textarea>
+          <div class="item-row-3">
+            <div>
+              <label class="admin-label">Best for (CSV)</label>
+              <input class="admin-input" value="${esc((item.bestFor || []).join(","))}" placeholder="quick-lunch,local-favorite" oninput="setItemList(${ci},${ii},'bestFor',this.value)">
+            </div>
+            <div>
+              <label class="admin-label">Dietary tags (CSV)</label>
+              <input class="admin-input" value="${esc((item.dietaryTags || []).join(","))}" placeholder="vegetarian" oninput="setItemList(${ci},${ii},'dietaryTags',this.value)">
+            </div>
+            <div>
+              <label class="admin-label">Add-ons (CSV IDs)</label>
+              <input class="admin-input" value="${esc((item.addons || []).join(","))}" placeholder="mayo,papas" oninput="setItemList(${ci},${ii},'addons',this.value)">
+            </div>
+          </div>
+          <label class="admin-label">Pairings (CSV IDs)</label>
+          <input class="admin-input" value="${esc((item.pairings || []).join(","))}" placeholder="crepas,papas" oninput="setItemList(${ci},${ii},'pairings',this.value)">
+          <div class="item-row-3">
+            <div>
+              <label class="admin-label">Precio (₡)</label>
+              <input class="admin-input" type="number" value="${esc(item.price || "")}" oninput="setItemField(${ci},${ii},'price',this.value)">
+            </div>
+            <div>
+              <label class="admin-label">Badge texto</label>
+              <input class="admin-input" value="${esc(item.badgeText || "")}" placeholder="Nuevo, Temporada…" oninput="setItemField(${ci},${ii},'badgeText',this.value)">
+            </div>
+            <div>
+              <label class="admin-label">ID</label>
+              <input class="admin-input" value="${esc(item.id || "")}" oninput="setItemField(${ci},${ii},'id',this.value)">
+            </div>
+          </div>
+          <label class="admin-label">Imagen</label>
+          <div class="img-field-row">
+            <input class="admin-input" id="img-url-${ci}-${ii}" value="${esc(item.image || "")}" placeholder="https:// o subir 📷" oninput="setItemField(${ci},${ii},'image',this.value);updateItemImg(${ci},${ii},this.value)">
+            <button class="btn-admin btn-upload-photo" type="button" title="Subir foto" onclick="openPhotoEditor({slug:${esc(JSON.stringify(item.id || "foto"))},aspectRatio:4/3,maxDim:1200,onSuccess:p=>peSetItemImage(${ci},${ii},p)})">📷</button>
+          </div>
+          <img id="img-${ci}-${ii}" class="img-preview" src="" alt="" style="${item.image ? "" : "display:none"}">
+          <div class="item-row-3" style="margin-top:.4rem">
+            <div>
+              <label class="admin-label" style="margin-top:.5rem">Alt texto ES</label>
+              <input class="admin-input" value="${esc(item.photoAlt?.es || "")}" placeholder="Descripción de la foto…" oninput="setItemField(${ci},${ii},'photoAlt.es',this.value)">
+            </div>
+            <div>
+              <label class="admin-label" style="margin-top:.5rem">Alt texto EN</label>
+              <input class="admin-input" value="${esc(item.photoAlt?.en || "")}" placeholder="Photo description…" oninput="setItemField(${ci},${ii},'photoAlt.en',this.value)">
+            </div>
+            <div>
+              <label class="admin-label" style="margin-top:.5rem">Alt texto FR</label>
+              <input class="admin-input" value="${esc(item.photoAlt?.fr || "")}" placeholder="Description de la photo…" oninput="setItemField(${ci},${ii},'photoAlt.fr',this.value)">
+            </div>
+          </div>
+          <label class="admin-label">Crédito / fuente de imagen</label>
+          <input class="admin-input" value="${esc(item.imageSource || "")}" placeholder="Unsplash, Wikimedia, foto propia…" oninput="setItemField(${ci},${ii},'imageSource',this.value)">
+          <div class="checkbox-row">
+            <input type="checkbox" id="feat-${ci}-${ii}" ${item.featured ? "checked" : ""} onchange="setItemField(${ci},${ii},'featured',this.checked)">
+            <label for="feat-${ci}-${ii}">⭐ Recomendado (featured)</label>
+            <input type="checkbox" id="pop-${ci}-${ii}" ${item.popular ? "checked" : ""} onchange="setItemField(${ci},${ii},'popular',this.checked)" style="margin-left:.75rem">
+            <label for="pop-${ci}-${ii}">🔥 Popular</label>
+          </div>
+          <label class="admin-label">Alérgenos</label>
+          <div class="allergen-grid">${allergenChips}</div>
+        </div>`;
       }
 
       function setItemField(ci, ii, path, value) {
@@ -1412,13 +1743,163 @@
       }
 
       function removeItem(ci, ii) {
-        if (!confirm("¿Eliminar este plato?")) return;
+        if (!confirm("\u00bfEliminar este plato?")) return;
         menuData.categories[ci].items.splice(ii, 1);
         markDirty("menu");
         renderCategories();
       }
 
-      /* ── Specials ── */
+      function getUniqueDuplicatedItemId(baseId) {
+        const existingIds = new Set();
+        (menuData.categories || []).forEach((category) => {
+          (category.items || []).forEach((item) => {
+            if (item?.id) existingIds.add(item.id);
+          });
+        });
+
+        const root = (baseId || "item") + "-copia";
+        if (!existingIds.has(root)) return root;
+
+        let counter = 2;
+        let candidate = root + "-" + counter;
+        while (existingIds.has(candidate)) {
+          counter += 1;
+          candidate = root + "-" + counter;
+        }
+        return candidate;
+      }
+
+      function getUniqueDuplicatedCategoryId(baseId) {
+        const existingIds = new Set(
+          (menuData.categories || [])
+            .map((c) => c && c.id)
+            .filter((id) => typeof id === "string" && id.trim() !== ""),
+        );
+        const base =
+          typeof baseId === "string" && baseId.trim() !== ""
+            ? baseId.trim()
+            : "cat-" + Date.now();
+        let candidate = base + "-copia";
+        if (!existingIds.has(candidate)) return candidate;
+        let counter = 2;
+        while (existingIds.has(candidate)) {
+          candidate = base + "-copia-" + counter;
+          counter++;
+        }
+        return candidate;
+      }
+
+      function duplicateItem(ci, ii) {
+        const orig = menuData.categories[ci]?.items?.[ii];
+        if (!orig) return;
+        const copy = JSON.parse(JSON.stringify(orig));
+        copy.id = getUniqueDuplicatedItemId(orig.id);
+        if (copy.name) copy.name.es = (copy.name.es || "") + " (copia)";
+        menuData.categories[ci].items.splice(ii + 1, 0, copy);
+        markDirty("menu");
+        renderCategories();
+      }
+
+      function moveItem(ci, ii, dir) {
+        const items = menuData.categories[ci]?.items;
+        if (!items) return;
+        const ni = ii + dir;
+        if (ni < 0 || ni >= items.length) return;
+        [items[ii], items[ni]] = [items[ni], items[ii]];
+        markDirty("menu");
+        renderCategories();
+      }
+
+      function duplicateCategory(ci) {
+        const orig = menuData.categories[ci];
+        const copy = JSON.parse(JSON.stringify(orig));
+        copy.id = getUniqueDuplicatedCategoryId(orig.id);
+        if (copy.name) copy.name.es = (copy.name.es || "") + " (copia)";
+        // Collect all existing item IDs and track newly assigned ones to
+        // prevent collisions both with existing data and within this copy.
+        const takenIds = new Set();
+        (menuData.categories || []).forEach((cat) =>
+          (cat.items || []).forEach((item) => {
+            if (item?.id) takenIds.add(item.id);
+          }),
+        );
+        (copy.items || []).forEach((item) => {
+          const base = item.id || "item";
+          let candidate = base + "-copia";
+          if (takenIds.has(candidate)) {
+            let counter = 2;
+            while (takenIds.has(candidate)) {
+              candidate = base + "-copia-" + counter;
+              counter++;
+            }
+          }
+          takenIds.add(candidate);
+          item.id = candidate;
+        });
+        menuData.categories.splice(ci + 1, 0, copy);
+        markDirty("menu");
+        renderCategories();
+      }
+
+      function moveCategory(ci, dir) {
+        const ni = ci + dir;
+        if (ni < 0 || ni >= menuData.categories.length) return;
+        [menuData.categories[ci], menuData.categories[ni]] = [
+          menuData.categories[ni],
+          menuData.categories[ci],
+        ];
+        markDirty("menu");
+        renderCategories();
+      }
+
+      function filterMenu(query) {
+        const q = (query || "").trim().toLowerCase();
+        (menuData.categories || []).forEach((cat, ci) => {
+          const block = document.getElementById("cat-block-" + ci);
+          if (!block) return;
+          if (!q) {
+            block.style.display = "";
+            (cat.items || []).forEach((_, ii) => {
+              const ib = document.getElementById("item-block-" + ci + "-" + ii);
+              if (ib) ib.style.opacity = "1";
+            });
+            return;
+          }
+          const catMatch = (cat.name?.es || "").toLowerCase().includes(q);
+          const matchingItems = (cat.items || []).filter(
+            (item) =>
+              (item.name?.es || "").toLowerCase().includes(q) ||
+              (item.name?.en || "").toLowerCase().includes(q) ||
+              (item.description?.es || "").toLowerCase().includes(q) ||
+              (item.description?.en || "").toLowerCase().includes(q) ||
+              (item.description?.fr || "").toLowerCase().includes(q) ||
+              (item.id || "").toLowerCase().includes(q),
+          );
+          if (!catMatch && !matchingItems.length) {
+            block.style.display = "none";
+          } else {
+            block.style.display = "";
+            if (matchingItems.length) {
+              const body = document.getElementById("cat-body-" + ci);
+              if (body && !body.classList.contains("open")) toggleCat(ci);
+              (cat.items || []).forEach((item, ii) => {
+                const ib = document.getElementById(
+                  "item-block-" + ci + "-" + ii,
+                );
+                if (!ib) return;
+                const matches =
+                  (item.name?.es || "").toLowerCase().includes(q) ||
+                  (item.name?.en || "").toLowerCase().includes(q) ||
+                  (item.description?.es || "").toLowerCase().includes(q) ||
+                  (item.description?.en || "").toLowerCase().includes(q) ||
+                  (item.description?.fr || "").toLowerCase().includes(q) ||
+                  (item.id || "").toLowerCase().includes(q);
+                ib.style.opacity = matches ? "1" : "0.3";
+              });
+            }
+          }
+        });
+      }
       function renderSpecials() {
         const root = document.getElementById("specials-container");
         if (!root) return;
@@ -1426,68 +1907,68 @@
           specialsData
             .map(
               (s, i) => `
-    <div class="special-block">
-      <div class="special-header">
-        <strong>${esc(s.title || "Especial " + (i + 1))}</strong>
-        <button class="btn-danger" onclick="removeSpecial(${i})">✕ Eliminar</button>
-      </div>
-      <div class="item-row-2">
-        <div>
-          <label class="admin-label" style="margin-top:0">Título ES</label>
-          <input class="admin-input" value="${esc(s.title || "")}" oninput="specialsData[${i}].title=this.value;markDirty('specials')">
-        </div>
-        <div>
-          <label class="admin-label" style="margin-top:0">Título EN</label>
-          <input class="admin-input" value="${esc(s.titleEn || "")}" oninput="specialsData[${i}].titleEn=this.value;markDirty('specials')">
-        </div>
-      </div>
-      <label class="admin-label">Título FR</label>
-      <input class="admin-input" value="${esc(s.titleFr || "")}" oninput="specialsData[${i}].titleFr=this.value;markDirty('specials')">
-      <div class="item-row-2">
-        <div>
-          <label class="admin-label">Descripción ES</label>
-          <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].description=this.value;markDirty('specials')">${esc(s.description || "")}</textarea>
-        </div>
-        <div>
-          <label class="admin-label">Descripción EN</label>
-          <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].descriptionEn=this.value;markDirty('specials')">${esc(s.descriptionEn || "")}</textarea>
-        </div>
-      </div>
-      <label class="admin-label">Descripción FR</label>
-      <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].descriptionFr=this.value;markDirty('specials')">${esc(s.descriptionFr || "")}</textarea>
-      <div class="item-row-3">
-        <div>
-          <label class="admin-label">Precio (₡, opcional)</label>
-          <input class="admin-input" type="number" value="${esc(s.price || "")}" oninput="specialsData[${i}].price=this.value;markDirty('specials')">
-        </div>
-        <div>
-          <label class="admin-label">Válido hasta</label>
-          <input class="admin-input" type="date" value="${esc(s.validUntil || "")}" oninput="specialsData[${i}].validUntil=this.value;markDirty('specials')">
-        </div>
-        <div>
-          <label class="admin-label">ID</label>
-          <input class="admin-input" value="${esc(s.id || "")}" oninput="specialsData[${i}].id=this.value;markDirty('specials')">
-        </div>
-      </div>
-      <label class="admin-label">Imagen</label>
-      <div class="img-field-row">
-        <input class="admin-input" id="sp-img-url-${i}" value="${esc(s.image || "")}" placeholder="https:// o subir 📷" oninput="specialsData[${i}].image=this.value;markDirty('specials');updateSpecialImg(${i},this.value)">
-        <button class="btn-admin btn-upload-photo" type="button" title="Subir foto" onclick="openPhotoEditor({slug:'especial-${i}',aspectRatio:16/9,maxDim:1200,onSuccess:p=>peSetSpecialImage(${i},p)})">&#x1F4F7;</button>
-      </div>
-      <img id="sp-img-${i}" class="img-preview" src="" alt="" style="${s.image ? "" : "display:none"}">
-      <div class="checkbox-row">
-        <input type="checkbox" id="ev-${i}" ${s.isEvent ? "checked" : ""} onchange="specialsData[${i}].isEvent=this.checked;markDirty('specials');renderSpecials()">
-        <label for="ev-${i}">📅 Es un evento</label>
-      </div>
-      ${
-        s.isEvent
-          ? `
-        <label class="admin-label">Fecha y hora del evento</label>
-        <input class="admin-input" type="datetime-local" value="${esc(s.eventDate || "")}" oninput="specialsData[${i}].eventDate=this.value;markDirty('specials')">
-      `
-          : ""
-      }
-    </div>`,
+          <div class="special-block">
+            <div class="special-header">
+              <strong>${esc(s.title || "Especial " + (i + 1))}</strong>
+              <button class="btn-danger" onclick="removeSpecial(${i})">✕ Eliminar</button>
+            </div>
+            <div class="item-row-2">
+              <div>
+                <label class="admin-label" style="margin-top:0">Título ES</label>
+                <input class="admin-input" value="${esc(s.title || "")}" oninput="specialsData[${i}].title=this.value;markDirty('specials')">
+              </div>
+              <div>
+                <label class="admin-label" style="margin-top:0">Título EN</label>
+                <input class="admin-input" value="${esc(s.titleEn || "")}" oninput="specialsData[${i}].titleEn=this.value;markDirty('specials')">
+              </div>
+            </div>
+            <label class="admin-label">Título FR</label>
+            <input class="admin-input" value="${esc(s.titleFr || "")}" oninput="specialsData[${i}].titleFr=this.value;markDirty('specials')">
+            <div class="item-row-2">
+              <div>
+                <label class="admin-label">Descripción ES</label>
+                <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].description=this.value;markDirty('specials')">${esc(s.description || "")}</textarea>
+              </div>
+              <div>
+                <label class="admin-label">Descripción EN</label>
+                <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].descriptionEn=this.value;markDirty('specials')">${esc(s.descriptionEn || "")}</textarea>
+              </div>
+            </div>
+            <label class="admin-label">Descripción FR</label>
+            <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].descriptionFr=this.value;markDirty('specials')">${esc(s.descriptionFr || "")}</textarea>
+            <div class="item-row-3">
+              <div>
+                <label class="admin-label">Precio (₡, opcional)</label>
+                <input class="admin-input" type="number" value="${esc(s.price || "")}" oninput="specialsData[${i}].price=this.value;markDirty('specials')">
+              </div>
+              <div>
+                <label class="admin-label">Válido hasta</label>
+                <input class="admin-input" type="date" value="${esc(s.validUntil || "")}" oninput="specialsData[${i}].validUntil=this.value;markDirty('specials')">
+              </div>
+              <div>
+                <label class="admin-label">ID</label>
+                <input class="admin-input" value="${esc(s.id || "")}" oninput="specialsData[${i}].id=this.value;markDirty('specials')">
+              </div>
+            </div>
+            <label class="admin-label">Imagen</label>
+            <div class="img-field-row">
+              <input class="admin-input" id="sp-img-url-${i}" value="${esc(s.image || "")}" placeholder="https:// o subir 📷" oninput="specialsData[${i}].image=this.value;markDirty('specials');updateSpecialImg(${i},this.value)">
+              <button class="btn-admin btn-upload-photo" type="button" title="Subir foto" onclick="openPhotoEditor({slug:'especial-${i}',aspectRatio:16/9,maxDim:1200,onSuccess:p=>peSetSpecialImage(${i},p)})">&#x1F4F7;</button>
+            </div>
+            <img id="sp-img-${i}" class="img-preview" src="" alt="" style="${s.image ? "" : "display:none"}">
+            <div class="checkbox-row">
+              <input type="checkbox" id="ev-${i}" ${s.isEvent ? "checked" : ""} onchange="specialsData[${i}].isEvent=this.checked;markDirty('specials');renderSpecials()">
+              <label for="ev-${i}">📅 Es un evento</label>
+            </div>
+            ${
+              s.isEvent
+                ? `
+              <label class="admin-label">Fecha y hora del evento</label>
+              <input class="admin-input" type="datetime-local" value="${esc(s.eventDate || "")}" oninput="specialsData[${i}].eventDate=this.value;markDirty('specials')">
+            `
+                : ""
+            }
+          </div>`,
             )
             .join("") ||
           '<p class="muted">No hay especiales. Haz clic en "+ Especial" para agregar.</p>';
@@ -1524,26 +2005,233 @@
 
       /* ── Combos ── */
       function renderCombos() {
-        const ta = document.getElementById("combos-json");
-        if (ta) ta.value = JSON.stringify(combosData, null, 2);
+        const root = document.getElementById("combos-container");
+        if (!root) return;
+        const allItems = (menuData.categories || []).flatMap(
+          (c) => c.items || [],
+        );
+        if (!combosData.length) {
+          root.innerHTML =
+            '<p class="muted" style="padding:1rem">No hay combos. Haz clic en \u201c\uff0b Nuevo combo\u201d para agregar uno.</p>';
+          return;
+        }
+        root.innerHTML = combosData
+          .map((combo, ci) => {
+            const chips = allItems
+              .map((item) => {
+                const sel = (combo.items || []).includes(item.id);
+                return `<label class="combo-item-chip${sel ? " sel" : ""}" style="display:inline-flex;align-items:center;gap:.3rem;margin:.2rem;padding:.22rem .6rem;border-radius:999px;border:1.5px solid ${sel ? "var(--gold)" : "var(--border)"};cursor:pointer;font-size:.82rem;background:${sel ? "rgba(212,175,55,.12)" : "transparent"}">
+                  <input type="checkbox" style="display:none" ${sel ? "checked" : ""} onchange="toggleComboItem(${ci},${JSON.stringify(item.id)},this.checked);this.closest('label').classList.toggle('sel',this.checked);this.closest('label').style.borderColor=this.checked?'var(--gold)':'var(--border)';this.closest('label').style.background=this.checked?'rgba(212,175,55,.12)':'transparent'">
+                  ${esc(item.name?.es || item.id)}
+                </label>`;
+              })
+              .join("");
+            const isFirst = ci === 0;
+            const isLast = ci === combosData.length - 1;
+            return `<div class="admin-card" id="combo-block-${ci}" style="margin-bottom:1rem">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.8rem">
+                <strong style="color:var(--gold);font-size:1.05rem">\ud83c\udf81 ${esc(combo.name?.es || "Combo")}</strong>
+                <div style="display:flex;gap:.3rem;flex-wrap:wrap">
+                  <button class="btn-admin" onclick="moveCombo(${ci},-1)" title="Subir" ${isFirst ? "disabled" : ""}>\u25b2</button>
+                  <button class="btn-admin" onclick="moveCombo(${ci},1)" title="Bajar" ${isLast ? "disabled" : ""}>\u25bc</button>
+                  <button class="btn-admin" onclick="duplicateCombo(${ci})" title="Duplicar">\u29c9</button>
+                  <button class="btn-danger" onclick="removeCombo(${ci})">\u2715</button>
+                </div>
+              </div>
+              <div class="item-row-3">
+                <div>
+                  <label class="admin-label" style="margin-top:0">ID</label>
+                  <input class="admin-input" value="${esc(combo.id || "")}" placeholder="combo-id" oninput="setComboField(${ci},'id',this.value)">
+                </div>
+                <div>
+                  <label class="admin-label" style="margin-top:0">Precio (\u20a1)</label>
+                  <input class="admin-input" type="number" value="${esc(combo.price || "")}" oninput="setComboField(${ci},'price',this.value)">
+                </div>
+                <div>
+                  <label class="admin-label" style="margin-top:0">Best for</label>
+                  <input class="admin-input" value="${esc(combo.bestFor || "")}" placeholder="sharing, quick-lunch\u2026" oninput="setComboField(${ci},'bestFor',this.value)">
+                </div>
+              </div>
+              <div class="item-row-3">
+                <div>
+                  <label class="admin-label">Nombre ES</label>
+                  <input class="admin-input" value="${esc(combo.name?.es || "")}" oninput="setComboField(${ci},'name.es',this.value)">
+                </div>
+                <div>
+                  <label class="admin-label">Nombre EN</label>
+                  <input class="admin-input" value="${esc(combo.name?.en || "")}" oninput="setComboField(${ci},'name.en',this.value)">
+                </div>
+                <div>
+                  <label class="admin-label">Nombre FR</label>
+                  <input class="admin-input" value="${esc(combo.name?.fr || "")}" oninput="setComboField(${ci},'name.fr',this.value)">
+                </div>
+              </div>
+              <div class="item-row-3">
+                <div>
+                  <label class="admin-label">Descripci\u00f3n ES</label>
+                  <textarea class="admin-textarea" rows="2" oninput="setComboField(${ci},'description.es',this.value)">${esc(combo.description?.es || "")}</textarea>
+                </div>
+                <div>
+                  <label class="admin-label">Description EN</label>
+                  <textarea class="admin-textarea" rows="2" oninput="setComboField(${ci},'description.en',this.value)">${esc(combo.description?.en || "")}</textarea>
+                </div>
+                <div>
+                  <label class="admin-label">Description FR</label>
+                  <textarea class="admin-textarea" rows="2" oninput="setComboField(${ci},'description.fr',this.value)">${esc(combo.description?.fr || "")}</textarea>
+                </div>
+              </div>
+              <div class="item-row-3">
+                <div>
+                  <label class="admin-label">Tag ES</label>
+                  <input class="admin-input" value="${esc(combo.tag?.es || "")}" oninput="setComboField(${ci},'tag.es',this.value)">
+                </div>
+                <div>
+                  <label class="admin-label">Tag EN</label>
+                  <input class="admin-input" value="${esc(combo.tag?.en || "")}" oninput="setComboField(${ci},'tag.en',this.value)">
+                </div>
+                <div>
+                  <label class="admin-label">Tag FR</label>
+                  <input class="admin-input" value="${esc(combo.tag?.fr || "")}" oninput="setComboField(${ci},'tag.fr',this.value)">
+                </div>
+              </div>
+              <label class="admin-label">Platos incluidos</label>
+              <div style="margin-top:.35rem;line-height:2.2">${chips || '<span class="muted small">Carga el men\u00fa primero</span>'}</div>
+            </div>`;
+          })
+          .join("");
+      }
+
+      function setComboField(ci, path, value) {
+        const combo = combosData[ci];
+        if (!combo) return;
+        const parts = path.split(".");
+        if (parts.length === 1) {
+          combo[parts[0]] = value;
+        } else {
+          if (!combo[parts[0]]) combo[parts[0]] = {};
+          combo[parts[0]][parts[1]] = value;
+        }
+        markDirty("combos");
+      }
+
+      function toggleComboItem(ci, itemId, checked) {
+        const combo = combosData[ci];
+        if (!combo) return;
+        if (!combo.items) combo.items = [];
+        if (checked && !combo.items.includes(itemId)) combo.items.push(itemId);
+        if (!checked) combo.items = combo.items.filter((id) => id !== itemId);
+        markDirty("combos");
+      }
+
+      function addCombo() {
+        combosData.push({
+          id: "combo-" + Date.now(),
+          name: { es: "Nuevo combo", en: "New combo", fr: "Nouveau combo" },
+          description: { es: "", en: "", fr: "" },
+          tag: { es: "", en: "", fr: "" },
+          items: [],
+          price: "0",
+          bestFor: "",
+        });
+        markDirty("combos");
+        renderCombos();
+        document
+          .getElementById("combo-block-" + (combosData.length - 1))
+          ?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+
+      function removeCombo(ci) {
+        if (!confirm("\u00bfEliminar este combo?")) return;
+        combosData.splice(ci, 1);
+        markDirty("combos");
+        renderCombos();
+      }
+
+      function getUniqueDuplicatedComboId(baseId) {
+        const existingIds = new Set(
+          combosData
+            .map((combo) => combo && combo.id)
+            .filter((id) => typeof id === "string" && id.trim() !== ""),
+        );
+        const normalizedBase =
+          typeof baseId === "string" && baseId.trim() !== ""
+            ? baseId.trim()
+            : "combo-" + Date.now();
+
+        let candidate = normalizedBase + "-copia";
+        if (!existingIds.has(candidate)) return candidate;
+
+        let counter = 2;
+        while (existingIds.has(candidate)) {
+          candidate = normalizedBase + "-copia-" + counter;
+          counter++;
+        }
+
+        return candidate;
+      }
+
+      function duplicateCombo(ci) {
+        const copy = JSON.parse(JSON.stringify(combosData[ci]));
+        copy.id = getUniqueDuplicatedComboId(copy && copy.id);
+        if (copy.name) copy.name.es = (copy.name.es || "") + " (copia)";
+        combosData.splice(ci + 1, 0, copy);
+        markDirty("combos");
+        renderCombos();
+      }
+
+      function moveCombo(ci, dir) {
+        const ni = ci + dir;
+        if (ni < 0 || ni >= combosData.length) return;
+        [combosData[ci], combosData[ni]] = [combosData[ni], combosData[ci]];
+        markDirty("combos");
+        renderCombos();
       }
 
       function readCombos() {
-        const ta = document.getElementById("combos-json");
-        if (!ta) return combosData;
-        const parsed = JSON.parse(ta.value || "[]");
-        if (!Array.isArray(parsed))
-          throw new Error("Combos debe ser un arreglo JSON.");
-        return parsed;
+        return combosData;
       }
 
-      function formatCombosJson() {
-        try {
-          combosData = readCombos();
-          renderCombos();
-        } catch (e) {
-          alert(e.message);
-        }
+      /* ── Pre-publish Validation ── */
+      function validateBeforePublish() {
+        const errors = [];
+        const warnings = [];
+        const allItems = (menuData.categories || []).flatMap(
+          (c) => c.items || [],
+        );
+        const allIds = new Set();
+        allItems.forEach((item) => {
+          if (!item.id) errors.push(`Plato sin ID: "${item.name?.es || "?"}"`);
+          if (!item.name?.es)
+            errors.push(`Plato sin nombre ES (ID: "${item.id || "?"}")`);
+          if (!item.price)
+            errors.push(`Sin precio: "${item.name?.es || item.id}"`);
+          if (!item.description?.es)
+            warnings.push(
+              `Sin descripci\u00f3n ES: "${item.name?.es || item.id}"`,
+            );
+          if (!item.name?.en || !item.name?.fr)
+            warnings.push(
+              `Traducciones incompletas: "${item.name?.es || item.id}"`,
+            );
+          if (item.id) {
+            if (allIds.has(item.id)) errors.push(`ID duplicado: "${item.id}"`);
+            allIds.add(item.id);
+          }
+        });
+        combosData.forEach((combo) => {
+          if (!combo.id) errors.push("Combo sin ID");
+          if (!combo.name?.es)
+            errors.push(`Combo sin nombre ES: ID "${combo.id || "?"}"`);
+          if (!combo.price)
+            errors.push(`Combo sin precio: "${combo.id || "?"}"`);
+          (combo.items || []).forEach((id) => {
+            if (!allIds.has(id))
+              errors.push(
+                `Combo "${combo.name?.es || combo.id}": ID de plato inexistente "${id}"`,
+              );
+          });
+        });
+        return { errors, warnings };
       }
 
       /* ── Publish All ── */
@@ -1551,16 +2239,43 @@
         const btn = document.getElementById("publish-btn");
         const status = document.getElementById("status");
         if (!_session.authenticated) {
-          alert("Inicia sesión primero.");
+          alert("Inicia sesi\u00f3n primero.");
           return;
         }
         btn.disabled = true;
-        btn.textContent = "⏳ Publicando…";
-        status.textContent = "Guardando…";
+        btn.textContent = "\u23f3 Publicando\u2026";
+        status.textContent = "Guardando\u2026";
         status.className = "status-badge";
+        // Validate before sending
+        const { errors, warnings } = validateBeforePublish();
+        if (errors.length) {
+          alert(
+            "\u26a0\ufe0f No se puede publicar:\n\n" +
+              errors.join("\n") +
+              (warnings.length ? "\n\nAvisos:\n" + warnings.join("\n") : ""),
+          );
+          btn.disabled = false;
+          btn.textContent = "\ud83d\ude80 Publicar Todo";
+          status.textContent = "\u2717 Errores de validaci\u00f3n";
+          status.className = "status-badge error";
+          return;
+        }
+        if (warnings.length) {
+          const ok = confirm(
+            "\u26a0\ufe0f Avisos antes de publicar:\n\n" +
+              warnings.join("\n") +
+              "\n\n\u00bfPublicar de todas formas?",
+          );
+          if (!ok) {
+            btn.disabled = false;
+            btn.textContent = "\ud83d\ude80 Publicar Todo";
+            status.textContent = "Sin conectar";
+            status.className = "status-badge";
+            return;
+          }
+        }
         try {
           const cfgToSave = readSettings();
-          combosData = readCombos();
           await apiFetch("/api/publish", {
             method: "POST",
             body: JSON.stringify({
@@ -1571,19 +2286,20 @@
             }),
           });
           localStorage.setItem("lv-last-saved", new Date().toISOString());
-          status.textContent = "✓ Publicado";
+          clearDraft();
+          status.textContent = "\u2713 Publicado";
           status.className = "status-badge connected";
-          btn.textContent = "✓ Publicado";
+          btn.textContent = "\u2713 Publicado";
           ["menu", "specials", "combos", "settings"].forEach(clearDirty);
           updateStats();
           setTimeout(() => {
-            btn.textContent = "🚀 Publicar Todo";
+            btn.textContent = "\ud83d\ude80 Publicar Todo";
             btn.disabled = false;
           }, 3000);
         } catch (e) {
-          status.textContent = "✗ " + e.message;
+          status.textContent = "\u2717 " + e.message;
           status.className = "status-badge error";
-          btn.textContent = "🚀 Publicar Todo";
+          btn.textContent = "\ud83d\ude80 Publicar Todo";
           btn.disabled = false;
           alert("Error al publicar: " + e.message);
         }
@@ -1605,6 +2321,236 @@
         a.href = URL.createObjectURL(blob);
         a.download = `las-veraneras-backup-${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
+      }
+
+      /* ── Restore from backup file ── */
+      function restoreFromBackupFile(input) {
+        const file = input?.files?.[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          try {
+            const data = JSON.parse(e.target.result);
+            if (!data.menu && !data.specials && !data.combos && !data.config) {
+              alert(
+                "Este archivo no parece un respaldo válido de Las Veraneras.",
+              );
+              return;
+            }
+            const keys = Object.keys(data).filter((k) =>
+              ["menu", "specials", "combos", "config"].includes(k),
+            );
+            const ok = confirm(
+              `¿Restaurar respaldo del ${data.exportedAt ? new Date(data.exportedAt).toLocaleString("es-CR") : "fecha desconocida"}?\n\nSe cargarán: ${keys.join(", ")}\n\nEsto reemplaza los datos actuales en el editor (no se publica hasta que hagas clic en Publicar Todo).`,
+            );
+            if (!ok) {
+              input.value = "";
+              return;
+            }
+            if (data.menu) {
+              menuData = data.menu;
+              renderCategories();
+            }
+            if (data.specials) {
+              specialsData = Array.isArray(data.specials) ? data.specials : [];
+              renderSpecials();
+            }
+            if (data.combos) {
+              combosData = Array.isArray(data.combos) ? data.combos : [];
+              renderCombos();
+            }
+            if (data.config) {
+              configData = data.config;
+              populateSettings();
+            }
+            ["menu", "specials", "combos", "settings"].forEach(markDirty);
+            updateStats();
+            saveDraft();
+            alert(
+              `✓ Respaldo cargado. Revisa los datos y haz clic en "Publicar Todo" para guardar los cambios en el sitio.`,
+            );
+          } catch (err) {
+            alert("Error al leer el archivo: " + err.message);
+          } finally {
+            input.value = "";
+          }
+        };
+        reader.readAsText(file);
+      }
+
+      /* ── Auto-save draft to localStorage ── */
+      const DRAFT_KEY = "lv-admin-draft";
+      let _draftTimer = null;
+
+      function saveDraft() {
+        try {
+          const draft = {
+            menu: menuData,
+            specials: specialsData,
+            combos: combosData,
+            config: configData,
+            savedAt: new Date().toISOString(),
+          };
+          localStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+        } catch (e) {
+          // localStorage may be full — silently ignore
+        }
+      }
+
+      function scheduleDraftSave() {
+        clearTimeout(_draftTimer);
+        _draftTimer = setTimeout(saveDraft, 2000);
+      }
+
+      function loadDraftIfNewer() {
+        try {
+          const raw = localStorage.getItem(DRAFT_KEY);
+          if (!raw) return false;
+          const draft = JSON.parse(raw);
+          if (!draft.savedAt) return false;
+          const age = Date.now() - new Date(draft.savedAt).getTime();
+          // Only offer draft if it's <24h old
+          if (age > 24 * 60 * 60 * 1000) return false;
+          const when = new Date(draft.savedAt).toLocaleString("es-CR", {
+            day: "numeric",
+            month: "short",
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          const ok = confirm(
+            `Hay un borrador sin publicar del ${when}.\n\n¿Recuperarlo?`,
+          );
+          if (!ok) {
+            localStorage.removeItem(DRAFT_KEY);
+            return false;
+          }
+          if (draft.menu) {
+            menuData = draft.menu;
+            renderCategories();
+          }
+          if (draft.specials) {
+            specialsData = Array.isArray(draft.specials) ? draft.specials : [];
+            renderSpecials();
+          }
+          if (draft.combos) {
+            combosData = Array.isArray(draft.combos) ? draft.combos : [];
+            renderCombos();
+          }
+          if (draft.config) {
+            configData = draft.config;
+            populateSettings();
+          }
+          ["menu", "specials", "combos", "settings"].forEach(markDirty);
+          updateStats();
+          return true;
+        } catch (e) {
+          return false;
+        }
+      }
+
+      function clearDraft() {
+        localStorage.removeItem(DRAFT_KEY);
+      }
+
+      /* ── Publish history & rollback ── */
+      async function loadPublishHistory() {
+        const container = document.getElementById("history-container");
+        const btn = document.getElementById("history-reload-btn");
+        if (!container) return;
+        if (!_session.authenticated) {
+          container.innerHTML =
+            '<p class="muted small">Inicia sesión para ver el historial.</p>';
+          return;
+        }
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = "⏳ Cargando…";
+        }
+        container.innerHTML = '<p class="muted small">Cargando historial…</p>';
+        try {
+          const data = await apiFetch("/api/history");
+          if (!data.commits || !data.commits.length) {
+            container.innerHTML =
+              '<p class="muted small">No se encontró historial de publicaciones.</p>';
+            return;
+          }
+          container.innerHTML = data.commits
+            .map((c, i) => {
+              const when = c.date
+                ? new Date(c.date).toLocaleString("es-CR", {
+                    day: "numeric",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : "fecha desconocida";
+              const msg = (c.message || "").split("\n")[0].slice(0, 72);
+              const isLatest = i === 0;
+              return `<div style="display:flex;align-items:center;gap:.6rem;padding:.55rem .65rem;border-radius:10px;border:1px solid var(--border);margin-bottom:.4rem;flex-wrap:wrap">
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:.84rem;font-weight:600">${esc(when)}</div>
+                  <div class="muted small" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(msg)}</div>
+                  <div class="muted small">${esc(c.author || "")} &bull; <code style="font-size:.72rem">${esc(c.sha.slice(0, 7))}</code></div>
+                </div>
+                ${
+                  isLatest
+                    ? '<span style="font-size:.72rem;padding:.15rem .45rem;background:rgba(212,175,55,.15);color:var(--gold);border-radius:6px;white-space:nowrap">Actual</span>'
+                    : `<button class="btn-admin" style="white-space:nowrap" onclick="rollbackToCommit('${esc(c.sha)}','${esc(when)}')">⏪ Restaurar</button>`
+                }
+              </div>`;
+            })
+            .join("");
+        } catch (e) {
+          container.innerHTML = `<p class="muted small" style="color:#f87171">Error: ${esc(e.message)}</p>`;
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = "🔄 Cargar historial";
+          }
+        }
+      }
+
+      async function rollbackToCommit(sha, label) {
+        const ok = confirm(
+          `⏪ ¿Restaurar la versión del ${label}?\n\nEsto publicará inmediatamente esa versión en el sitio y reemplazará el estado actual.`,
+        );
+        if (!ok) return;
+        const btn = document.getElementById("publish-btn");
+        const status = document.getElementById("status");
+        if (btn) {
+          btn.disabled = true;
+        }
+        if (status) {
+          status.textContent = "⏳ Restaurando…";
+          status.className = "status-badge";
+        }
+        try {
+          const data = await apiFetch("/api/rollback", {
+            method: "POST",
+            body: JSON.stringify({ sha }),
+          });
+          if (status) {
+            status.textContent = "✓ Restaurado";
+            status.className = "status-badge connected";
+          }
+          alert(
+            `✓ Restaurado correctamente.\n\nArchivos actualizados: ${(data.restoredFiles || []).join(", ")}\n\nRecargando datos…`,
+          );
+          clearDraft();
+          await loadAll();
+          updateStats();
+        } catch (e) {
+          if (status) {
+            status.textContent = "✗ Error";
+            status.className = "status-badge error";
+          }
+          alert("Error al restaurar: " + e.message);
+        } finally {
+          if (btn) {
+            btn.disabled = false;
+            btn.textContent = "🚀 Publicar Todo";
+          }
+        }
       }
 
       /* ── Photo Upload Engine (Phase 1) ── */
@@ -1895,18 +2841,19 @@
               const thumbUrl = `${imageUrl}${
                 imageUrl.includes("?") ? "&" : "?"
               }v=${encodeURIComponent(f.sha.slice(0, 8))}`;
+
               const cardId = "lib-" + f.sha.slice(0, 8);
               return `<div class="photo-lib-card" id="${esc(cardId)}">
-        <img src="${esc(thumbUrl)}" alt="${esc(f.name)}" loading="lazy">
-        <div class="photo-lib-card-body">
-          <div class="photo-lib-filename" title="${esc(f.name)}">${esc(f.name)}</div>
-          <div class="photo-lib-filename">${kb} KB</div>
-          <div class="photo-lib-actions">
-            <button class="btn-admin" type="button" onclick="copyImagePath('images/${esc(f.name)}',this)">Copiar</button>
-            <button class="btn-danger" type="button" onclick="deleteImageFromRepo('${esc(f.path)}','${esc(f.sha)}','${esc(cardId)}')">\u2715</button>
-          </div>
-        </div>
-      </div>`;
+              <img src="${esc(thumbUrl)}" alt="${esc(f.name)}" loading="lazy">
+              <div class="photo-lib-card-body">
+                <div class="photo-lib-filename" title="${esc(f.name)}">${esc(f.name)}</div>
+                <div class="photo-lib-filename">${kb} KB</div>
+                <div class="photo-lib-actions">
+                  <button class="btn-admin" type="button" onclick="copyImagePath('images/${esc(f.name)}',this)">Copiar</button>
+                  <button class="btn-danger" type="button" onclick="deleteImageFromRepo('${esc(f.path)}','${esc(f.sha)}','${esc(cardId)}')">\u2715</button>
+                </div>
+              </div>
+            </div>`;
             })
             .join("");
         } catch (e) {
@@ -1949,6 +2896,7 @@
       (async function init() {
         renderAuthCard();
         peSetupDragDrop();
+        await discoverApiBase();
         await loadAll(); // read-only pre-load so data shows in preview tab
         await restoreSession();
       })();

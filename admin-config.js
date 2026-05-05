@@ -1,1 +1,3 @@
 window.LV_ADMIN_API_BASE = window.LV_ADMIN_API_BASE || "";
+window.LV_ADMIN_API_CANDIDATES = window.LV_ADMIN_API_CANDIDATES || [];
+window.LV_ADMIN_API_AUTO_DETECT = window.LV_ADMIN_API_AUTO_DETECT !== false;
