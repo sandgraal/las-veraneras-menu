@@ -406,10 +406,14 @@ const server = http.createServer(async (req, res) => {
       const cfg = config();
       return sendJson(res, req, 200, {
         ok: true,
+        service: "Las Veraneras Admin API",
         repo: cfg.owner && cfg.repo ? `${cfg.owner}/${cfg.repo}` : null,
         branch: cfg.branch,
         hasPassword: Boolean(cfg.password || cfg.passwordHash),
         hasGitHubToken: Boolean(cfg.githubToken),
+        loginMode: "password-session",
+        publicSiteBase: cfg.publicSiteBase || null,
+        serverTime: new Date().toISOString(),
       });
     }
 
@@ -534,6 +538,100 @@ const server = http.createServer(async (req, res) => {
         `🗑️ Admin API: eliminar imagen ${repoPath}`,
       );
       return sendJson(res, req, 200, { ok: true });
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/history") {
+      requireSession(req);
+      const cfg = requireServerConfig();
+      // Returns last 10 commits that touched any of the 4 data files
+      const DATA_FILES = [
+        "data/menu.json",
+        "data/specials.json",
+        "data/combos.json",
+        "data/config.json",
+      ];
+      const perFile = await Promise.all(
+        DATA_FILES.map((f) =>
+          githubFetch(
+            `/repos/${cfg.owner}/${cfg.repo}/commits?path=${encodeURIComponent(f)}&sha=${encodeURIComponent(cfg.branch)}&per_page=6`,
+          ).catch(() => []),
+        ),
+      );
+      // Merge + dedupe by sha, sort newest first
+      const seen = new Set();
+      const commits = [];
+      perFile.flat().forEach((c) => {
+        if (c?.sha && !seen.has(c.sha)) {
+          seen.add(c.sha);
+          commits.push({
+            sha: c.sha,
+            message: c.commit?.message || "",
+            date: c.commit?.author?.date || "",
+            author: c.commit?.author?.name || "",
+          });
+        }
+      });
+      commits.sort((a, b) => (a.date < b.date ? 1 : -1));
+      return sendJson(res, req, 200, {
+        ok: true,
+        commits: commits.slice(0, 10),
+      });
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/rollback") {
+      requireSession(req);
+      const cfg = requireServerConfig();
+      const body = await readJsonBody(req);
+      const sha = String(body.sha || "").trim();
+      if (!/^[0-9a-f]{7,40}$/.test(sha)) {
+        return sendJson(res, req, 400, { error: "SHA inválido." });
+      }
+      const DATA_FILES = [
+        "data/menu.json",
+        "data/specials.json",
+        "data/combos.json",
+        "data/config.json",
+      ];
+      // Fetch each file at the given commit, then republish
+      const restored = {};
+      await Promise.all(
+        DATA_FILES.map(async (f) => {
+          try {
+            const fileData = await githubFetch(
+              `/repos/${cfg.owner}/${cfg.repo}/contents/${encodeGitHubPath(f)}?ref=${encodeURIComponent(sha)}`,
+            );
+            if (fileData?.content) {
+              const content = Buffer.from(
+                fileData.content.replace(/\s/g, ""),
+                "base64",
+              ).toString("utf8");
+              restored[f] = content;
+            }
+          } catch (e) {
+            // File may not exist at that commit — skip
+          }
+        }),
+      );
+      if (!Object.keys(restored).length) {
+        return sendJson(res, req, 404, {
+          error: "No se encontraron archivos de datos en ese commit.",
+        });
+      }
+      const ts = new Date().toISOString().slice(0, 16).replace("T", " ");
+      await Promise.all(
+        Object.entries(restored).map(([f, content]) =>
+          putTextFile(
+            f,
+            content,
+            `⏪ Admin API: rollback a ${sha.slice(0, 7)} [${ts}]`,
+          ),
+        ),
+      );
+      return sendJson(res, req, 200, {
+        ok: true,
+        restoredFiles: Object.keys(restored),
+        fromSha: sha,
+      });
     }
 
     return notFound(res, req);
