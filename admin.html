@@ -1769,6 +1769,26 @@
         return candidate;
       }
 
+      function getUniqueDuplicatedCategoryId(baseId) {
+        const existingIds = new Set(
+          (menuData.categories || [])
+            .map((c) => c && c.id)
+            .filter((id) => typeof id === "string" && id.trim() !== ""),
+        );
+        const base =
+          typeof baseId === "string" && baseId.trim() !== ""
+            ? baseId.trim()
+            : "cat-" + Date.now();
+        let candidate = base + "-copia";
+        if (!existingIds.has(candidate)) return candidate;
+        let counter = 2;
+        while (existingIds.has(candidate)) {
+          candidate = base + "-copia-" + counter;
+          counter++;
+        }
+        return candidate;
+      }
+
       function duplicateItem(ci, ii) {
         const orig = menuData.categories[ci]?.items?.[ii];
         if (!orig) return;
@@ -1793,10 +1813,28 @@
       function duplicateCategory(ci) {
         const orig = menuData.categories[ci];
         const copy = JSON.parse(JSON.stringify(orig));
-        copy.id = (orig.id || "cat") + "-copia";
+        copy.id = getUniqueDuplicatedCategoryId(orig.id);
         if (copy.name) copy.name.es = (copy.name.es || "") + " (copia)";
+        // Collect all existing item IDs and track newly assigned ones to
+        // prevent collisions both with existing data and within this copy.
+        const takenIds = new Set();
+        (menuData.categories || []).forEach((cat) =>
+          (cat.items || []).forEach((item) => {
+            if (item?.id) takenIds.add(item.id);
+          }),
+        );
         (copy.items || []).forEach((item) => {
-          item.id = (item.id || "item") + "-copia";
+          const base = item.id || "item";
+          let candidate = base + "-copia";
+          if (takenIds.has(candidate)) {
+            let counter = 2;
+            while (takenIds.has(candidate)) {
+              candidate = base + "-copia-" + counter;
+              counter++;
+            }
+          }
+          takenIds.add(candidate);
+          item.id = candidate;
         });
         menuData.categories.splice(ci + 1, 0, copy);
         markDirty("menu");
@@ -1832,6 +1870,9 @@
             (item) =>
               (item.name?.es || "").toLowerCase().includes(q) ||
               (item.name?.en || "").toLowerCase().includes(q) ||
+              (item.description?.es || "").toLowerCase().includes(q) ||
+              (item.description?.en || "").toLowerCase().includes(q) ||
+              (item.description?.fr || "").toLowerCase().includes(q) ||
               (item.id || "").toLowerCase().includes(q),
           );
           if (!catMatch && !matchingItems.length) {
@@ -1849,6 +1890,9 @@
                 const matches =
                   (item.name?.es || "").toLowerCase().includes(q) ||
                   (item.name?.en || "").toLowerCase().includes(q) ||
+                  (item.description?.es || "").toLowerCase().includes(q) ||
+                  (item.description?.en || "").toLowerCase().includes(q) ||
+                  (item.description?.fr || "").toLowerCase().includes(q) ||
                   (item.id || "").toLowerCase().includes(q);
                 ib.style.opacity = matches ? "1" : "0.3";
               });
@@ -2160,7 +2204,7 @@
           if (!item.name?.es)
             errors.push(`Plato sin nombre ES (ID: "${item.id || "?"}")`);
           if (!item.price)
-            warnings.push(`Sin precio: "${item.name?.es || item.id}"`);
+            errors.push(`Sin precio: "${item.name?.es || item.id}"`);
           if (!item.description?.es)
             warnings.push(
               `Sin descripci\u00f3n ES: "${item.name?.es || item.id}"`,
@@ -2177,12 +2221,12 @@
         combosData.forEach((combo) => {
           if (!combo.id) errors.push("Combo sin ID");
           if (!combo.name?.es)
-            warnings.push(`Combo sin nombre ES: ID "${combo.id || "?"}"`);
+            errors.push(`Combo sin nombre ES: ID "${combo.id || "?"}"`);
           if (!combo.price)
-            warnings.push(`Combo sin precio: "${combo.id || "?"}"`);
+            errors.push(`Combo sin precio: "${combo.id || "?"}"`);
           (combo.items || []).forEach((id) => {
             if (!allIds.has(id))
-              warnings.push(
+              errors.push(
                 `Combo "${combo.name?.es || combo.id}": ID de plato inexistente "${id}"`,
               );
           });
