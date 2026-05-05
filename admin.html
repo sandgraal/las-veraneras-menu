@@ -2103,9 +2103,32 @@
         renderCombos();
       }
 
+      function getUniqueDuplicatedComboId(baseId) {
+        const existingIds = new Set(
+          combosData
+            .map((combo) => combo && combo.id)
+            .filter((id) => typeof id === "string" && id.trim() !== ""),
+        );
+        const normalizedBase =
+          typeof baseId === "string" && baseId.trim() !== ""
+            ? baseId.trim()
+            : "combo-" + Date.now();
+
+        let candidate = normalizedBase + "-copia";
+        if (!existingIds.has(candidate)) return candidate;
+
+        let counter = 2;
+        while (existingIds.has(candidate)) {
+          candidate = normalizedBase + "-copia-" + counter;
+          counter++;
+        }
+
+        return candidate;
+      }
+
       function duplicateCombo(ci) {
         const copy = JSON.parse(JSON.stringify(combosData[ci]));
-        copy.id = copy.id + "-copia";
+        copy.id = getUniqueDuplicatedComboId(copy && copy.id);
         if (copy.name) copy.name.es = (copy.name.es || "") + " (copia)";
         combosData.splice(ci + 1, 0, copy);
         markDirty("combos");
