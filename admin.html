@@ -2749,9 +2749,12 @@
           grid.innerHTML = images
             .map((f) => {
               const kb = Math.round(f.size / 1024);
-              const thumbUrl = `${f.path}?v=${encodeURIComponent(f.sha.slice(0, 8))}`;
-              const rawUrl =
-                f.download_url || new URL(f.path, location.href).href;
+              const imageUrl =
+                f.publicUrl || new URL(f.path, location.href).href;
+              const thumbUrl = `${imageUrl}${
+                imageUrl.includes("?") ? "&" : "?"
+              }v=${encodeURIComponent(f.sha.slice(0, 8))}`;
+
               const cardId = "lib-" + f.sha.slice(0, 8);
               return `<div class="photo-lib-card" id="${esc(cardId)}">
               <img src="${esc(thumbUrl)}" alt="${esc(f.name)}" loading="lazy">
