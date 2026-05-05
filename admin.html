@@ -975,21 +975,21 @@
           const existing = getConfiguredApiBase();
           const canUseSameOrigin = canProbeSameOriginApi() && !existing;
           _apiDiscovery = {
-            state: canUseSameOrigin ? "ready" : "error",
+            state: "error",
             checking: false,
             base: existing,
-            message: canUseSameOrigin
-              ? `Usando ${formatApiBaseLabel("")}`
-              : lastError?.name === "AbortError"
-                ? "No encontramos el servicio seguro todavía. Revisa que el Admin API esté encendido."
+            message: lastError?.name === "AbortError"
+              ? "No encontramos el servicio seguro todavía. Revisa que el Admin API esté encendido."
+              : canUseSameOrigin
+                ? "No pudimos verificar el servicio seguro en este sitio automáticamente. Puedes pegar la URL una sola vez."
                 : "No pudimos detectar el servicio seguro automáticamente. Puedes pegar la URL una sola vez.",
             service: "",
             repo: "",
             branch: "",
           };
-          if (!canUseSameOrigin) _showAdvancedEndpoint = true;
+          _showAdvancedEndpoint = true;
           renderAuthCard();
-          return { ok: canUseSameOrigin, base: existing, error: lastError };
+          return { ok: false, base: existing, error: lastError };
         })().finally(() => {
           _apiDiscoveryPromise = null;
         });
