@@ -22,7 +22,11 @@
   },
   "googleBusinessUrl": "",
   "openStatusMode": "hours",
-  "availableLanguages": ["es", "en", "fr"],
+  "availableLanguages": [
+    "es",
+    "en",
+    "fr"
+  ],
   "hours": {
     "Lunes": "11:00–21:00",
     "Martes": "11:00–21:00",
@@ -33,7 +37,7 @@
     "Domingo": "10:00–20:00"
   },
   "socialLinks": {
-    "facebook": "",
+    "facebook": "https://www.facebook.com/profile.php?id=100078686179536",
     "instagram": "",
     "tiktok": ""
   }
