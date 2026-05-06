@@ -45,6 +45,8 @@
 }
 
 /* ── 2. Base Reset ───────────────────────────────────────────────── */
+.skip-link{position:absolute;top:-999px;left:1rem;padding:.5rem 1rem;background:var(--magenta);color:#fff;border-radius:var(--r-md);font-weight:700;z-index:9999;text-decoration:none;font-size:.9rem}
+.skip-link:focus{top:1rem}
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
 body{font-family:var(--font-body);background:radial-gradient(circle at 15% 5%,rgba(229,56,136,.12),transparent 28%),linear-gradient(180deg,#130D0B,#1B120F 55%,#120C0A);color:var(--text);overflow-x:hidden;padding-bottom:5.5rem;line-height:1.6;-webkit-font-smoothing:antialiased}
@@ -90,7 +92,7 @@ button{cursor:pointer;border:none;font-family:inherit}
 
 /* ── 4. Hero ─────────────────────────────────────────────────────── */
 .hero{position:relative;min-height:100svh;display:flex;align-items:center;justify-content:flex-start;overflow:hidden;padding:6rem max(1rem,6vw) 4rem}
-.hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;background-attachment:fixed;z-index:0}
+.hero-bg{position:absolute;inset:0;background-size:cover;background-position:center;background-attachment:scroll;z-index:0}
 .hero-overlay{position:absolute;inset:0;background:linear-gradient(90deg,rgba(19,13,11,.96) 0%,rgba(59,18,49,.78) 42%,rgba(19,13,11,.28) 100%),linear-gradient(180deg,rgba(19,13,11,.18) 0%,rgba(19,13,11,.86) 100%);z-index:1}
 .hero-content{position:relative;z-index:2;text-align:left;padding:var(--sp-xl) 0;max-width:720px;animation:fadeInUp .9s ease both}
 .hero-status{display:inline-flex;align-items:center;gap:.45rem;background:rgba(255,244,223,.12);border:1px solid rgba(255,244,223,.2);color:var(--cream);padding:.42rem .75rem;border-radius:var(--r-pill);font-size:.78rem;font-weight:700;margin-bottom:var(--sp-md);backdrop-filter:blur(16px)}
@@ -336,6 +338,8 @@ button{cursor:pointer;border:none;font-family:inherit}
 .social-link:hover{color:var(--magenta);border-color:var(--magenta)}
 .footer-wa-link{display:flex;align-items:center;gap:.4rem;color:var(--wa);font-weight:600;font-size:.9rem;margin-top:.5rem}
 .footer-wa-link:hover{color:var(--wa-dk)}
+.footer-maps-link{display:flex;align-items:center;gap:.4rem;color:var(--gold);font-weight:600;font-size:.9rem;margin-top:.5rem}
+.footer-maps-link:hover{color:var(--gold-lt)}
 .footer-bottom{max-width:1100px;margin:var(--sp-lg) auto 0;padding-top:var(--sp-md);border-top:1px solid var(--border);text-align:center;font-size:.8rem;color:var(--muted)}
 
 /* ── 17. Mobile Bottom Nav ───────────────────────────────────────── */

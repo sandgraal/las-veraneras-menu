@@ -365,6 +365,8 @@ function applyConfig(cfg) {
   // OG image
   const ogImg = document.getElementById('og-image');
   if (ogImg && cfg.heroImage) ogImg.setAttribute('content', cfg.heroImage);
+  const twImg = document.getElementById('twitter-image');
+  if (twImg && cfg.heroImage) twImg.setAttribute('content', cfg.heroImage);
   // JSON-LD
   const menuGraph = {
     '@type':'Menu',
@@ -464,9 +466,9 @@ function renderFilters() {
   const root = $('filters');
   if (!root) return;
   root.innerHTML = [
-    `<button class="filter-btn ${selected==='all'?'active':''}" onclick="setCategory('all')">${t('all')}</button>`,
+    `<button class="filter-btn ${selected==='all'?'active':''}" onclick="setCategory('all')" aria-pressed="${selected==='all'}">${t('all')}</button>`,
     ...menuData.categories.map((c,i) =>
-      `<button class="filter-btn ${selected===String(i)?'active':''}" onclick="setCategory('${i}')">${esc(localized(c.name,c.id))}</button>`)
+      `<button class="filter-btn ${selected===String(i)?'active':''}" onclick="setCategory('${i}')" aria-pressed="${selected===String(i)}">${esc(localized(c.name,c.id))}</button>`)
   ].join('');
   renderSmartFilters();
 }
@@ -477,15 +479,16 @@ function renderSmartFilters() {
   const items = allItems();
   const tags = Array.from(new Set(items.flatMap(i => i.bestFor || []))).filter(Boolean);
   const allergens = Array.from(new Set(items.flatMap(i => i.allergens || []))).filter(Boolean);
-  const tagButtons = tags.map(tag => `<button class="smart-chip ${activeTag===tag?'active':''}" onclick="setTag(${jsArg(tag)})">${esc(t(bestForLabels[tag] || tag))}</button>`).join('');
-  const allergenButtons = allergens.map(a => `<button class="smart-chip allergen ${activeAllergen===a?'active':''}" onclick="setAllergenFilter(${jsArg(a)})">${esc(a)}</button>`).join('');
+  const allActive = activeTag==='all' && activeAllergen==='all';
+  const tagButtons = tags.map(tag => `<button class="smart-chip ${activeTag===tag?'active':''}" onclick="setTag(${jsArg(tag)})" aria-pressed="${activeTag===tag}">${esc(t(bestForLabels[tag] || tag))}</button>`).join('');
+  const allergenButtons = allergens.map(a => `<button class="smart-chip allergen ${activeAllergen===a?'active':''}" onclick="setAllergenFilter(${jsArg(a)})" aria-pressed="${activeAllergen===a}">${esc(a)}</button>`).join('');
   root.innerHTML = `
     <div class="smart-filter-row">
       <span>${t('filters')}</span>
-      <button class="smart-chip ${activeTag==='all' && activeAllergen==='all' ? 'active' : ''}" onclick="clearMenuFilters()">${t('allFilters')}</button>
+      <button class="smart-chip ${allActive ? 'active' : ''}" onclick="clearMenuFilters()" aria-pressed="${allActive}">${t('allFilters')}</button>
       ${tagButtons}
     </div>
-    ${allergens.length ? `<div class="smart-filter-row"><span>${t('allergens')}</span><button class="smart-chip ${activeAllergen==='all'?'active':''}" onclick="setAllergenFilter('all')">${t('allFilters')}</button>${allergenButtons}</div>` : ''}
+    ${allergens.length ? `<div class="smart-filter-row"><span>${t('allergens')}</span><button class="smart-chip ${activeAllergen==='all'?'active':''}" onclick="setAllergenFilter('all')" aria-pressed="${activeAllergen==='all'}">${t('allFilters')}</button>${allergenButtons}</div>` : ''}
     ${(activeTag !== 'all' || activeAllergen !== 'all' || ($('search')?.value || '').trim()) ? `<button class="clear-filter-btn" onclick="clearMenuFilters()">${t('clearFilters')}</button>` : ''}`;
 }
 
