@@ -158,6 +158,41 @@
         font-size: 0.72rem;
         padding: 0.2rem 0.5rem;
       }
+      .item-more {
+        margin-top: 0.6rem;
+        border-top: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+        padding-top: 0.4rem;
+      }
+      .item-more-summary {
+        cursor: pointer;
+        font-size: 0.82rem;
+        font-weight: 600;
+        opacity: 0.85;
+        padding: 0.5rem 0.25rem;
+        list-style: none;
+        user-select: none;
+        min-height: 44px;
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+      .item-more-summary::-webkit-details-marker {
+        display: none;
+      }
+      .item-more-summary::before {
+        content: "▸";
+        transition: transform 0.15s ease;
+      }
+      .item-more[open] > .item-more-summary::before {
+        transform: rotate(90deg);
+      }
+      .item-more-summary:hover,
+      .item-more-summary:focus-visible {
+        opacity: 1;
+        outline: 2px solid var(--accent, #e53888);
+        outline-offset: 2px;
+        border-radius: 6px;
+      }
     </style>
   </head>
   <body>
@@ -1491,6 +1526,16 @@
           </div>
           <label class="admin-label">Descripción FR</label>
           <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.fr',this.value)">${esc(item.description?.fr || "")}</textarea>
+          <label class="admin-label">Precio (₡)</label>
+          <input class="admin-input" type="number" inputmode="numeric" value="${esc(item.price || "")}" oninput="setItemField(${ci},${ii},'price',this.value)">
+          <label class="admin-label">Imagen</label>
+          <div class="img-field-row">
+            <input class="admin-input" id="img-url-${ci}-${ii}" value="${esc(item.image || "")}" placeholder="https:// o subir 📷" oninput="setItemField(${ci},${ii},'image',this.value);updateItemImg(${ci},${ii},this.value)">
+            <button class="btn-admin btn-upload-photo" type="button" title="Subir foto" onclick="openPhotoEditor({slug:${esc(JSON.stringify(item.id || "foto"))},aspectRatio:4/3,maxDim:1200,onSuccess:p=>peSetItemImage(${ci},${ii},p)})">📷</button>
+          </div>
+          <img id="img-${ci}-${ii}" class="img-preview" src="" alt="" style="${item.image ? "" : "display:none"}">
+          <details class="item-more">
+            <summary class="item-more-summary">Más detalles — historia, etiquetas, foto, alérgenos…</summary>
           <div class="item-row-2">
             <div>
               <label class="admin-label">Historia ES</label>
@@ -1531,11 +1576,7 @@
           </div>
           <label class="admin-label">Pairings (CSV IDs)</label>
           <input class="admin-input" value="${esc((item.pairings || []).join(","))}" placeholder="crepas,papas" oninput="setItemList(${ci},${ii},'pairings',this.value)">
-          <div class="item-row-3">
-            <div>
-              <label class="admin-label">Precio (₡)</label>
-              <input class="admin-input" type="number" value="${esc(item.price || "")}" oninput="setItemField(${ci},${ii},'price',this.value)">
-            </div>
+          <div class="item-row-2">
             <div>
               <label class="admin-label">Badge texto</label>
               <input class="admin-input" value="${esc(item.badgeText || "")}" placeholder="Nuevo, Temporada…" oninput="setItemField(${ci},${ii},'badgeText',this.value)">
@@ -1545,12 +1586,6 @@
               <input class="admin-input" value="${esc(item.id || "")}" oninput="setItemField(${ci},${ii},'id',this.value)">
             </div>
           </div>
-          <label class="admin-label">Imagen</label>
-          <div class="img-field-row">
-            <input class="admin-input" id="img-url-${ci}-${ii}" value="${esc(item.image || "")}" placeholder="https:// o subir 📷" oninput="setItemField(${ci},${ii},'image',this.value);updateItemImg(${ci},${ii},this.value)">
-            <button class="btn-admin btn-upload-photo" type="button" title="Subir foto" onclick="openPhotoEditor({slug:${esc(JSON.stringify(item.id || "foto"))},aspectRatio:4/3,maxDim:1200,onSuccess:p=>peSetItemImage(${ci},${ii},p)})">📷</button>
-          </div>
-          <img id="img-${ci}-${ii}" class="img-preview" src="" alt="" style="${item.image ? "" : "display:none"}">
           <div class="item-row-3" style="margin-top:.4rem">
             <div>
               <label class="admin-label" style="margin-top:.5rem">Alt texto ES</label>
@@ -1575,6 +1610,7 @@
           </div>
           <label class="admin-label">Alérgenos</label>
           <div class="allergen-grid">${allergenChips}</div>
+          </details>
         </div>`;
       }
 
@@ -2583,7 +2619,7 @@
       }
 
       /* ── Photo Upload Engine (Phase 1) ── */
-      function safeFilename(slug) {
+      function safeFilename(slug, ext = ".webp") {
         return (
           (slug || "foto")
             .replace(/[^a-z0-9]/gi, "-")
@@ -2593,8 +2629,33 @@
             .slice(0, 40) +
           "-" +
           Date.now() +
-          ".webp"
+          ext
         );
+      }
+
+      // Encode a canvas to WebP, falling back to JPEG where WebP encoding is
+      // unsupported (e.g. older iOS Safari, where toBlob silently yields PNG).
+      function canvasToUploadBlob(canvas, quality) {
+        const toBlob = (type) =>
+          new Promise((resolve) => canvas.toBlob((b) => resolve(b), type, quality));
+        return (async () => {
+          const webp = await toBlob("image/webp");
+          if (webp && webp.type === "image/webp") {
+            return { blob: webp, ext: ".webp" };
+          }
+          const jpeg = await toBlob("image/jpeg");
+          if (jpeg) return { blob: jpeg, ext: ".jpg" };
+          throw new Error("No se pudo convertir la imagen");
+        })();
+      }
+
+      function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result.split(",")[1]);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
       }
 
       async function uploadImageToGitHub(base64Data, filename) {
@@ -2768,23 +2829,9 @@
           const ctx = finalCanvas.getContext("2d");
           ctx.filter = `brightness(${1 + b / 100}) contrast(${1 + c / 100})`;
           ctx.drawImage(cropped, 0, 0);
-          const base64 = await new Promise((resolve, reject) => {
-            finalCanvas.toBlob(
-              (blob) => {
-                if (!blob) {
-                  reject(new Error("No se pudo convertir la imagen"));
-                  return;
-                }
-                const reader = new FileReader();
-                reader.onload = (e) => resolve(e.target.result.split(",")[1]);
-                reader.onerror = reject;
-                reader.readAsDataURL(blob);
-              },
-              "image/webp",
-              0.85,
-            );
-          });
-          const filename = safeFilename(peContext.slug || "foto");
+          const { blob, ext } = await canvasToUploadBlob(finalCanvas, 0.85);
+          const base64 = await blobToBase64(blob);
+          const filename = safeFilename(peContext.slug || "foto", ext);
           const ctx2 = peContext; // capture before closePhotoEditor clears it
           const path = await uploadImageToGitHub(base64, filename);
           closePhotoEditor();
@@ -2949,7 +2996,19 @@
       }
 
       /* ── Init ── */
+      // Self-heal a stale saved API base: if the page ships a configured base
+      // and localStorage holds a different (likely outdated) one, trust config.
+      function reconcileApiBase() {
+        const configured = normalizeApiBase(window.LV_ADMIN_API_BASE || "");
+        if (!configured) return;
+        const stored = normalizeApiBase(
+          localStorage.getItem(API_BASE_STORAGE_KEY) || "",
+        );
+        if (stored && stored !== configured) saveApiBase(configured);
+      }
+
       (async function init() {
+        reconcileApiBase();
         renderAuthCard();
         peSetupDragDrop();
         await discoverApiBase();
