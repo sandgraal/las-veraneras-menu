@@ -390,6 +390,7 @@ function applyConfig(cfg) {
   const ld = {
     '@context':'https://schema.org',
     '@type':'Restaurant',
+    inLanguage: lang,
     name: cfg.restaurantName || 'Las Veraneras',
     description: localized({ es: cfg.tagline, en: cfg.taglineEn, fr: cfg.taglineFr }, cfg.tagline || ''),
     address: { '@type':'PostalAddress', addressLocality:'Las Vueltas de Tucurrique', addressRegion:'Cartago', addressCountry:'CR', streetAddress: cfg.address || '' },
@@ -443,10 +444,26 @@ function setLang(l) {
   lang = l;
   localStorage.setItem('lv-lang', l);
   document.documentElement.lang = l;
+  // Keep SEO language signals in sync with the active language
+  const ogLocale = $('og-locale');
+  if (ogLocale) ogLocale.setAttribute('content', l === 'es' ? 'es_CR' : l);
+  const ldEl = $('structured-data');
+  if (ldEl) {
+    try {
+      const ld = JSON.parse(ldEl.textContent || '{}');
+      if (ld && typeof ld === 'object') {
+        ld.inLanguage = l;
+        ldEl.textContent = JSON.stringify(ld);
+      }
+    } catch (e) { /* ignore malformed LD */ }
+  }
   // Update button states
   ['btn-es','btn-en','btn-fr','mob-btn-es','mob-btn-en','mob-btn-fr'].forEach(id => {
     const btn = $(id);
-    if (btn) btn.classList.toggle('active', btn.id.endsWith(l));
+    if (!btn) return;
+    const isActive = btn.id.endsWith(l);
+    btn.classList.toggle('active', isActive);
+    btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
   });
   // Update tagline
   const ht = $('hero-tagline');
