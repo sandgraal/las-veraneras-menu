@@ -44,6 +44,8 @@ function config() {
       .split(",")
       .map((s) => s.trim())
       .filter(Boolean),
+    anthropicApiKey: process.env.LV_ANTHROPIC_API_KEY || "",
+    translateModel: process.env.LV_TRANSLATE_MODEL || "claude-haiku-4-5",
     githubToken: process.env.LV_GITHUB_TOKEN || "",
     owner: process.env.LV_GITHUB_OWNER || "",
     repo: process.env.LV_GITHUB_REPO || "",
@@ -385,6 +387,137 @@ function validatePublishPayload(body) {
   }
 }
 
+const TRANSLATE_LANGS = {
+  es: "Spanish",
+  en: "English",
+  fr: "French",
+};
+const TRANSLATE_MAX_CHARS = 4000;
+
+function httpError(message, status) {
+  return Object.assign(new Error(message), { status });
+}
+
+// Translate a set of menu text fields from one language into one or more
+// targets using the Claude API. Input:
+//   { source: "es", targets: ["en","fr"], fields: { name, description, story } }
+// Output (per target): { en: { name, description, story }, fr: {...} }
+async function translateFields(body) {
+  const cfg = config();
+  if (!cfg.anthropicApiKey) {
+    throw httpError(
+      "La traducción automática no está configurada (falta LV_ANTHROPIC_API_KEY).",
+      503,
+    );
+  }
+  const source = String(body?.source || "").slice(0, 2).toLowerCase();
+  if (!TRANSLATE_LANGS[source]) {
+    throw httpError("Idioma de origen inválido.", 400);
+  }
+  const targets = Array.isArray(body?.targets)
+    ? [...new Set(body.targets.map((t) => String(t || "").slice(0, 2).toLowerCase()))]
+        .filter((t) => TRANSLATE_LANGS[t] && t !== source)
+    : [];
+  if (!targets.length) {
+    throw httpError("No hay idiomas de destino válidos.", 400);
+  }
+  // Keep only non-empty string fields, capped in length.
+  const fields = {};
+  for (const [k, v] of Object.entries(body?.fields || {})) {
+    if (typeof v === "string" && v.trim()) {
+      fields[k] = v.slice(0, TRANSLATE_MAX_CHARS);
+    }
+  }
+  const fieldNames = Object.keys(fields);
+  if (!fieldNames.length) {
+    throw httpError("No hay texto para traducir.", 400);
+  }
+
+  // Build a strict JSON schema so the model returns exactly the shape we expect.
+  const fieldProps = {};
+  for (const f of fieldNames) fieldProps[f] = { type: "string" };
+  const langSchema = {
+    type: "object",
+    additionalProperties: false,
+    properties: fieldProps,
+    required: fieldNames,
+  };
+  const schemaProps = {};
+  for (const t of targets) schemaProps[t] = langSchema;
+  const schema = {
+    type: "object",
+    additionalProperties: false,
+    properties: schemaProps,
+    required: targets,
+  };
+
+  const system =
+    "You are a professional menu translator for Las Veraneras, a French-Costa Rican " +
+    "bistro in Tucurrique, Costa Rica. Translate restaurant menu text faithfully and " +
+    "appetizingly. Keep the tone warm and concise. Preserve proper dish names and " +
+    "brand names where a translation would be unnatural. Do not add commentary, notes, " +
+    "or extra fields. Return only the requested translations.";
+
+  const targetNames = targets.map((t) => TRANSLATE_LANGS[t]).join(" and ");
+  const userText =
+    `Source language: ${TRANSLATE_LANGS[source]}.\n` +
+    `Translate the following menu fields into ${targetNames}.\n` +
+    `Return one object per target language keyed by its ISO code (${targets.join(", ")}), ` +
+    `each containing the same fields.\n\n` +
+    `Fields (JSON):\n${JSON.stringify(fields, null, 2)}`;
+
+  const controller =
+    typeof AbortController !== "undefined" ? new AbortController() : null;
+  const timeoutId = controller
+    ? setTimeout(() => controller.abort(), 20000)
+    : null;
+  let resp;
+  try {
+    resp = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: {
+        "x-api-key": cfg.anthropicApiKey,
+        "anthropic-version": "2023-06-01",
+        "content-type": "application/json",
+      },
+      signal: controller?.signal,
+      body: JSON.stringify({
+        model: cfg.translateModel,
+        max_tokens: 2048,
+        system,
+        output_config: { format: { type: "json_schema", schema } },
+        messages: [{ role: "user", content: userText }],
+      }),
+    });
+  } catch (e) {
+    throw httpError(
+      e?.name === "AbortError"
+        ? "El servicio de traducción tardó demasiado en responder."
+        : "No se pudo contactar el servicio de traducción.",
+      502,
+    );
+  } finally {
+    if (timeoutId) clearTimeout(timeoutId);
+  }
+
+  const payload = await resp.json().catch(() => null);
+  if (!resp.ok) {
+    const msg = payload?.error?.message || `La API respondió con ${resp.status}`;
+    // Surface auth/config issues as 503, everything else as 502.
+    throw httpError(`Traducción falló: ${msg}`, resp.status === 401 ? 503 : 502);
+  }
+  const text = Array.isArray(payload?.content)
+    ? payload.content.find((b) => b.type === "text")?.text
+    : null;
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    throw httpError("La traducción devolvió un formato inesperado.", 502);
+  }
+  return parsed;
+}
+
 const server = http.createServer(async (req, res) => {
   try {
     if (!isOriginAllowed(String(req.headers.origin || ""))) {
@@ -470,6 +603,13 @@ const server = http.createServer(async (req, res) => {
         { ok: true },
         { "Set-Cookie": clearCookie(req) },
       );
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/translate") {
+      requireSession(req);
+      const body = await readJsonBody(req);
+      const data = await translateFields(body);
+      return sendJson(res, req, 200, { translations: data });
     }
 
     if (req.method === "POST" && url.pathname === "/api/publish") {
