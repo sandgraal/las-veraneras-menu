@@ -158,6 +158,49 @@
         font-size: 0.72rem;
         padding: 0.2rem 0.5rem;
       }
+      .admin-lang-bar {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        margin: 0.75rem 0 0.25rem;
+        padding: 0.4rem 0.1rem;
+      }
+      .lang-chip {
+        border: 1px solid var(--border, rgba(255, 255, 255, 0.18));
+        background: transparent;
+        color: inherit;
+        border-radius: 999px;
+        padding: 0.35rem 0.85rem;
+        font-size: 0.82rem;
+        font-weight: 600;
+        cursor: pointer;
+        min-height: 40px;
+        opacity: 0.7;
+      }
+      .lang-chip.active {
+        background: var(--accent, #e53888);
+        border-color: var(--accent, #e53888);
+        color: #fff;
+        opacity: 1;
+      }
+      .lang-chip:focus-visible {
+        outline: 2px solid var(--accent, #e53888);
+        outline-offset: 2px;
+      }
+      .other-langs {
+        margin-top: 0.5rem;
+        border: 1px dashed var(--border, rgba(255, 255, 255, 0.18));
+        border-radius: 10px;
+        padding: 0 0.6rem 0.5rem;
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .other-langs > .item-more-summary {
+        padding: 0.55rem 0.1rem;
+      }
+      .tr-btn {
+        margin-top: 0.5rem;
+      }
       .item-more {
         margin-top: 0.6rem;
         border-top: 1px solid var(--border, rgba(255, 255, 255, 0.12));
@@ -261,6 +304,14 @@
         <button class="tab-btn" id="tab-preview" onclick="showTab('preview')">
           👁 Preview<span class="dot"></span>
         </button>
+      </div>
+
+      <!-- Editing language -->
+      <div class="admin-lang-bar" id="admin-lang-bar" role="group" aria-label="Idioma de edición">
+        <span class="muted small">✏️ Editando en:</span>
+        <button class="lang-chip" data-lang="es" aria-pressed="true" onclick="setAdminLang('es')">Español</button>
+        <button class="lang-chip" data-lang="en" aria-pressed="false" onclick="setAdminLang('en')">English</button>
+        <button class="lang-chip" data-lang="fr" aria-pressed="false" onclick="setAdminLang('fr')">Français</button>
       </div>
 
       <!-- TAB: Menu -->
@@ -1448,18 +1499,7 @@
               <button class="btn-danger" onclick="event.stopPropagation();removeCategory(${ci})">\u2715</button>
             </div>
             <div class="cat-body" id="cat-body-${ci}">
-              <div class="item-row-2" style="margin-bottom:1rem">
-                <div>
-                  <label class="admin-label" style="margin-top:0">Nombre ES</label>
-                  <input class="admin-input" value="${esc(cat.name?.es || "")}" oninput="menuData.categories[${ci}].name.es=this.value;markDirty('menu')">
-                </div>
-                <div>
-                  <label class="admin-label" style="margin-top:0">Nombre EN</label>
-                  <input class="admin-input" value="${esc(cat.name?.en || "")}" oninput="menuData.categories[${ci}].name.en=this.value;markDirty('menu')">
-                </div>
-              </div>
-              <label class="admin-label" style="margin-top:0">Nombre FR</label>
-              <input class="admin-input" value="${esc(cat.name?.fr || "")}" oninput="menuData.categories[${ci}].name.fr=this.value;markDirty('menu')">
+              <div style="margin-bottom:1rem">${categoryNameSection(cat, ci)}</div>
               <label class="admin-label" style="margin-top:0">Emoji</label>
               <input class="admin-input" value="${esc(cat.emoji || "")}" style="width:80px" oninput="menuData.categories[${ci}].emoji=this.value;markDirty('menu')">
               <div style="margin:1rem 0">${(cat.items || []).map((_, ii) => itemEditor(ci, ii)).join("")}</div>
@@ -1491,41 +1531,36 @@
           const sel = (item.allergens || []).includes(a);
           return `<span class="allergen-chip${sel ? " selected" : ""}" onclick="toggleAllergen(${ci},${ii},'${a}',this)">${a}</span>`;
         }).join("");
+        const mlBlock = mlSection(
+          `item-block-${ci}-${ii}`,
+          `translateItem(${ci},${ii})`,
+          ITEM_ML_FIELDS.map((f) => ({
+            key: f.key,
+            label: f.label,
+            multiline: f.multiline,
+            get: (l) => item[f.key]?.[l] || "",
+            setExpr: (l) => `setItemField(${ci},${ii},'${f.key}.${l}',this.value)`,
+          })),
+        );
+        const photoAltInput = mlInput(
+          "photoAlt",
+          adminLang,
+          "Alt de foto (accesibilidad/SEO)",
+          item.photoAlt?.[adminLang] || "",
+          `setItemField(${ci},${ii},'photoAlt.${adminLang}',this.value)`,
+          false,
+        );
         return `<div class="item-block" id="item-block-${ci}-${ii}">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;flex-wrap:wrap;gap:.3rem">
             <strong style="color:var(--gold)">${esc(item.name?.es || "Plato")}</strong>
             <div style="display:flex;gap:.3rem;flex-wrap:wrap">
-              <button class="btn-admin" id="tr-item-${ci}-${ii}" style="padding:.15rem .55rem;font-size:.75rem" onclick="translateItem(${ci},${ii})" title="Traducir el nombre, la descripci\u00f3n y la historia del espa\u00f1ol a ingl\u00e9s y franc\u00e9s">\u2728 Traducir</button>
               <button class="btn-admin" style="padding:.15rem .45rem;font-size:.75rem" onclick="moveItem(${ci},${ii},-1)" title="Subir plato" ${ii === 0 ? "disabled" : ""}>\u25b2</button>
               <button class="btn-admin" style="padding:.15rem .45rem;font-size:.75rem" onclick="moveItem(${ci},${ii},1)" title="Bajar plato" ${ii === (menuData.categories[ci]?.items || []).length - 1 ? "disabled" : ""}>\u25bc</button>
               <button class="btn-admin" style="padding:.15rem .45rem;font-size:.75rem" onclick="duplicateItem(${ci},${ii})" title="Duplicar plato">\u29c9</button>
               <button class="btn-danger" onclick="removeItem(${ci},${ii})">\u2715 Eliminar</button>
             </div>
           </div>
-          <div class="item-row-2">
-            <div>
-              <label class="admin-label" style="margin-top:0">Nombre ES</label>
-              <input class="admin-input" value="${esc(item.name?.es || "")}" oninput="setItemField(${ci},${ii},'name.es',this.value)">
-            </div>
-            <div>
-              <label class="admin-label" style="margin-top:0">Nombre EN</label>
-              <input class="admin-input" value="${esc(item.name?.en || "")}" oninput="setItemField(${ci},${ii},'name.en',this.value)">
-            </div>
-          </div>
-          <label class="admin-label">Nombre FR</label>
-          <input class="admin-input" value="${esc(item.name?.fr || "")}" oninput="setItemField(${ci},${ii},'name.fr',this.value)">
-          <div class="item-row-2">
-            <div>
-              <label class="admin-label">Descripción ES</label>
-              <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.es',this.value)">${esc(item.description?.es || "")}</textarea>
-            </div>
-            <div>
-              <label class="admin-label">Descripción EN</label>
-              <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.en',this.value)">${esc(item.description?.en || "")}</textarea>
-            </div>
-          </div>
-          <label class="admin-label">Descripción FR</label>
-          <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'description.fr',this.value)">${esc(item.description?.fr || "")}</textarea>
+          ${mlBlock}
           <label class="admin-label">Precio (₡)</label>
           <input class="admin-input" type="number" inputmode="numeric" value="${esc(item.price || "")}" oninput="setItemField(${ci},${ii},'price',this.value)">
           <label class="admin-label">Imagen</label>
@@ -1535,31 +1570,7 @@
           </div>
           <img id="img-${ci}-${ii}" class="img-preview" src="" alt="" style="${item.image ? "" : "display:none"}">
           <details class="item-more">
-            <summary class="item-more-summary">Más detalles — historia, etiquetas, foto, alérgenos…</summary>
-          <div class="item-row-2">
-            <div>
-              <label class="admin-label">Historia ES</label>
-              <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.es',this.value)">${esc(item.story?.es || "")}</textarea>
-            </div>
-            <div>
-              <label class="admin-label">Story EN</label>
-              <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.en',this.value)">${esc(item.story?.en || "")}</textarea>
-            </div>
-          </div>
-          <label class="admin-label">Histoire FR</label>
-          <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'story.fr',this.value)">${esc(item.story?.fr || "")}</textarea>
-          <div class="item-row-2">
-            <div>
-              <label class="admin-label">Toque francés ES</label>
-              <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.es',this.value)">${esc(item.frenchInfluence?.es || "")}</textarea>
-            </div>
-            <div>
-              <label class="admin-label">French touch EN</label>
-              <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.en',this.value)">${esc(item.frenchInfluence?.en || "")}</textarea>
-            </div>
-          </div>
-          <label class="admin-label">Touche française FR</label>
-          <textarea class="admin-textarea" rows="2" oninput="setItemField(${ci},${ii},'frenchInfluence.fr',this.value)">${esc(item.frenchInfluence?.fr || "")}</textarea>
+            <summary class="item-more-summary">Más detalles — etiquetas, foto, alérgenos…</summary>
           <div class="item-row-3">
             <div>
               <label class="admin-label">Best for (CSV)</label>
@@ -1586,20 +1597,7 @@
               <input class="admin-input" value="${esc(item.id || "")}" oninput="setItemField(${ci},${ii},'id',this.value)">
             </div>
           </div>
-          <div class="item-row-3" style="margin-top:.4rem">
-            <div>
-              <label class="admin-label" style="margin-top:.5rem">Alt texto ES</label>
-              <input class="admin-input" value="${esc(item.photoAlt?.es || "")}" placeholder="Descripción de la foto…" oninput="setItemField(${ci},${ii},'photoAlt.es',this.value)">
-            </div>
-            <div>
-              <label class="admin-label" style="margin-top:.5rem">Alt texto EN</label>
-              <input class="admin-input" value="${esc(item.photoAlt?.en || "")}" placeholder="Photo description…" oninput="setItemField(${ci},${ii},'photoAlt.en',this.value)">
-            </div>
-            <div>
-              <label class="admin-label" style="margin-top:.5rem">Alt texto FR</label>
-              <input class="admin-input" value="${esc(item.photoAlt?.fr || "")}" placeholder="Description de la photo…" oninput="setItemField(${ci},${ii},'photoAlt.fr',this.value)">
-            </div>
-          </div>
+          ${photoAltInput}
           <label class="admin-label">Crédito / fuente de imagen</label>
           <input class="admin-input" value="${esc(item.imageSource || "")}" placeholder="Unsplash, Wikimedia, foto propia…" oninput="setItemField(${ci},${ii},'imageSource',this.value)">
           <div class="checkbox-row">
@@ -1631,14 +1629,89 @@
       // Calls the Admin API, which proxies the Claude API server-side, to
       // translate the given Spanish fields into English and French.
       // `fields` is { fieldName: spanishText }. Returns { en: {...}, fr: {...} }.
-      async function translateFromSpanish(fields) {
+      // ── Admin editing language (shared with the public site via lv-lang) ──
+      const ADMIN_LANGS = ["es", "en", "fr"];
+      function getAdminLang() {
+        const l = localStorage.getItem("lv-lang");
+        return ADMIN_LANGS.includes(l) ? l : "es";
+      }
+      let adminLang = getAdminLang();
+
+      function updateAdminLangChips() {
+        document.querySelectorAll("#admin-lang-bar .lang-chip").forEach((b) => {
+          const on = b.dataset.lang === adminLang;
+          b.classList.toggle("active", on);
+          b.setAttribute("aria-pressed", on ? "true" : "false");
+        });
+      }
+
+      function setAdminLang(l) {
+        if (!ADMIN_LANGS.includes(l) || l === adminLang) {
+          if (l === adminLang) updateAdminLangChips();
+          return;
+        }
+        adminLang = l;
+        localStorage.setItem("lv-lang", l);
+        updateAdminLangChips();
+        // Re-render every editor so each shows the newly chosen language.
+        renderCategories();
+        if (typeof renderSpecials === "function") renderSpecials();
+        if (typeof renderCombos === "function") renderCombos();
+      }
+
+      // Render one localized field: a labelled input/textarea bound to `lang`.
+      // `setExpr` is the oninput JS (string). data-ml lets translate fill it in place.
+      function mlInput(key, lang, label, value, setExpr, multiline, rows) {
+        const v = esc(value || "");
+        if (multiline) {
+          return `<label class="admin-label">${esc(label)}</label><textarea class="admin-textarea" data-ml="${key}.${lang}" rows="${rows || 2}" oninput="${setExpr}">${v}</textarea>`;
+        }
+        return `<label class="admin-label">${esc(label)}</label><input class="admin-input" data-ml="${key}.${lang}" value="${v}" oninput="${setExpr}">`;
+      }
+
+      // Build a single-language editing section + a "Traducir" button + a
+      // collapsible "Otros idiomas" block with the other two languages.
+      // fields: [{ key, label, multiline, rows, get(lang)->string, setExpr(lang)->jsString }]
+      function mlSection(blockId, translateCall, fields) {
+        const others = ADMIN_LANGS.filter((l) => l !== adminLang);
+        const primary = fields
+          .map((f) =>
+            mlInput(f.key, adminLang, f.label, f.get(adminLang), f.setExpr(adminLang), f.multiline, f.rows),
+          )
+          .join("");
+        const hasOthers = fields.some((f) =>
+          others.some((l) => String(f.get(l) || "").trim()),
+        );
+        const othersHTML = fields
+          .map((f) =>
+            others
+              .map((l) =>
+                mlInput(
+                  f.key,
+                  l,
+                  `${f.label} (${l.toUpperCase()})`,
+                  f.get(l),
+                  f.setExpr(l),
+                  f.multiline,
+                  f.rows,
+                ),
+              )
+              .join(""),
+          )
+          .join("");
+        return `${primary}
+          <button class="btn-admin-primary tr-btn" id="tr-${blockId}" onclick="${translateCall}">✨ Traducir a los otros idiomas</button>
+          <details class="other-langs" id="other-${blockId}" ${hasOthers ? "open" : ""}>
+            <summary class="item-more-summary">🌐 Otros idiomas</summary>
+            ${othersHTML}
+          </details>`;
+      }
+
+      async function translateGroup(source, fields) {
+        const targets = ADMIN_LANGS.filter((l) => l !== source);
         const data = await apiFetch("/api/translate", {
           method: "POST",
-          body: JSON.stringify({
-            source: "es",
-            targets: ["en", "fr"],
-            fields,
-          }),
+          body: JSON.stringify({ source, targets, fields }),
         });
         return data?.translations || {};
       }
@@ -1658,50 +1731,193 @@
           } finally {
             if (btn) {
               btn.disabled = false;
-              btn.textContent = original || "✨ Traducir";
+              btn.textContent = original || "✨ Traducir a los otros idiomas";
             }
           }
         })();
       }
 
-      // Multilingual text fields on a dish that we auto-translate.
-      const ITEM_TRANSLATABLE = [
-        "name",
-        "description",
-        "story",
-        "frenchInfluence",
-        "photoAlt",
+      // Generic translate runner. opts: { blockId (container id), tab,
+      //   fields: [{ key, get(lang)->string, writeState(lang, value) }] }
+      // The Traducir button is #tr-<blockId>; the reveal is #other-<blockId>.
+      async function runTranslate(opts) {
+        await withTranslateButton("tr-" + opts.blockId, async () => {
+          const src = {};
+          opts.fields.forEach((f) => {
+            const v = f.get(adminLang);
+            if (typeof v === "string" && v.trim()) src[f.key] = v;
+          });
+          if (!Object.keys(src).length) {
+            alert("Escribe primero el texto en el idioma elegido.");
+            return;
+          }
+          const tr = await translateGroup(adminLang, src);
+          const others = ADMIN_LANGS.filter((l) => l !== adminLang);
+          const block = document.getElementById(opts.blockId);
+          others.forEach((lang) => {
+            const t = tr[lang];
+            if (!t) return;
+            opts.fields.forEach((f) => {
+              if (typeof t[f.key] !== "string") return;
+              f.writeState(lang, t[f.key]);
+              const el = block?.querySelector(`[data-ml="${f.key}.${lang}"]`);
+              if (el) el.value = t[f.key];
+            });
+          });
+          const det = document.getElementById("other-" + opts.blockId);
+          if (det) det.open = true;
+          markDirty(opts.tab || "menu");
+        });
+      }
+
+      // Field metadata (nested {es,en,fr}) shared by render + translate for dishes.
+      const ITEM_ML_FIELDS = [
+        { key: "name", label: "Nombre", multiline: false },
+        { key: "description", label: "Descripción", multiline: true },
+        { key: "story", label: "Historia", multiline: true },
+        { key: "frenchInfluence", label: "Toque francés", multiline: true },
       ];
 
       async function translateItem(ci, ii) {
         const item = menuData.categories[ci]?.items?.[ii];
         if (!item) return;
-        await withTranslateButton(`tr-item-${ci}-${ii}`, async () => {
-          const fields = {};
-          ITEM_TRANSLATABLE.forEach((f) => {
-            const es = item[f]?.es;
-            if (typeof es === "string" && es.trim()) fields[f] = es;
-          });
-          if (!Object.keys(fields).length) {
-            alert("Escribe primero el texto en español.");
-            return;
-          }
-          const tr = await translateFromSpanish(fields);
-          const block = document.getElementById(`item-block-${ci}-${ii}`);
-          ["en", "fr"].forEach((lang) => {
-            const t = tr[lang];
-            if (!t) return;
-            ITEM_TRANSLATABLE.forEach((f) => {
-              if (typeof t[f] !== "string") return;
-              if (!item[f]) item[f] = {};
-              item[f][lang] = t[f];
-              // Update the visible input/textarea in place (no re-render, so
-              // the open category and scroll position are preserved).
-              const el = block?.querySelector(`[oninput*="${f}.${lang}"]`);
-              if (el) el.value = t[f];
-            });
-          });
-          markDirty("menu");
+        await runTranslate({
+          blockId: `item-block-${ci}-${ii}`,
+          tab: "menu",
+          fields: ITEM_ML_FIELDS.map((f) => ({
+            key: f.key,
+            get: (l) => item[f.key]?.[l] || "",
+            writeState: (l, v) => {
+              if (!item[f.key]) item[f.key] = {};
+              item[f.key][l] = v;
+            },
+          })),
+        });
+      }
+
+      async function translateCategory(ci) {
+        const cat = menuData.categories[ci];
+        if (!cat) return;
+        await runTranslate({
+          blockId: `cat-block-${ci}`,
+          tab: "menu",
+          fields: [
+            {
+              key: "name",
+              get: (l) => cat.name?.[l] || "",
+              writeState: (l, v) => {
+                if (!cat.name) cat.name = {};
+                cat.name[l] = v;
+              },
+            },
+          ],
+        });
+      }
+
+      function setCatField(ci, path, value) {
+        const cat = menuData.categories[ci];
+        if (!cat) return;
+        const [a, b] = path.split(".");
+        if (b) {
+          if (!cat[a]) cat[a] = {};
+          cat[a][b] = value;
+        } else cat[a] = value;
+        markDirty("menu");
+      }
+
+      function categoryNameSection(cat, ci) {
+        return mlSection(`cat-block-${ci}`, `translateCategory(${ci})`, [
+          {
+            key: "name",
+            label: "Nombre de la categoría",
+            multiline: false,
+            get: (l) => cat.name?.[l] || "",
+            setExpr: (l) => `setCatField(${ci},'name.${l}',this.value)`,
+          },
+        ]);
+      }
+
+      const COMBO_ML_FIELDS = [
+        { key: "name", label: "Nombre", multiline: false },
+        { key: "description", label: "Descripción", multiline: true },
+        { key: "tag", label: "Tag", multiline: false },
+      ];
+
+      function comboMlSection(combo, ci) {
+        return mlSection(
+          `combo-block-${ci}`,
+          `translateCombo(${ci})`,
+          COMBO_ML_FIELDS.map((f) => ({
+            key: f.key,
+            label: f.label,
+            multiline: f.multiline,
+            get: (l) => combo[f.key]?.[l] || "",
+            setExpr: (l) => `setComboField(${ci},'${f.key}.${l}',this.value)`,
+          })),
+        );
+      }
+
+      async function translateCombo(ci) {
+        const combo = combosData[ci];
+        if (!combo) return;
+        await runTranslate({
+          blockId: `combo-block-${ci}`,
+          tab: "combos",
+          fields: COMBO_ML_FIELDS.map((f) => ({
+            key: f.key,
+            get: (l) => combo[f.key]?.[l] || "",
+            writeState: (l, v) => {
+              if (!combo[f.key]) combo[f.key] = {};
+              combo[f.key][l] = v;
+            },
+          })),
+        });
+      }
+
+      // Specials store languages as flat fields (title/titleEn/titleFr, …).
+      const SPECIAL_ML_FIELDS = [
+        {
+          key: "title",
+          label: "Título",
+          multiline: false,
+          prop: { es: "title", en: "titleEn", fr: "titleFr" },
+        },
+        {
+          key: "description",
+          label: "Descripción",
+          multiline: true,
+          prop: { es: "description", en: "descriptionEn", fr: "descriptionFr" },
+        },
+      ];
+
+      function specialMlSection(s, i) {
+        return mlSection(
+          `special-block-${i}`,
+          `translateSpecial(${i})`,
+          SPECIAL_ML_FIELDS.map((f) => ({
+            key: f.key,
+            label: f.label,
+            multiline: f.multiline,
+            get: (l) => s[f.prop[l]] || "",
+            setExpr: (l) =>
+              `specialsData[${i}].${f.prop[l]}=this.value;markDirty('specials')`,
+          })),
+        );
+      }
+
+      async function translateSpecial(i) {
+        const s = specialsData[i];
+        if (!s) return;
+        await runTranslate({
+          blockId: `special-block-${i}`,
+          tab: "specials",
+          fields: SPECIAL_ML_FIELDS.map((f) => ({
+            key: f.key,
+            get: (l) => s[f.prop[l]] || "",
+            writeState: (l, v) => {
+              s[f.prop[l]] = v;
+            },
+          })),
         });
       }
 
@@ -1970,35 +2186,12 @@
           specialsData
             .map(
               (s, i) => `
-          <div class="special-block">
+          <div class="special-block" id="special-block-${i}">
             <div class="special-header">
               <strong>${esc(s.title || "Especial " + (i + 1))}</strong>
               <button class="btn-danger" onclick="removeSpecial(${i})">✕ Eliminar</button>
             </div>
-            <div class="item-row-2">
-              <div>
-                <label class="admin-label" style="margin-top:0">Título ES</label>
-                <input class="admin-input" value="${esc(s.title || "")}" oninput="specialsData[${i}].title=this.value;markDirty('specials')">
-              </div>
-              <div>
-                <label class="admin-label" style="margin-top:0">Título EN</label>
-                <input class="admin-input" value="${esc(s.titleEn || "")}" oninput="specialsData[${i}].titleEn=this.value;markDirty('specials')">
-              </div>
-            </div>
-            <label class="admin-label">Título FR</label>
-            <input class="admin-input" value="${esc(s.titleFr || "")}" oninput="specialsData[${i}].titleFr=this.value;markDirty('specials')">
-            <div class="item-row-2">
-              <div>
-                <label class="admin-label">Descripción ES</label>
-                <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].description=this.value;markDirty('specials')">${esc(s.description || "")}</textarea>
-              </div>
-              <div>
-                <label class="admin-label">Descripción EN</label>
-                <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].descriptionEn=this.value;markDirty('specials')">${esc(s.descriptionEn || "")}</textarea>
-              </div>
-            </div>
-            <label class="admin-label">Descripción FR</label>
-            <textarea class="admin-textarea" rows="2" oninput="specialsData[${i}].descriptionFr=this.value;markDirty('specials')">${esc(s.descriptionFr || "")}</textarea>
+            ${specialMlSection(s, i)}
             <div class="item-row-3">
               <div>
                 <label class="admin-label">Precio (₡, opcional)</label>
@@ -2115,48 +2308,7 @@
                   <input class="admin-input" value="${esc(combo.bestFor || "")}" placeholder="sharing, quick-lunch\u2026" oninput="setComboField(${ci},'bestFor',this.value)">
                 </div>
               </div>
-              <div class="item-row-3">
-                <div>
-                  <label class="admin-label">Nombre ES</label>
-                  <input class="admin-input" value="${esc(combo.name?.es || "")}" oninput="setComboField(${ci},'name.es',this.value)">
-                </div>
-                <div>
-                  <label class="admin-label">Nombre EN</label>
-                  <input class="admin-input" value="${esc(combo.name?.en || "")}" oninput="setComboField(${ci},'name.en',this.value)">
-                </div>
-                <div>
-                  <label class="admin-label">Nombre FR</label>
-                  <input class="admin-input" value="${esc(combo.name?.fr || "")}" oninput="setComboField(${ci},'name.fr',this.value)">
-                </div>
-              </div>
-              <div class="item-row-3">
-                <div>
-                  <label class="admin-label">Descripci\u00f3n ES</label>
-                  <textarea class="admin-textarea" rows="2" oninput="setComboField(${ci},'description.es',this.value)">${esc(combo.description?.es || "")}</textarea>
-                </div>
-                <div>
-                  <label class="admin-label">Description EN</label>
-                  <textarea class="admin-textarea" rows="2" oninput="setComboField(${ci},'description.en',this.value)">${esc(combo.description?.en || "")}</textarea>
-                </div>
-                <div>
-                  <label class="admin-label">Description FR</label>
-                  <textarea class="admin-textarea" rows="2" oninput="setComboField(${ci},'description.fr',this.value)">${esc(combo.description?.fr || "")}</textarea>
-                </div>
-              </div>
-              <div class="item-row-3">
-                <div>
-                  <label class="admin-label">Tag ES</label>
-                  <input class="admin-input" value="${esc(combo.tag?.es || "")}" oninput="setComboField(${ci},'tag.es',this.value)">
-                </div>
-                <div>
-                  <label class="admin-label">Tag EN</label>
-                  <input class="admin-input" value="${esc(combo.tag?.en || "")}" oninput="setComboField(${ci},'tag.en',this.value)">
-                </div>
-                <div>
-                  <label class="admin-label">Tag FR</label>
-                  <input class="admin-input" value="${esc(combo.tag?.fr || "")}" oninput="setComboField(${ci},'tag.fr',this.value)">
-                </div>
-              </div>
+              ${comboMlSection(combo, ci)}
               <label class="admin-label">Platos incluidos</label>
               <div style="margin-top:.35rem;line-height:2.2">${chips || '<span class="muted small">Carga el men\u00fa primero</span>'}</div>
             </div>`;
@@ -3009,6 +3161,7 @@
 
       (async function init() {
         reconcileApiBase();
+        updateAdminLangChips();
         renderAuthCard();
         peSetupDragDrop();
         await discoverApiBase();
