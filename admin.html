@@ -1460,6 +1460,7 @@
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.6rem;flex-wrap:wrap;gap:.3rem">
             <strong style="color:var(--gold)">${esc(item.name?.es || "Plato")}</strong>
             <div style="display:flex;gap:.3rem;flex-wrap:wrap">
+              <button class="btn-admin" id="tr-item-${ci}-${ii}" style="padding:.15rem .55rem;font-size:.75rem" onclick="translateItem(${ci},${ii})" title="Traducir el nombre, la descripci\u00f3n y la historia del espa\u00f1ol a ingl\u00e9s y franc\u00e9s">\u2728 Traducir</button>
               <button class="btn-admin" style="padding:.15rem .45rem;font-size:.75rem" onclick="moveItem(${ci},${ii},-1)" title="Subir plato" ${ii === 0 ? "disabled" : ""}>\u25b2</button>
               <button class="btn-admin" style="padding:.15rem .45rem;font-size:.75rem" onclick="moveItem(${ci},${ii},1)" title="Bajar plato" ${ii === (menuData.categories[ci]?.items || []).length - 1 ? "disabled" : ""}>\u25bc</button>
               <button class="btn-admin" style="padding:.15rem .45rem;font-size:.75rem" onclick="duplicateItem(${ci},${ii})" title="Duplicar plato">\u29c9</button>
@@ -1588,6 +1589,84 @@
           item[parts[0]][parts[1]] = value;
         }
         markDirty("menu");
+      }
+
+      // ── Auto-translation (Phase B) ──
+      // Calls the Admin API, which proxies the Claude API server-side, to
+      // translate the given Spanish fields into English and French.
+      // `fields` is { fieldName: spanishText }. Returns { en: {...}, fr: {...} }.
+      async function translateFromSpanish(fields) {
+        const data = await apiFetch("/api/translate", {
+          method: "POST",
+          body: JSON.stringify({
+            source: "es",
+            targets: ["en", "fr"],
+            fields,
+          }),
+        });
+        return data?.translations || {};
+      }
+
+      function withTranslateButton(btnId, fn) {
+        return (async () => {
+          const btn = document.getElementById(btnId);
+          const original = btn ? btn.textContent : "";
+          if (btn) {
+            btn.disabled = true;
+            btn.textContent = "⏳ Traduciendo…";
+          }
+          try {
+            await fn();
+          } catch (e) {
+            alert("No se pudo traducir: " + e.message);
+          } finally {
+            if (btn) {
+              btn.disabled = false;
+              btn.textContent = original || "✨ Traducir";
+            }
+          }
+        })();
+      }
+
+      // Multilingual text fields on a dish that we auto-translate.
+      const ITEM_TRANSLATABLE = [
+        "name",
+        "description",
+        "story",
+        "frenchInfluence",
+        "photoAlt",
+      ];
+
+      async function translateItem(ci, ii) {
+        const item = menuData.categories[ci]?.items?.[ii];
+        if (!item) return;
+        await withTranslateButton(`tr-item-${ci}-${ii}`, async () => {
+          const fields = {};
+          ITEM_TRANSLATABLE.forEach((f) => {
+            const es = item[f]?.es;
+            if (typeof es === "string" && es.trim()) fields[f] = es;
+          });
+          if (!Object.keys(fields).length) {
+            alert("Escribe primero el texto en español.");
+            return;
+          }
+          const tr = await translateFromSpanish(fields);
+          const block = document.getElementById(`item-block-${ci}-${ii}`);
+          ["en", "fr"].forEach((lang) => {
+            const t = tr[lang];
+            if (!t) return;
+            ITEM_TRANSLATABLE.forEach((f) => {
+              if (typeof t[f] !== "string") return;
+              if (!item[f]) item[f] = {};
+              item[f][lang] = t[f];
+              // Update the visible input/textarea in place (no re-render, so
+              // the open category and scroll position are preserved).
+              const el = block?.querySelector(`[oninput*="${f}.${lang}"]`);
+              if (el) el.value = t[f];
+            });
+          });
+          markDirty("menu");
+        });
       }
 
       function setItemList(ci, ii, field, value) {
