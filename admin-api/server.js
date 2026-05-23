@@ -39,7 +39,7 @@ function config() {
     password: process.env.LV_ADMIN_PASSWORD || "",
     passwordHash: process.env.LV_ADMIN_PASSWORD_HASH || "",
     sessionSecret: process.env.LV_ADMIN_SESSION_SECRET || "",
-    sessionTtlHours: Number(process.env.LV_ADMIN_SESSION_TTL_HOURS || 12),
+    sessionTtlHours: Number(process.env.LV_ADMIN_SESSION_TTL_HOURS || 720),
     allowedOrigins: String(process.env.LV_ADMIN_ALLOWED_ORIGIN || "")
       .split(",")
       .map((s) => s.trim())
@@ -419,10 +419,27 @@ const server = http.createServer(async (req, res) => {
 
     if (req.method === "GET" && url.pathname === "/api/session") {
       const session = getSession(req);
-      return sendJson(res, req, 200, {
-        authenticated: Boolean(session),
-        user: session?.user || null,
-      });
+      // Rolling session: each time the admin loads, slide the expiry forward so
+      // an active owner stays logged in instead of re-entering the password.
+      const extra = session
+        ? {
+            "Set-Cookie": makeCookie(
+              req,
+              createSessionToken(),
+              config().sessionTtlHours * 3600,
+            ),
+          }
+        : undefined;
+      return sendJson(
+        res,
+        req,
+        200,
+        {
+          authenticated: Boolean(session),
+          user: session?.user || null,
+        },
+        extra,
+      );
     }
 
     if (req.method === "POST" && url.pathname === "/api/session/login") {

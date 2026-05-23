@@ -4,7 +4,7 @@
 'use strict';
 
 /* ── State ─────────────────────────────────────────────────────────── */
-let lang = localStorage.getItem('lv-lang') || 'es';
+let lang = 'es'; // real initial value chosen in init() via detectInitialLang()
 let selected = 'all';
 let menuData = { categories: [] };
 let comboData = [];
@@ -415,6 +415,29 @@ function handleWaClick(e) {
 }
 
 /* ── Language ───────────────────────────────────────────────────────── */
+// Choose the initial language: explicit ?lang= link > saved choice >
+// visitor's browser language > Spanish. Called once at init after config loads.
+function detectInitialLang() {
+  const enabled = siteConfig.availableLanguages || ['es', 'en', 'fr'];
+  const norm = c => String(c || '').trim().slice(0, 2).toLowerCase();
+  // 1. Explicit ?lang= (shareable per-language links / hreflang targets)
+  const qp = norm(new URLSearchParams(location.search).get('lang'));
+  if (qp && enabled.includes(qp)) return qp;
+  // 2. Previously chosen language (manual switcher persists this)
+  const saved = norm(localStorage.getItem('lv-lang'));
+  if (saved && enabled.includes(saved)) return saved;
+  // 3. Visitor's browser languages, in preference order
+  const navLangs = (navigator.languages && navigator.languages.length)
+    ? navigator.languages
+    : [navigator.language || navigator.userLanguage || ''];
+  for (const l of navLangs) {
+    const base = norm(l);
+    if (enabled.includes(base)) return base;
+  }
+  // 4. Fallback to Spanish (primary local language)
+  return 'es';
+}
+
 function setLang(l) {
   if (!languageEnabled(l)) l = 'es';
   lang = l;
@@ -930,7 +953,7 @@ async function init() {
   }
 
   await loadData();
-  setLang(lang); // apply initial language
+  setLang(detectInitialLang()); // auto-detect & apply initial language
   renderSpecials();
   renderAll();
 

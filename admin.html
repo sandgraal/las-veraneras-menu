@@ -1405,6 +1405,7 @@
               <span style="font-size:1.3rem">${esc(cat.emoji || "\ud83c\udf74")}</span>
               <span class="cat-name">${esc(cat.name?.es || "Categor\u00eda")}</span>
               <span class="muted small">${(cat.items || []).length} platos</span>
+              <button class="btn-admin-primary" style="padding:.2rem .6rem;font-size:.8rem;white-space:nowrap" onclick="event.stopPropagation();addItem(${ci})" title="Agregar plato a esta categor\u00eda">\uff0b Plato</button>
               <button class="cat-toggle" id="cat-toggle-${ci}">\u25bc</button>
               <button class="btn-admin" style="padding:.15rem .45rem;font-size:.75rem" onclick="event.stopPropagation();moveCategory(${ci},-1)" title="Subir categor\u00eda" ${ci === 0 ? "disabled" : ""}>\u25b2</button>
               <button class="btn-admin" style="padding:.15rem .45rem;font-size:.75rem" onclick="event.stopPropagation();moveCategory(${ci},1)" title="Bajar categor\u00eda" ${ci === (menuData.categories || []).length - 1 ? "disabled" : ""}>\u25bc</button>
@@ -1675,6 +1676,18 @@
         // Re-open category
         const body = document.getElementById("cat-body-" + ci);
         if (body && !body.classList.contains("open")) toggleCat(ci);
+        // Scroll to and focus the new dish so the owner can edit it right away
+        const ii = menuData.categories[ci].items.length - 1;
+        setTimeout(() => {
+          const block = document.getElementById("item-block-" + ci + "-" + ii);
+          if (!block) return;
+          block.scrollIntoView({ behavior: "smooth", block: "center" });
+          const firstInput = block.querySelector("input");
+          if (firstInput) {
+            firstInput.focus();
+            firstInput.select();
+          }
+        }, 80);
       }
 
       function removeItem(ci, ii) {
