@@ -786,7 +786,6 @@
       let _session = { authenticated: false, user: "" };
       const API_BASE_STORAGE_KEY = "lv-admin-api-base";
       const API_DISCOVERY_TIMEOUT_MS = 2200;
-      let _showAdvancedEndpoint = false;
       let _apiDiscovery = {
         state: "idle",
         checking: false,
@@ -964,7 +963,6 @@
                 repo: health?.repo || "",
                 branch: health?.branch || "",
               };
-              _showAdvancedEndpoint = false;
               renderAuthCard();
               return { ok: true, base: candidate.base, health };
             } catch (error) {
@@ -987,7 +985,6 @@
             repo: "",
             branch: "",
           };
-          _showAdvancedEndpoint = true;
           renderAuthCard();
           return { ok: false, base: existing, error: lastError };
         })().finally(() => {
@@ -1013,11 +1010,6 @@
           _apiDiscovery.message ||
           "Necesitamos encontrar el servicio seguro del admin."
         );
-      }
-
-      function toggleEndpointEditor(show = true) {
-        _showAdvancedEndpoint = Boolean(show);
-        renderAuthCard();
       }
 
       function describeApiFetchFailure(error) {
@@ -1066,17 +1058,7 @@
       /* ── Auth UI ── */
       function renderAuthCard() {
         const card = document.getElementById("auth-card");
-        const apiBase = getConfiguredApiBase();
-        const requiresBase = requiresExplicitApiBase();
-        const showApiInput =
-          _showAdvancedEndpoint ||
-          (!apiBase && (requiresBase || _apiDiscovery.state === "error"));
         const detectionHint = getApiConnectionHint();
-        const endpointSummary = apiBase
-          ? `Servicio detectado: ${formatApiBaseLabel(apiBase)}`
-          : requiresBase || !canProbeSameOriginApi()
-            ? "Aún no encontramos el servicio seguro."
-            : `Usaremos ${formatApiBaseLabel("")}`;
         if (_session.authenticated) {
           card.innerHTML = `
             <div class="topbar"><div>
@@ -1090,7 +1072,6 @@
                 <button class="btn-admin" onclick="downloadBackup()">⬇ Respaldo JSON</button>
                 <button class="btn-admin" onclick="showTab('settings');setTimeout(()=>document.getElementById('recovery-card')?.scrollIntoView({behavior:'smooth'}),120)">🛡️ Recuperación</button>
                 <button class="btn-admin" onclick="logout()">Cerrar sesión</button>
-                <button class="btn-admin" onclick="clearApiBase()">Cambiar endpoint</button>
               </div>
             </div>`;
           return;
@@ -1098,39 +1079,13 @@
         card.innerHTML = `
             <div class="topbar"><div>
               <h2>Administrador</h2>
-              <p class="muted">Usa tu contraseña para entrar. Normalmente detectamos el servicio seguro automáticamente.</p>
+              <p class="muted">Ingresa tu contraseña para administrar el menú.</p>
             </div></div>
-            <div style="padding:.85rem 1rem;border:1px solid var(--border);border-radius:12px;background:rgba(255,255,255,.03);margin-bottom:.85rem">
-              <strong style="display:block;margin-bottom:.25rem">${esc(endpointSummary)}</strong>
-              <p class="muted small" style="margin:0">${esc(detectionHint)}</p>
-            </div>
             <label class="admin-label">Contraseña</label>
             <input id="admin-pw" type="password" class="admin-input" placeholder="••••••••" autocomplete="current-password">
-            ${
-              showApiInput
-                ? `<label class="admin-label" style="margin-top:.75rem">Admin API URL (avanzado)</label>
-            <input id="admin-api-base" class="admin-input" placeholder="https://tu-admin-api.example.com" value="${esc(apiBase)}" autocomplete="url">
-            <p class="muted small" style="margin-top:.25rem">${
-              requiresBase
-                ? "Solo úsalo si la detección automática falló. La URL no es secreta; solo apunta al servicio seguro."
-                : "En entornos locales puedes dejarlo vacío si el API vive en este mismo sitio."
-            }</p>`
-                : ""
-            }
             <div class="admin-actions">
               <button class="btn-admin-primary" onclick="loginAdmin()">Entrar</button>
               <button class="btn-admin" onclick="downloadBackup()">⬇ Respaldo JSON</button>
-              <button class="btn-admin" onclick="discoverApiBase({ force: true })">Detectar servicio</button>
-              ${
-                showApiInput
-                  ? '<button class="btn-admin" onclick="toggleEndpointEditor(false)">Ocultar URL</button>'
-                  : '<button class="btn-admin" onclick="toggleEndpointEditor(true)">Usar otra URL</button>'
-              }
-              ${
-                apiBase
-                  ? '<button class="btn-admin" style="margin-left:auto" onclick="clearApiBase()">Olvidar endpoint</button>'
-                  : ""
-              }
             </div>`;
         setTimeout(() => {
           const pw = document.getElementById("admin-pw");
@@ -1143,40 +1098,16 @@
         }, 50);
       }
 
-      async function clearApiBase() {
-        const previousApiBase = getConfiguredApiBase();
-        if (_session.authenticated) {
-          await logout({ apiBase: previousApiBase, render: false });
-        }
-        saveApiBase("");
-        _apiDiscovery = {
-          ..._apiDiscovery,
-          base: "",
-          state: requiresExplicitApiBase() ? "idle" : "ready",
-          message: requiresExplicitApiBase()
-            ? "Necesitamos encontrar el servicio seguro."
-            : `Usaremos ${formatApiBaseLabel("")}`,
-        };
-        _showAdvancedEndpoint = requiresExplicitApiBase();
-        renderAuthCard();
-      }
-
       async function loginAdmin() {
         const pw = document.getElementById("admin-pw")?.value;
-        const apiInput = document.getElementById("admin-api-base")?.value;
         if (!pw) {
           alert("Ingresa la contraseña.");
           return;
         }
-        if (typeof apiInput === "string") saveApiBase(apiInput);
-        await ensureApiBase({ force: typeof apiInput === "string" });
+        await ensureApiBase();
         const apiBase = getConfiguredApiBase();
         if (requiresExplicitApiBase() && !apiBase) {
-          _showAdvancedEndpoint = true;
-          renderAuthCard();
-          alert(
-            "No encontramos el Admin API. Usa “Detectar servicio” o pega la URL una sola vez.",
-          );
+          alert("No pudimos conectar con el servidor. Inténtalo más tarde.");
           return;
         }
         document.getElementById("status").textContent = "Verificando…";
