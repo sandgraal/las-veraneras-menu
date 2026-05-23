@@ -760,7 +760,7 @@
             "fr": "Haricots tendres, riz blanc, chicharron, chimichurri et piquitos."
           },
           "price": "4000",
-          "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/10/Chifrijo.jpg/960px-Chifrijo.jpg",
+          "image": "images/chifrijo-1779564930815.webp",
           "badgeText": "",
           "allergens": [],
           "story": {
@@ -958,6 +958,47 @@
           },
           "imageSource": "https://commons.wikimedia.org/wiki/File:Camarones_Empanizados_-_Mi_Pueblo_-_April_2023_-_Sarah_Stierch_02.jpg",
           "imageCurationNote": "Breaded shrimp plate."
+        },
+        {
+          "id": "nuevo-1779549101867",
+          "name": {
+            "es": "Camarones en salsa curry ",
+            "en": "Shrimp in Curry Sauce",
+            "fr": "Crevettes à la Sauce Curry"
+          },
+          "description": {
+            "es": "Camarones con salsa (crema dulce ,cebolla, chile dulce,curry)\nServido con arroz y ensalada o con papas",
+            "en": "Shrimp in sauce (sweet cream, onion, sweet pepper, curry)\nServed with rice and salad or with potatoes",
+            "fr": "Crevettes en sauce (crème fraîche, oignon, poivron doux, curry)\nServies avec du riz et de la salade ou avec des frites"
+          },
+          "story": {
+            "es": "",
+            "en": "",
+            "fr": ""
+          },
+          "frenchInfluence": {
+            "es": "",
+            "en": "",
+            "fr": ""
+          },
+          "price": "4500",
+          "image": "images/nuevo-1779549101867-1779549189925.webp",
+          "featured": true,
+          "popular": false,
+          "badgeText": "",
+          "allergens": [
+            "Lácteos",
+            "Mariscos"
+          ],
+          "bestFor": [],
+          "dietaryTags": [],
+          "addons": [],
+          "pairings": [],
+          "photoAlt": {
+            "es": "",
+            "en": "",
+            "fr": ""
+          }
         }
       ]
     }
