@@ -2586,7 +2586,6 @@
         const url = URL.createObjectURL(file);
         const img = document.getElementById("pe-img");
         img.onload = () => {
-          URL.revokeObjectURL(url);
           document.getElementById("pe-dropzone").style.display = "none";
           document.getElementById("pe-editor").style.display = "";
           document.getElementById("pe-brightness").value = 0;
@@ -2603,7 +2602,30 @@
             responsive: true,
           });
         };
-        img.src = url;
+        // Downscale very large photos before handing them to Cropper. Phone
+        // cameras produce images whose pixel area exceeds the mobile browser
+        // canvas limit, which makes getCroppedCanvas() return null on upload.
+        const loader = new Image();
+        loader.onload = () => {
+          URL.revokeObjectURL(url);
+          const MAX_SIDE = 2000;
+          const scale = Math.min(
+            1,
+            MAX_SIDE / Math.max(loader.naturalWidth, loader.naturalHeight),
+          );
+          const w = Math.max(1, Math.round(loader.naturalWidth * scale));
+          const h = Math.max(1, Math.round(loader.naturalHeight * scale));
+          const tmp = document.createElement("canvas");
+          tmp.width = w;
+          tmp.height = h;
+          tmp.getContext("2d").drawImage(loader, 0, 0, w, h);
+          img.src = tmp.toDataURL("image/jpeg", 0.92);
+        };
+        loader.onerror = () => {
+          URL.revokeObjectURL(url);
+          alert("No se pudo cargar la imagen. Intenta con otra foto.");
+        };
+        loader.src = url;
       }
 
       function peFlipH() {
@@ -2643,6 +2665,11 @@
             maxHeight: maxDim,
             imageSmoothingQuality: "high",
           });
+          if (!cropped) {
+            throw new Error(
+              "No se pudo procesar la imagen. Intenta con una foto más pequeña.",
+            );
+          }
           const finalCanvas = document.createElement("canvas");
           finalCanvas.width = cropped.width;
           finalCanvas.height = cropped.height;
